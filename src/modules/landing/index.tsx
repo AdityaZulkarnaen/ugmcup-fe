@@ -1,6 +1,8 @@
 import { Hero } from "./components/Hero";
 import { About } from "./components/About";
 import { News } from "./components/News";
+import { LiveScoreCta } from "./components/LiveScoreCta";
+import { Footer } from "@/components/layout/Footer";
 
 /**
  * Landing page module root.
@@ -13,6 +15,8 @@ export default function LandingPage() {
       <Hero />
       <About />
       <News />
+      <LiveScoreCta />
+      <Footer />
     </>
   );
 }
