@@ -8,8 +8,8 @@ import { SponsorRow } from "@/components/sections/SponsorRow";
 export function Hero() {
   return (
     <section className="relative overflow-hidden bg-hero-bg">
-      {/* Background glow layers */}
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-105">
+      {/* Halo top — adjust size/position here */}
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-360 w-360">
         <Image
           src="/images/hero/halo-top.png"
           alt=""
@@ -18,14 +18,14 @@ export function Hero() {
           className="object-cover"
         />
       </div>
-      <div
-        className="pointer-events-none absolute inset-x-0 -right-64 -bottom-120 h-180"
-      >
+
+      {/* Halo bottom — adjust size/position here */}
+      <div className="pointer-events-none absolute bottom-0 translate-y-270 -right-100 h-488 w-488">
         <Image
           src="/images/hero/halo-bottom.png"
           alt=""
           fill
-          className="object-cover blur-2xl"
+          className="object-contain"
         />
       </div>
 
@@ -42,23 +42,47 @@ export function Hero() {
 
       <Navbar />
 
-      <div className="relative z-10 mx-auto flex min-h-[calc(100vh-96px)] w-full max-w-6xl flex-col items-center justify-center gap-2 px-6 py-16 text-center">
-        <Badge>UGM CUP 2026</Badge>
-
-        <h1 className="flex flex-col ">
-          <span className="bg-linear-to-r from-accent to-accent-2 bg-clip-text text-5xl font-extrabold italic text-[#00F5D4] sm:text-[96px]">
-            Rallyverse
+      <div className="relative z-10 mx-auto flex min-h-[calc(100vh-96px)] w-full max-w-7xl flex-col items-center justify-center gap-6 px-6 py-16 text-center">
+        <div className="flex items-center justify-center bg-transparent">
+        {/* Komponen Badge Utama */}
+        <div 
+          className="
+            inline-flex 
+            items-center 
+            justify-center 
+            px-6 
+            py-2.5 
+            rounded-full 
+            bg-white/5 
+            ring-[0.5px] 
+            ring-inset 
+            ring-white/30 
+            shadow-[0_50px_14px_rgba(139,92,246,0.00),0_32px_13px_rgba(139,92,246,0.01),0_18px_11px_rgba(139,92,246,0.05),0_8px_8px_rgba(139,92,246,0.09),0_2px_4px_rgba(139,92,246,0.05)]
+          "
+        >
+          <span className="text-[#02F5D4] font-medium tracking-wide text-sm md:text-base">
+            UGM CUP 2026
           </span>
-          <span className="text-3xl -mt-4 font-extrabold text-white sm:text-[96px] italic">
-            Power in every motion
-          </span>
-        </h1>
+        </div>
+      </div>
 
-        <SponsorRow />
+        {/* Title + sponsor marquee share the same width */}
+        <div className="flex w-fit flex-col items-center">
+          <h1 className="flex flex-col w-fit">
+            <span className="bg-linear-to-r from-accent to-accent-2 bg-clip-text text-5xl font-extrabold italic text-[#00F5D4] sm:text-[96px]">
+              Rallyverse
+            </span>
+            <span className="-mt-4 text-3xl font-extrabold italic text-white sm:text-[96px]">
+              Power in every motion
+            </span>
+          </h1>
 
-        <Button href="#" variant="solid" className="mt-2">
+          <SponsorRow className="mt-6 max-w-6xl" />
+        </div>
+
+        <Button href="#" variant="solid" className="mt-2 px-6 py-3 text-base font-black italic">
           Lihat Live Score
-          <ArrowIcon />
+          <ArrowIcon className="font-black" />
         </Button>
       </div>
     </section>

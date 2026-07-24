@@ -8,7 +8,7 @@ export function Navbar() {
     <header className="relative z-20 mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-6">
       <div className="flex items-center gap-2">
         <Image
-          src="/images/global/logo.png"
+          src="/images/global/logo.svg"
           alt="UGMCUP"
           width={36}
           height={36}

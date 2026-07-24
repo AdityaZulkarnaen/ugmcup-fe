@@ -1,12 +1,21 @@
 import { sponsors } from "@/lib/constants/sponsors";
 import { SponsorLogo } from "@/components/ui/SponsorLogo";
 
-export function SponsorRow() {
+interface SponsorRowProps {
+  className?: string;
+}
+
+export function SponsorRow({ className }: SponsorRowProps) {
+  // Rendered twice so the track can loop seamlessly at translateX(-50%).
+  const loop = [...sponsors, ...sponsors];
+
   return (
-    <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3">
-      {sponsors.map((sponsor) => (
-        <SponsorLogo key={sponsor.id} sponsor={sponsor} />
-      ))}
+    <div className={`marquee-mask overflow-hidden ${className ?? ""}`}>
+      <div className="animate-marquee flex items-center">
+        {loop.map((sponsor, index) => (
+          <SponsorLogo key={`${sponsor.id}-${index}`} sponsor={sponsor} />
+        ))}
+      </div>
     </div>
   );
 }

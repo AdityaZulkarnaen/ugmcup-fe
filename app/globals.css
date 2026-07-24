@@ -1,11 +1,9 @@
 @import "tailwindcss";
 
-
-
 :root {
   --background: #1A162B;
   --foreground: #f5f7f6;
-  --color-hero-bg: #050608;
+  --color-hero-bg: #1B182C;
   --color-accent: #34e5a6;
   --color-accent-2: #a4f26a;
 }
@@ -16,12 +14,53 @@
   --color-hero-bg: var(--color-hero-bg);
   --color-accent: var(--color-accent);
   --color-accent-2: var(--color-accent-2);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-montserrat);
+}
+
+/* Reset default browser spacing. Each component sets the margin/padding it
+   needs on its own. Kept in the base layer so Tailwind utilities still win. */
+@layer base {
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+}
+
+/* --- Sponsor marquee --- */
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee {
+  animation: marquee 30s linear infinite;
+}
+
+/* Fade the logos into transparency as they reach either edge. */
+.marquee-mask {
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent 0%,
+    black 12%,
+    black 88%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to right,
+    transparent 0%,
+    black 12%,
+    black 88%,
+    transparent 100%
+  );
 }
