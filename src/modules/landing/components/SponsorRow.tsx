@@ -11,7 +11,8 @@ export function SponsorRow({ className }: SponsorRowProps) {
 
   return (
     <div className={`marquee-mask overflow-hidden ${className ?? ""}`}>
-      <div className="animate-marquee flex items-center">
+      <div className="animate-marquee flex items-center"
+        style={{ animationDuration: "2s0s" }}>
         {loop.map((sponsor, index) => (
           <SponsorLogo key={`${sponsor.id}-${index}`} sponsor={sponsor} />
         ))}
