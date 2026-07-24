@@ -18,7 +18,7 @@ type ButtonProps = ButtonAsAnchor | ButtonAsButton;
 
 const variantClasses: Record<ButtonVariant, string> = {
   solid:
-    "bg-[radial-gradient(circle_at_50%_0%,#5CFCE7_0%,#02F5D4_75%)] text-[#12102A] shadow-[0_8px_24px_-6px_rgba(2,245,212,0.45)] hover:brightness-105",
+    "border-[1.5px] border-white bg-[#02F5D4] bg-[radial-gradient(circle_at_50%_50%,#02F5D4_0%,rgba(53,41,128,0)_25%)] text-[#12102A] shadow-[0_79.5px_22.5px_rgba(16,0,51,0.01),inset_0_0_18px_rgba(255,255,255,0.08),inset_0_-12px_48px_rgba(2,245,212,0.5)] hover:brightness-105",
   outline:
     "border border-white/50 bg-linear-to-b from-[#8B5CF6]/[0.03] to-transparent text-white shadow-[inset_0_0_12px_rgba(255,255,255,0.08),inset_0_-8px_32px_rgba(30,13,73,0.5)] hover:from-[#8B5CF6]/[0.08]",
 };
