@@ -1,5 +1,6 @@
 import { Hero } from "./components/Hero";
 import { About } from "./components/About";
+import { News } from "./components/News";
 
 /**
  * Landing page module root.
@@ -11,6 +12,7 @@ export default function LandingPage() {
     <>
       <Hero />
       <About />
+      <News />
     </>
   );
 }
