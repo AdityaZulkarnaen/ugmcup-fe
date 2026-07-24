@@ -7,7 +7,7 @@ import { SponsorRow } from "./SponsorRow";
 
 export function Hero() {
   return (
-    <section className="relative overflow-hidden bg-hero-bg">
+    <section className="relative overflow-hidden h-screen bg-hero-bg">
       {/* Halo top — adjust size/position here */}
       <div className="pointer-events-none absolute inset-x-0 top-0 h-360 w-360">
         <Image
