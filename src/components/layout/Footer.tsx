@@ -43,7 +43,7 @@ export function Footer() {
           {marqueeItems.map((_, index) => (
             <span
               key={index}
-              className="px-6 text-5xl font-black italic uppercase text-white sm:text-[12rem] mt-[1rem]"
+              className="px-6 text-5xl font-black italic uppercase text-white sm:text-[12rem] mt-[3rem]"
             >
               UGM CUP 2026 -
             </span>
@@ -52,34 +52,31 @@ export function Footer() {
       </div>
 
       {/* Dark footer body */}
-      <div className="bg-[#8B5CF6] text-white/50">
-        <div className="mx-auto w-[87.5%] py-16">
-          <div className="grid grid-cols-1 gap-12 md:grid-cols-[1.6fr_1fr_1fr_1fr]">
+      <div className="bg-[#8B5CF6] text-white">
+        <div className="mx-auto w-[87.5%] pt-16 pb-4 justify-evenly">
+          <div className="grid grid-cols-1 gap-12 md:grid-cols-[5fr_1fr_1fr_1fr]">
             {/* Brand */}
             <div>
               <div className="flex items-center gap-5">
                 {/* UGM university seal — ganti dengan aset asli bila tersedia */}
-                <div className="flex items-center gap-2">
-                  <span className="flex h-9 w-9 items-center justify-center rounded-full border border-white/40 text-[8px] font-bold text-white/70">
-                    UGM
-                  </span>
-                  <span className="text-[10px] font-semibold leading-tight tracking-wide text-white/70">
-                    UNIVERSITAS
-                    <br />
-                    GADJAH MADA
-                  </span>
-                </div>
+                <Image
+                  src="/images/global/ugm.svg"
+                  alt="UGM CUP"
+                  width={120}
+                  height={30}
+                  className="h-18 w-auto"
+                />
 
                 <Image
                   src="/images/global/logo.webp"
                   alt="UGM CUP"
-                  width={120}
-                  height={30}
-                  className="h-6 w-auto"
+                  width={1200}
+                  height={300}
+                  className="h-18 w-auto"
                 />
               </div>
 
-              <p className="mt-6 max-w-sm text-sm leading-relaxed">
+              <p className="mt-6 text-sm leading-relaxed">
                 UGM CUP adalah turnamen bulutangkis nasional yang mempertemukan
                 tim terbaik Universitas dan SMA/Sederajat se-Indonesia. Ajang ini
                 menjadi panggung kompetisi, pembinaan atlet muda, sekaligus
@@ -93,7 +90,7 @@ export function Footer() {
                     key={label}
                     href={href}
                     aria-label={label}
-                    className="flex h-9 w-9 items-center justify-center rounded-full border border-white/25 text-white/70 transition-colors hover:border-white/60 hover:text-white"
+                    className="flex h-16 w-16 items-center justify-center rounded-full border border-white text-white transition-colors hover:border-white/60 hover:text-white"
                   >
                     <Icon />
                   </a>
@@ -147,7 +144,7 @@ export function Footer() {
             </div>
           </div>
 
-          <div className="mt-14 text-center text-xs text-white/40">
+          <div className="mt-14 text-center text-xs text-white border-t-[0.5px] border-white/20 pt-4">
             © 2026 UGM CUP. All rights reserved. Diselenggarakan oleh UKM Bulu
             Tangkis, Universitas Gadjah Mada.
           </div>

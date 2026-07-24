@@ -22,8 +22,8 @@ export function ArrowIcon({ className }: { className?: string }) {
 export function YoutubeIcon({ className }: { className?: string }) {
   return (
     <svg
-      width="18"
-      height="18"
+      width="32"
+      height="32"
       viewBox="0 0 24 24"
       fill="currentColor"
       xmlns="http://www.w3.org/2000/svg"
@@ -36,24 +36,18 @@ export function YoutubeIcon({ className }: { className?: string }) {
 
 export function TiktokIcon({ className }: { className?: string }) {
   return (
-    <svg
-      width="16"
-      height="16"
-      viewBox="0 0 24 24"
-      fill="currentColor"
-      xmlns="http://www.w3.org/2000/svg"
-      className={className}
-    >
-      <path d="M16.5 3c.3 2.3 1.6 3.7 3.8 3.9v2.6c-1.3.1-2.5-.3-3.8-1v5.9c0 3.6-2.6 6.1-6 6.1-3 0-5.4-2.1-5.4-5 0-3 2.4-5.1 5.6-4.8v2.7c-.4-.1-.8-.2-1.2-.1-1.2.1-2 .9-1.9 2.1.1 1.1 1 1.9 2.1 1.8 1.3-.1 2-1 2-2.5V3h4.8Z" />
-    </svg>
+    <svg width="22" height="25" viewBox="0 0 15 17" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M11.4033 2.585C10.7769 1.86957 10.4316 0.950949 10.4317 0H7.59917V11.3667C7.57777 11.9819 7.31823 12.5648 6.87528 12.9924C6.43234 13.4199 5.84063 13.6587 5.225 13.6583C3.92333 13.6583 2.84167 12.595 2.84167 11.275C2.84167 9.69833 4.36333 8.51583 5.93083 9.00167V6.105C2.76833 5.68333 0 8.14 0 11.275C0 14.3275 2.53 16.5 5.21583 16.5C8.09417 16.5 10.4317 14.1625 10.4317 11.275V5.50917C11.5802 6.33403 12.9593 6.77659 14.3733 6.77417V3.94167C14.3733 3.94167 12.65 4.02417 11.4033 2.585Z" fill="white"/>
+</svg>
+
   );
 }
 
 export function InstagramIcon({ className }: { className?: string }) {
   return (
     <svg
-      width="16"
-      height="16"
+      width="32"
+      height="32"
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
