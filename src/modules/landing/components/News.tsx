@@ -4,7 +4,7 @@ import { NewsCard } from "./NewsCard";
 
 export function News() {
   return (
-    <section className="bg-[#F2F2F2] py-20 text-center text-[#0B0B0F] sm:py-28">
+    <section className="bg-[#F5F5F5] py-20 text-center text-[#0B0B0F] sm:py-28">
       <div className="mx-auto flex w-[87.5%] flex-col items-center">
         <p className="text-sm font-medium tracking-wide text-[#6B6B73] sm:text-base">
           Kabar Terkini Seputar UGM CUP

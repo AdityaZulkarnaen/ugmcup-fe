@@ -33,16 +33,16 @@ export function Hero() {
       <div className="pointer-events-none absolute -left-28 top-36 h-32 w-32 sm:h-132 sm:w-132">
         <Image src="/images/hero/cock2.png" alt="" fill className="object-contain" />
       </div>
-      <div className="pointer-events-none absolute -right-36 -top-4 h-32 w-32 sm:h-144 sm:w-144">
+      <div className="pointer-events-none absolute -right-36 top-10 h-32 w-32 sm:h-144 sm:w-144">
         <Image src="/images/hero/cock1.png" alt="" fill className="object-contain" />
       </div>
-      <div className="pointer-events-none absolute -bottom-52 right-8 h-32 w-32 sm:h-120 sm:w-120">
+      <div className="pointer-events-none absolute -bottom-52 right-32 h-32 w-32 sm:h-120 sm:w-120">
         <Image src="/images/hero/cock3.png" alt="" fill className="object-contain" />
       </div>
 
       <Navbar />
 
-      <div className="relative z-10 mx-auto flex min-h-[calc(100vh-96px)] w-full max-w-7xl flex-col items-center justify-center gap-6 px-6 py-16 text-center">
+      <div className="relative z-10 mx-auto flex h-full w-full max-w-7xl flex-col items-center justify-center gap-6 px-6 pb-16 pt-24 text-center">
         <div className="flex items-center justify-center bg-transparent">
         {/* Komponen Badge Utama */}
         <div 
