@@ -1,5 +1,5 @@
 import { sponsors } from "@/lib/constants/sponsors";
-import { SponsorLogo } from "@/components/ui/SponsorLogo";
+import { SponsorLogo } from "./SponsorLogo";
 
 interface SponsorRowProps {
   className?: string;

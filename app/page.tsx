@@ -1,5 +1,5 @@
-import { Hero } from "@/components/sections/Hero";
+import LandingPage from "@/modules/landing";
 
 export default function Home() {
-  return <Hero />;
+  return <LandingPage />;
 }

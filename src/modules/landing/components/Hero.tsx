@@ -3,7 +3,7 @@ import { Navbar } from "@/components/layout/Navbar";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { ArrowIcon } from "@/components/ui/icons";
-import { SponsorRow } from "@/components/sections/SponsorRow";
+import { SponsorRow } from "./SponsorRow";
 
 export function Hero() {
   return (
