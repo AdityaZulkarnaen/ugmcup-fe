@@ -181,14 +181,7 @@ export interface Media {
   createdAt: string;
 }
 
-export interface Sponsor {
-  id: string;
-  name: string;
-  logoUrl: string;
-  tier?: "PLATINUM" | "GOLD" | "SILVER" | string;
-  linkUrl?: string;
-  order: number;
-}
+
 
 export interface Faq {
   id: string;

@@ -36,130 +36,105 @@ export default function LoginPage() {
   }
 
   return (
-    <div
-      className="relative flex min-h-screen items-center justify-center overflow-hidden"
-      style={{ background: "linear-gradient(135deg, #14183B 0%, #000033 100%)" }}
-    >
-      {/* Decorative glow */}
-      <div
-        className="pointer-events-none absolute -top-40 left-1/2 h-96 w-96 -translate-x-1/2 rounded-full opacity-30"
-        style={{ background: "radial-gradient(circle, #8352D9 0%, transparent 70%)" }}
-      />
-      <div
-        className="pointer-events-none absolute -bottom-32 right-1/4 h-64 w-64 rounded-full opacity-20"
-        style={{ background: "radial-gradient(circle, #66FFB4 0%, transparent 70%)" }}
-      />
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-hero-bg">
+      {/* Background sama dengan Hero section */}
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-360 w-360">
+        <Image
+          src="/images/hero/halo-top.png"
+          alt=""
+          fill
+          priority
+          className="object-cover"
+        />
+      </div>
+      <div className="pointer-events-none absolute bottom-0 translate-y-270 -right-100 h-488 w-488">
+        <Image
+          src="/images/hero/halo-bottom.png"
+          alt=""
+          fill
+          className="object-contain"
+        />
+      </div>
 
-      {/* Login card */}
-      <div
-        className="relative z-10 w-full max-w-sm rounded-3xl border p-8 shadow-2xl"
-        style={{
-          background: "rgba(20, 24, 59, 0.8)",
-          borderColor: "rgba(255,255,255,0.1)",
-          backdropFilter: "blur(20px)",
-        }}
-      >
-        {/* Logo */}
-        <div className="mb-8 flex flex-col items-center gap-4">
+      {/* Decorative shuttlecocks */}
+      <div className="pointer-events-none absolute -left-28 top-36 h-32 w-32 sm:h-132 sm:w-132">
+        <Image src="/images/hero/cock2.png" alt="" fill className="object-contain" />
+      </div>
+      <div className="pointer-events-none absolute -right-36 top-10 h-32 w-32 sm:h-144 sm:w-144">
+        <Image src="/images/hero/cock1.png" alt="" fill className="object-contain" />
+      </div>
+      <div className="pointer-events-none absolute -bottom-52 right-32 h-32 w-32 sm:h-120 sm:w-120">
+        <Image src="/images/hero/cock3.png" alt="" fill className="object-contain" />
+      </div>
+
+      <style>{`
+        @keyframes slideUpFade {
+          from { opacity: 0; transform: translateY(30px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-login {
+          animation: slideUpFade 0.8s ease-out forwards;
+        }
+      `}</style>
+
+      {/* Login card: transparan & minimalis */}
+      <div className="animate-login relative z-10 w-full max-w-sm p-8 flex flex-col items-center">
+        {/* Logo & Sign In */}
+        <div className="mb-10 flex flex-col items-center gap-4">
           <Image
             src="/images/global/logo.webp"
             alt="UGM Cup"
-            width={1200}
-            height={300}
-            className="h-10 w-auto"
+            width={400}
+            height={100}
+            className="h-12 w-auto"
           />
-          <div className="text-center">
-            <h1 className="text-xl font-black italic text-white">Portal Manajemen</h1>
-            <p className="mt-1 text-sm" style={{ color: "#9D9DB6" }}>
-              UGM CUP 2026 — Internal Dashboard
-            </p>
-          </div>
-        </div>
-
-        {/* Eyebrow pill */}
-        <div className="mb-6 flex justify-center">
-          <span
-            className="inline-flex items-center rounded-full border px-4 py-1.5 text-xs font-semibold"
-            style={{
-              borderColor: "rgba(131,82,217,0.4)",
-              background: "rgba(131,82,217,0.1)",
-              color: "#66FFB4",
-            }}
-          >
-            🔒 Akses Terbatas — Panitia
-          </span>
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-6 w-full">
           <div>
-            <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider" style={{ color: "#9D9DB6" }}>
-              Username
-            </label>
             <input
               type="text"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              placeholder="Masukkan username"
+              placeholder="Username"
               required
               autoComplete="username"
-              className="w-full rounded-xl border px-4 py-3 text-sm text-white outline-none transition"
-              style={{
-                background: "rgba(255,255,255,0.05)",
-                borderColor: "rgba(255,255,255,0.12)",
-              }}
-              onFocus={(e) => (e.target.style.borderColor = "rgba(131,82,217,0.6)")}
-              onBlur={(e) => (e.target.style.borderColor = "rgba(255,255,255,0.12)")}
+              className="w-full bg-transparent px-2 py-3 text-sm text-white placeholder-white/50 outline-none border-0 border-b border-white/30 transition-all focus:border-white focus:ring-0"
             />
           </div>
 
           <div>
-            <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider" style={{ color: "#9D9DB6" }}>
-              Password
-            </label>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
+              placeholder="Password"
               required
               autoComplete="current-password"
-              className="w-full rounded-xl border px-4 py-3 text-sm text-white outline-none transition"
-              style={{
-                background: "rgba(255,255,255,0.05)",
-                borderColor: "rgba(255,255,255,0.12)",
-              }}
-              onFocus={(e) => (e.target.style.borderColor = "rgba(131,82,217,0.6)")}
-              onBlur={(e) => (e.target.style.borderColor = "rgba(255,255,255,0.12)")}
+              className="w-full bg-transparent px-2 py-3 text-sm text-white placeholder-white/50 outline-none border-0 border-b border-white/30 transition-all focus:border-white focus:ring-0"
             />
           </div>
 
           {error && (
-            <div
-              className="rounded-xl border px-4 py-3 text-sm"
-              style={{
-                background: "rgba(239,68,68,0.1)",
-                borderColor: "rgba(239,68,68,0.3)",
-                color: "#f87171",
-              }}
-            >
-              ⚠️ {error}
+            <div className="text-center text-xs text-red-400 mt-2">
+              {error}
             </div>
           )}
 
-          <button
-            type="submit"
-            disabled={isLoading}
-            className="mt-2 w-full rounded-xl py-3 text-sm font-black italic text-[#14183B] transition hover:brightness-110 disabled:opacity-60"
-            style={{ background: "linear-gradient(135deg, #66FFB4 0%, #02F5D4 100%)" }}
-          >
-            {isLoading ? "Masuk..." : "Masuk →"}
-          </button>
+          <div className="pt-6 flex flex-col">
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="w-full rounded bg-white/10 py-3.5 text-sm font-semibold tracking-wider text-white uppercase transition-all hover:bg-white hover:text-black disabled:opacity-50"
+            >
+              {isLoading ? "sek yoo..." : "Login"}
+            </button>
+            <p className="mt-3 text-right text-[10px] tracking-widest text-white/40 uppercase">
+              Internal Only
+            </p>
+          </div>
         </form>
-
-        <p className="mt-6 text-center text-xs" style={{ color: "#9D9DB6" }}>
-          Hak akses dikelola oleh Super Admin UGM CUP.
-        </p>
       </div>
     </div>
   );

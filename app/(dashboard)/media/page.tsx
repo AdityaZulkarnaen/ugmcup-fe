@@ -6,16 +6,14 @@ import { useRequireRole } from "@/lib/hooks/useAuth";
 import { MediaHome } from "@/modules/media/components/MediaHome";
 import { BeritaSection } from "@/modules/media/components/BeritaSection";
 import { GaleriSection } from "@/modules/media/components/GaleriSection";
-import { SponsorSection } from "@/modules/media/components/SponsorSection";
 import { FaqSection } from "@/modules/media/components/FaqSection";
 
-type Section = "beranda" | "berita" | "galeri" | "sponsor" | "faq";
+type Section = "beranda" | "berita" | "galeri" | "faq";
 
 const SIDEBAR_ITEMS = [
   { key: "beranda", label: "Beranda",   icon: "🏠" },
   { key: "berita",  label: "Berita",    icon: "📰" },
   { key: "galeri",  label: "Galeri",    icon: "🖼️" },
-  { key: "sponsor", label: "Sponsor",   icon: "🤝" },
   { key: "faq",     label: "FAQ",       icon: "❓" },
 ];
 
@@ -36,7 +34,6 @@ export default function MediaPage() {
       case "beranda": return <MediaHome />;
       case "berita":  return <BeritaSection />;
       case "galeri":  return <GaleriSection />;
-      case "sponsor": return <SponsorSection />;
       case "faq":     return <FaqSection />;
       default:        return <MediaHome />;
     }

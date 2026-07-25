@@ -1,5 +1,5 @@
 import { apiRequest } from "./client";
-import type { News, Media, Sponsor, Faq } from "@/lib/types";
+import type { News, Media, Faq } from "@/lib/types";
 
 // ================== NEWS ==================
 
@@ -47,33 +47,7 @@ export const createMedia = (data: {
 export const deleteMedia = (id: string) =>
   apiRequest<void>(`/admin/media/${id}`, { method: "DELETE" });
 
-// ================== SPONSORS ==================
 
-export const getSponsors = () => apiRequest<Sponsor[]>("/sponsors");
-
-export const createSponsor = (data: {
-  name: string;
-  logoUrl: string;
-  tier?: string;
-  linkUrl?: string;
-  order?: number;
-}) =>
-  apiRequest<Sponsor>("/admin/sponsors", {
-    method: "POST",
-    body: JSON.stringify(data),
-  });
-
-export const updateSponsor = (
-  id: string,
-  data: Partial<{ name: string; logoUrl: string; tier: string; linkUrl: string; order: number }>
-) =>
-  apiRequest<Sponsor>(`/admin/sponsors/${id}`, {
-    method: "PATCH",
-    body: JSON.stringify(data),
-  });
-
-export const deleteSponsor = (id: string) =>
-  apiRequest<void>(`/admin/sponsors/${id}`, { method: "DELETE" });
 
 // ================== FAQ ==================
 
