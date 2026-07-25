@@ -1,0 +1,161 @@
+"use client";
+
+import { useEffect, useState, useCallback } from "react";
+import { PageHeader, AddButton, FormField, DashSelect } from "@/components/dashboard/PageHeader";
+import { Modal, ModalCancelButton, ModalSubmitButton } from "@/components/dashboard/Modal";
+import {
+  getInstitutions, getAthletes, getDisciplines,
+  getParticipants, createParticipant, deleteParticipant,
+  getTeams, createTeam, deleteTeam,
+} from "@/lib/api/admin";
+import type { Institution, Athlete, Discipline, Participant, Team } from "@/lib/types";
+
+const TEAM_SLOTS = ["TUNGGAL_PUTRA", "TUNGGAL_PUTRI", "GANDA_PUTRA", "GANDA_PUTRI", "GANDA_CAMPURAN"];
+
+export function PesertaSection() {
+  const [tab, setTab] = useState<"individu" | "tim">("individu");
+  const [participants, setParticipants] = useState<Participant[]>([]);
+  const [teams, setTeams] = useState<Team[]>([]);
+  const [institutions, setInstitutions] = useState<Institution[]>([]);
+  const [athletes, setAthletes] = useState<Athlete[]>([]);
+  const [disciplines, setDisciplines] = useState<Discipline[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [error, setError] = useState("");
+
+  // Form Individu
+  const [pForm, setPForm] = useState({ disciplineId: "", institutionId: "", athlete1: "", athlete2: "" });
+  // Form Tim
+  const [tForm, setTForm] = useState({ disciplineId: "", institutionId: "", slots: {} as Record<string, string> });
+
+  const load = useCallback(async () => {
+    setIsLoading(true);
+    const [p, t, insts, ath, disc] = await Promise.allSettled([
+      getParticipants(), getTeams(), getInstitutions(), getAthletes(), getDisciplines(),
+    ]);
+    setParticipants(p.status === "fulfilled" ? p.value : []);
+    setTeams(t.status === "fulfilled" ? t.value : []);
+    setInstitutions(insts.status === "fulfilled" ? insts.value : []);
+    setAthletes(ath.status === "fulfilled" ? ath.value : []);
+    setDisciplines(disc.status === "fulfilled" ? disc.value : []);
+    setIsLoading(false);
+  }, []);
+
+  useEffect(() => { load(); }, [load]);
+
+  async function handleSaveParticipant() {
+    setIsSaving(true); setError("");
+    try {
+      const athleteIds = [pForm.athlete1, pForm.athlete2].filter(Boolean);
+      await createParticipant({ disciplineId: pForm.disciplineId, institutionId: pForm.institutionId, athleteIds });
+      setModalOpen(false); setPForm({ disciplineId: "", institutionId: "", athlete1: "", athlete2: "" });
+      await load();
+    } catch (e) { setError(e instanceof Error ? e.message : "Gagal"); }
+    finally { setIsSaving(false); }
+  }
+
+  async function handleSaveTeam() {
+    setIsSaving(true); setError("");
+    try {
+      const members = Object.entries(tForm.slots)
+        .filter(([, athleteId]) => athleteId)
+        .map(([assignedSlot, athleteId]) => ({ assignedSlot, athleteId }));
+      await createTeam({ disciplineId: tForm.disciplineId, institutionId: tForm.institutionId, members });
+      setModalOpen(false); setTForm({ disciplineId: "", institutionId: "", slots: {} });
+      await load();
+    } catch (e) { setError(e instanceof Error ? e.message : "Gagal"); }
+    finally { setIsSaving(false); }
+  }
+
+  const teamDisciplines = disciplines.filter((d) => d.isTeamEvent);
+  const individualDisciplines = disciplines.filter((d) => !d.isTeamEvent);
+
+  return (
+    <div>
+      <PageHeader
+        title="Peserta & Tim"
+        subtitle="Daftarkan peserta individu dan tim beregu"
+        action={<AddButton onClick={() => setModalOpen(true)} label={`Tambah ${tab === "individu" ? "Peserta" : "Tim"}`} />}
+      />
+
+      {/* Tab */}
+      <div className="mb-6 flex gap-2">
+        {(["individu", "tim"] as const).map((t) => (
+          <button key={t} onClick={() => setTab(t)}
+            className="rounded-xl px-4 py-2 text-sm font-semibold transition"
+            style={tab === t
+              ? { background: "#8352D9", color: "#fff" }
+              : { background: "rgba(255,255,255,0.05)", color: "#9D9DB6" }}>
+            {t === "individu" ? "👤 Peserta Individu" : "🏆 Tim Beregu"}
+          </button>
+        ))}
+      </div>
+
+      {isLoading ? (
+        <div className="flex justify-center py-16"><div className="h-8 w-8 animate-spin rounded-full border-2 border-transparent" style={{ borderTopColor: "#66FFB4" }} /></div>
+      ) : tab === "individu" ? (
+        <div className="space-y-3">
+          {participants.length === 0 ? <p className="text-center py-12" style={{ color: "#9D9DB6" }}>Belum ada peserta individu</p> : participants.map((p) => (
+            <div key={p.id} className="flex items-center justify-between rounded-2xl border px-5 py-4"
+              style={{ background: "var(--dash-card-bg)", borderColor: "rgba(255,255,255,0.08)" }}>
+              <div>
+                <p className="font-semibold text-white text-sm">{p.institution?.name ?? institutions.find(i => i.id === p.institutionId)?.name ?? "-"}</p>
+                <p className="text-xs mt-1" style={{ color: "#9D9DB6" }}>{p.discipline?.name ?? disciplines.find(d => d.id === p.disciplineId)?.name ?? "-"}</p>
+              </div>
+              <button onClick={() => deleteParticipant(p.id).then(load)} className="text-xs px-3 py-1 rounded-lg transition hover:bg-red-500/10" style={{ color: "#f87171" }}>Hapus</button>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {teams.length === 0 ? <p className="text-center py-12" style={{ color: "#9D9DB6" }}>Belum ada tim beregu</p> : teams.map((t) => (
+            <div key={t.id} className="flex items-center justify-between rounded-2xl border px-5 py-4"
+              style={{ background: "var(--dash-card-bg)", borderColor: "rgba(255,255,255,0.08)" }}>
+              <div>
+                <p className="font-semibold text-white text-sm">{t.institution?.name ?? institutions.find(i => i.id === t.institutionId)?.name ?? "-"}</p>
+                <p className="text-xs mt-1" style={{ color: "#9D9DB6" }}>Beregu · {t.members?.length ?? 0} anggota</p>
+              </div>
+              <button onClick={() => deleteTeam(t.id).then(load)} className="text-xs px-3 py-1 rounded-lg transition hover:bg-red-500/10" style={{ color: "#f87171" }}>Hapus</button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <Modal isOpen={modalOpen} onClose={() => { setModalOpen(false); setError(""); }} title={tab === "individu" ? "Tambah Peserta Individu" : "Tambah Tim Beregu"} size="lg"
+        footer={<><ModalCancelButton onClick={() => { setModalOpen(false); setError(""); }} /><ModalSubmitButton onClick={tab === "individu" ? handleSaveParticipant : handleSaveTeam} isLoading={isSaving} /></>}>
+        {error && <p className="mb-4 rounded-xl p-3 text-sm" style={{ background: "rgba(239,68,68,0.15)", color: "#f87171" }}>{error}</p>}
+        {tab === "individu" ? (
+          <>
+            <FormField label="Cabang" required>
+              <DashSelect value={pForm.disciplineId} onChange={(v) => setPForm((f) => ({ ...f, disciplineId: v }))} placeholder="Pilih cabang" options={individualDisciplines.map((d) => ({ value: d.id, label: d.name }))} />
+            </FormField>
+            <FormField label="Institusi" required>
+              <DashSelect value={pForm.institutionId} onChange={(v) => setPForm((f) => ({ ...f, institutionId: v }))} placeholder="Pilih institusi" options={institutions.map((i) => ({ value: i.id, label: i.name }))} />
+            </FormField>
+            <FormField label="Atlet 1" required>
+              <DashSelect value={pForm.athlete1} onChange={(v) => setPForm((f) => ({ ...f, athlete1: v }))} placeholder="Pilih atlet" options={athletes.filter(a => !pForm.institutionId || a.institutionId === pForm.institutionId).map((a) => ({ value: a.id, label: a.name }))} />
+            </FormField>
+            <FormField label="Atlet 2 (Ganda/Mix)">
+              <DashSelect value={pForm.athlete2} onChange={(v) => setPForm((f) => ({ ...f, athlete2: v }))} placeholder="Opsional (untuk ganda)" options={athletes.filter(a => a.id !== pForm.athlete1 && (!pForm.institutionId || a.institutionId === pForm.institutionId)).map((a) => ({ value: a.id, label: a.name }))} />
+            </FormField>
+          </>
+        ) : (
+          <>
+            <FormField label="Cabang Beregu" required>
+              <DashSelect value={tForm.disciplineId} onChange={(v) => setTForm((f) => ({ ...f, disciplineId: v }))} placeholder="Pilih cabang beregu" options={teamDisciplines.map((d) => ({ value: d.id, label: d.name }))} />
+            </FormField>
+            <FormField label="Institusi" required>
+              <DashSelect value={tForm.institutionId} onChange={(v) => setTForm((f) => ({ ...f, institutionId: v }))} placeholder="Pilih institusi" options={institutions.map((i) => ({ value: i.id, label: i.name }))} />
+            </FormField>
+            {TEAM_SLOTS.map((slot) => (
+              <FormField key={slot} label={slot.replace(/_/g, " ")}>
+                <DashSelect value={tForm.slots[slot] ?? ""} onChange={(v) => setTForm((f) => ({ ...f, slots: { ...f.slots, [slot]: v } }))} placeholder="Pilih atlet" options={athletes.filter(a => !tForm.institutionId || a.institutionId === tForm.institutionId).map((a) => ({ value: a.id, label: a.name }))} />
+              </FormField>
+            ))}
+          </>
+        )}
+      </Modal>
+    </div>
+  );
+}

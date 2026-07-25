@@ -6,6 +6,17 @@
   --color-hero-bg: #1B182C;
   --color-accent: #34e5a6;
   --color-accent-2: #a4f26a;
+
+  /* --- Dashboard design tokens (from design.md) --- */
+  --dash-sidebar-bg: #14183B;       /* Deep Purple */
+  --dash-sidebar-active: #8352D9;   /* Violet */
+  --dash-body-bg: #14182B;          /* Surface Dark */
+  --dash-card-bg: rgba(255,255,255,0.04);
+  --dash-card-border: rgba(255,255,255,0.08);
+  --dash-mint: #66FFB4;
+  --dash-violet: #8352D9;
+  --dash-text-muted: #9D9DB6;
+  --dash-text: #FFFFFF;
 }
 
 @theme inline {
@@ -15,6 +26,14 @@
   --color-accent: var(--color-accent);
   --color-accent-2: var(--color-accent-2);
   --font-sans: var(--font-montserrat);
+
+  /* Dashboard tokens exposed as Tailwind colors */
+  --color-dash-sidebar: var(--dash-sidebar-bg);
+  --color-dash-active: var(--dash-sidebar-active);
+  --color-dash-body: var(--dash-body-bg);
+  --color-dash-mint: var(--dash-mint);
+  --color-dash-violet: var(--dash-violet);
+  --color-dash-muted: var(--dash-text-muted);
 }
 
 /* Reset default browser spacing. Each component sets the margin/padding it
