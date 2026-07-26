@@ -234,6 +234,107 @@ export const scheduleMatches: ScheduleMatch[] = [
   },
 ];
 
+/**
+ * A competitor the admin registers once and the bracket references by id, so
+ * name, team and badge image live in a single place.
+ */
+export interface Participant extends MatchSide {
+  id: string;
+  /**
+   * Badge image the admin uploads — a path under `public/` or a remote URL.
+   * Remote hosts must be allowed in `next.config.ts` under `images.remotePatterns`.
+   * Falls back to the gold shuttlecock mark when empty.
+   */
+  avatar?: string;
+}
+
+export const participants: Participant[] = [
+  {
+    id: "rizky-fadhilah",
+    players: ["Rizky Fadhilah"],
+    team: "FT UGM",
+  },
+  {
+    id: "dani-setiawan",
+    players: ["Dani Setiawan"],
+    team: "FEB UGM",
+    // Demo of an admin-supplied badge; drop this line to fall back to the mark.
+    avatar: "/images/hero/cock1.png",
+  },
+];
+
+export function getParticipant(id: string): Participant | undefined {
+  return participants.find((participant) => participant.id === id);
+}
+
+/** One competitor slot inside a bracket match. */
+export interface BracketSide {
+  /** Registry id; omitted while the slot is still undecided (shows "TBD"). */
+  participantId?: string;
+  /** Games won; `null` when the match has not been played. */
+  score: number | null;
+  /** True for the side that advances. */
+  winner?: boolean;
+}
+
+export interface BracketMatch {
+  id: string;
+  home: BracketSide;
+  away: BracketSide;
+}
+
+export interface BracketRound {
+  id: string;
+  label: string;
+  matches: BracketMatch[];
+  /** Set on the last column: renders the champion box instead of match cards. */
+  champion?: { label: string; name: string };
+}
+
+/** Builds the repeated placeholder pairing used by the mock bracket. */
+function bracketPair(id: string): BracketMatch {
+  return {
+    id,
+    home: { participantId: "rizky-fadhilah", score: 2, winner: true },
+    away: { participantId: "dani-setiawan", score: 0 },
+  };
+}
+
+export const bracketRounds: BracketRound[] = [
+  {
+    id: "perempat-final",
+    label: "Perempat Final",
+    matches: [
+      bracketPair("qf-1"),
+      bracketPair("qf-2"),
+      bracketPair("qf-3"),
+      bracketPair("qf-4"),
+    ],
+  },
+  {
+    id: "semi-final",
+    label: "Semi Final",
+    matches: [bracketPair("sf-1"), bracketPair("sf-2")],
+  },
+  {
+    id: "final",
+    label: "Final",
+    matches: [
+      {
+        id: "final-1",
+        home: { score: null },
+        away: { score: null },
+      },
+    ],
+  },
+  {
+    id: "juara",
+    label: "Juara",
+    matches: [],
+    champion: { label: "Juara", name: "TBD" },
+  },
+];
+
 export interface MatchTab {
   id: string;
   label: string;

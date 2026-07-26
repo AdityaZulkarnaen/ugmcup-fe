@@ -58,6 +58,26 @@ export function CheckIcon({ className }: { className?: string }) {
   );
 }
 
+/** Right-pointing chevron; rotate with a class for the other directions. */
+export function ChevronIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 16 16"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      xmlns="http://www.w3.org/2000/svg"
+      className={className}
+    >
+      <path d="M6 3.5 10.5 8 6 12.5" />
+    </svg>
+  );
+}
+
 export function YoutubeIcon({ className }: { className?: string }) {
   return (
     <svg

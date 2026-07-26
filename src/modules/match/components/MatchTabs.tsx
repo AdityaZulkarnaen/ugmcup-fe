@@ -4,6 +4,7 @@ import { useState } from "react";
 import { liveMatches, matchTabs } from "@/lib/constants/matches";
 import { LiveScoreCard } from "./LiveScoreCard";
 import { SchedulePanel } from "./SchedulePanel";
+import { BracketPanel } from "./BracketPanel";
 
 export function MatchTabs() {
   const [active, setActive] = useState(matchTabs[0].id);
@@ -59,6 +60,8 @@ export function MatchTabs() {
           </div>
         ) : active === "jadwal" ? (
           <SchedulePanel />
+        ) : active === "bracket" ? (
+          <BracketPanel />
         ) : (
           <div className="flex min-h-64 flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-white/10 bg-white/[0.01] p-10 text-center">
             <p className="text-lg font-bold italic text-white">
