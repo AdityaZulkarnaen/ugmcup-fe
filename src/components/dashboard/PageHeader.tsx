@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { Plus } from "lucide-react";
 
 interface PageHeaderProps {
   title: string;
@@ -10,9 +11,9 @@ export function PageHeader({ title, subtitle, action }: PageHeaderProps) {
   return (
     <div className="flex items-start justify-between mb-6">
       <div>
-        <h1 className="text-2xl font-black italic text-white">{title}</h1>
+        <h1 className="text-xl font-bold" style={{ color: "#111827" }}>{title}</h1>
         {subtitle && (
-          <p className="mt-1 text-sm" style={{ color: "#9D9DB6" }}>
+          <p className="mt-0.5 text-sm" style={{ color: "#6B7280" }}>
             {subtitle}
           </p>
         )}
@@ -22,21 +23,19 @@ export function PageHeader({ title, subtitle, action }: PageHeaderProps) {
   );
 }
 
-// Tombol tambah data standar
 export function AddButton({ onClick, label = "Tambah" }: { onClick: () => void; label?: string }) {
   return (
     <button
       onClick={onClick}
-      className="inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-bold text-[#14183B] transition hover:brightness-110"
-      style={{ background: "linear-gradient(135deg, #66FFB4, #02F5D4)" }}
+      className="inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold text-white transition hover:opacity-90"
+      style={{ background: "#6C47D1" }}
     >
-      <span className="text-base leading-none">+</span>
+      <Plus size={15} />
       {label}
     </button>
   );
 }
 
-// Helper: Form input field untuk dipakai di dalam modal
 interface FormFieldProps {
   label: string;
   children: ReactNode;
@@ -46,16 +45,15 @@ interface FormFieldProps {
 export function FormField({ label, children, required }: FormFieldProps) {
   return (
     <div className="mb-4">
-      <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider" style={{ color: "#9D9DB6" }}>
+      <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider" style={{ color: "#374151" }}>
         {label}
-        {required && <span className="ml-1 text-red-400">*</span>}
+        {required && <span className="ml-1 text-red-500">*</span>}
       </label>
       {children}
     </div>
   );
 }
 
-// Input standar dashboard
 export function DashInput({
   placeholder,
   value,
@@ -76,16 +74,12 @@ export function DashInput({
       value={value}
       onChange={(e) => onChange(e.target.value)}
       required={required}
-      className="w-full rounded-xl border px-4 py-2.5 text-sm text-white outline-none transition focus:border-violet-500/60"
-      style={{
-        background: "rgba(255,255,255,0.05)",
-        borderColor: "rgba(255,255,255,0.12)",
-      }}
+      className="w-full rounded-lg border bg-gray-50 px-3 py-2.5 text-sm outline-none transition focus:border-purple-400 focus:ring-2 focus:ring-purple-100"
+      style={{ borderColor: "#D1D5DB", color: "#111827" }}
     />
   );
 }
 
-// Select standar dashboard
 export function DashSelect({
   value,
   onChange,
@@ -101,11 +95,8 @@ export function DashSelect({
     <select
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      className="w-full rounded-xl border px-4 py-2.5 text-sm text-white outline-none transition focus:border-violet-500/60"
-      style={{
-        background: "#1A1830",
-        borderColor: "rgba(255,255,255,0.12)",
-      }}
+      className="w-full rounded-lg border bg-gray-50 px-3 py-2.5 text-sm outline-none transition focus:border-purple-400 focus:ring-2 focus:ring-purple-100"
+      style={{ borderColor: "#D1D5DB", color: "#111827" }}
     >
       {placeholder && <option value="">{placeholder}</option>}
       {options.map((opt) => (
@@ -117,7 +108,6 @@ export function DashSelect({
   );
 }
 
-// Textarea standar dashboard
 export function DashTextarea({
   value,
   onChange,
@@ -135,11 +125,8 @@ export function DashTextarea({
       placeholder={placeholder}
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      className="w-full rounded-xl border px-4 py-2.5 text-sm text-white outline-none transition focus:border-violet-500/60 resize-none"
-      style={{
-        background: "rgba(255,255,255,0.05)",
-        borderColor: "rgba(255,255,255,0.12)",
-      }}
+      className="w-full resize-none rounded-lg border bg-gray-50 px-3 py-2.5 text-sm outline-none transition focus:border-purple-400 focus:ring-2 focus:ring-purple-100"
+      style={{ borderColor: "#D1D5DB", color: "#111827" }}
     />
   );
 }

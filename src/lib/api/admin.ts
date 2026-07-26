@@ -107,6 +107,7 @@ export const getBracket = (disciplineId: string) =>
 
 export const setupBracket = (data: {
   disciplineId: string;
+  roundNames: string[];
   participantIds?: string[];
   teamIds?: string[];
 }) =>

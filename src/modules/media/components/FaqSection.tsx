@@ -5,6 +5,7 @@ import { PageHeader, AddButton, FormField, DashInput, DashTextarea } from "@/com
 import { Modal, ModalCancelButton, ModalSubmitButton } from "@/components/dashboard/Modal";
 import { getFaqs, createFaq, updateFaq, deleteFaq } from "@/lib/api/content";
 import type { Faq } from "@/lib/types";
+import { HelpCircle, ChevronDown } from "lucide-react";
 
 const EMPTY_FORM = { question: "", answer: "", order: "0" };
 
@@ -57,38 +58,36 @@ export function FaqSection() {
       />
 
       {isLoading ? (
-        <div className="flex justify-center py-16"><div className="h-8 w-8 animate-spin rounded-full border-2 border-transparent" style={{ borderTopColor: "#66FFB4" }} /></div>
+        <div className="flex justify-center py-16"><div className="h-7 w-7 animate-spin rounded-full border-2 border-transparent" style={{ borderTopColor: "#6C47D1" }} /></div>
       ) : data.length === 0 ? (
-        <div className="flex flex-col items-center py-20 rounded-2xl border" style={{ borderColor: "rgba(255,255,255,0.08)", background: "var(--dash-card-bg)" }}>
-          <p className="text-4xl mb-4">❓</p>
-          <p className="text-white font-semibold">Belum ada FAQ</p>
+        <div className="flex flex-col items-center py-20 rounded-lg border bg-white" style={{ borderColor: "#E5E7EB" }}>
+          <HelpCircle className="mb-4 h-12 w-12 text-gray-400" />
+          <p className="font-semibold" style={{ color: "#374151" }}>Belum ada FAQ</p>
         </div>
       ) : (
         <div className="space-y-3">
           {data.sort((a, b) => a.order - b.order).map((faq) => (
-            <div key={faq.id} className="rounded-2xl border overflow-hidden transition-all"
-              style={{ borderColor: "rgba(255,255,255,0.08)", background: "var(--dash-card-bg)" }}>
+            <div key={faq.id} className="rounded-lg border overflow-hidden bg-white transition-all"
+              style={{ borderColor: "#E5E7EB" }}>
               <button
                 onClick={() => setExpandedId(expandedId === faq.id ? null : faq.id)}
-                className="w-full flex items-center justify-between px-5 py-4 text-left transition hover:bg-white/[0.02]"
+                className="w-full flex items-center justify-between px-5 py-4 text-left transition hover:bg-gray-50"
               >
                 <div className="flex items-center gap-3">
                   <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold"
-                    style={{ background: "rgba(131,82,217,0.2)", color: "#D9D3FF" }}>
+                    style={{ background: "#EDE9FE", color: "#6C47D1" }}>
                     {faq.order || "?"}
                   </span>
-                  <span className="font-semibold text-white text-sm">{faq.question}</span>
+                  <span className="font-semibold text-sm" style={{ color: "#111827" }}>{faq.question}</span>
                 </div>
-                <span className="text-white/40 transition-transform" style={{ transform: expandedId === faq.id ? "rotate(180deg)" : "rotate(0)" }}>
-                  ▼
-                </span>
+                <ChevronDown className="h-4 w-4 transition-transform" style={{ color: "#9CA3AF", transform: expandedId === faq.id ? "rotate(180deg)" : "rotate(0)" }} />
               </button>
               {expandedId === faq.id && (
-                <div className="border-t px-5 py-4" style={{ borderColor: "rgba(255,255,255,0.06)" }}>
-                  <p className="text-sm leading-relaxed" style={{ color: "#9D9DB6" }}>{faq.answer}</p>
+                <div className="border-t px-5 py-4" style={{ borderColor: "#F3F4F6" }}>
+                  <p className="text-sm leading-relaxed" style={{ color: "#6B7280" }}>{faq.answer}</p>
                   <div className="mt-4 flex gap-2">
-                    <button onClick={() => openEdit(faq)} className="rounded-lg px-3 py-1 text-xs font-semibold text-white/70 transition hover:bg-white/10 hover:text-white">Edit</button>
-                    <button onClick={() => handleDelete(faq.id)} className="rounded-lg px-3 py-1 text-xs font-semibold transition hover:bg-red-500/10" style={{ color: "#f87171" }}>Hapus</button>
+                    <button onClick={() => openEdit(faq)} className="flex items-center gap-1 rounded-lg px-3 py-1 text-xs font-semibold transition hover:bg-purple-50" style={{ color: "#6C47D1" }}>Edit</button>
+                    <button onClick={() => handleDelete(faq.id)} className="flex items-center gap-1 rounded-lg px-3 py-1 text-xs font-semibold transition hover:bg-red-50" style={{ color: "#EF4444" }}>Hapus</button>
                   </div>
                 </div>
               )}
@@ -99,7 +98,7 @@ export function FaqSection() {
 
       <Modal isOpen={modalOpen} onClose={() => { setModalOpen(false); setError(""); }} title={editTarget ? "Edit FAQ" : "Tambah FAQ"}
         footer={<><ModalCancelButton onClick={() => { setModalOpen(false); setError(""); }} /><ModalSubmitButton onClick={handleSave} isLoading={isSaving} /></>}>
-        {error && <p className="mb-4 rounded-xl p-3 text-sm" style={{ background: "rgba(239,68,68,0.15)", color: "#f87171" }}>{error}</p>}
+        {error && <p className="mb-4 rounded-lg p-3 text-sm bg-red-50 text-red-600 border border-red-200">{error}</p>}
         <FormField label="Pertanyaan" required>
           <DashInput value={form.question} onChange={(v) => setForm(f => ({ ...f, question: v }))} placeholder="Pertanyaan yang sering ditanyakan..." />
         </FormField>

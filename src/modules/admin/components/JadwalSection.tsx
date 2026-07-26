@@ -9,10 +9,10 @@ import { getMatches, createMatch, deleteMatch, updateMatchSchedule } from "@/lib
 import type { Match, Discipline, Participant, MatchStatus } from "@/lib/types";
 
 const STATUS_STYLE: Record<MatchStatus, { bg: string; color: string }> = {
-  SCHEDULED: { bg: "rgba(251,191,36,0.15)", color: "#fbbf24" },
-  ONGOING: { bg: "rgba(102,255,180,0.15)", color: "#66FFB4" },
-  FINISHED: { bg: "rgba(131,82,217,0.15)", color: "#D9D3FF" },
-  WALKOVER: { bg: "rgba(239,68,68,0.15)", color: "#f87171" },
+  SCHEDULED: { bg: "#FEF3C7", color: "#92400E" },
+  ONGOING:   { bg: "#DBEAFE", color: "#1E40AF" },
+  FINISHED:  { bg: "#DCFCE7", color: "#166534" },
+  WALKOVER:  { bg: "#FEE2E2", color: "#991B1B" },
 };
 
 export function JadwalSection() {
@@ -79,8 +79,10 @@ export function JadwalSection() {
       <div className="mb-4 flex gap-2 flex-wrap">
         {["", "SCHEDULED", "ONGOING", "FINISHED", "WALKOVER"].map((s) => (
           <button key={s} onClick={() => setFilterStatus(s)}
-            className="rounded-lg px-3 py-1.5 text-xs font-semibold transition"
-            style={filterStatus === s ? { background: "#8352D9", color: "#fff" } : { background: "rgba(255,255,255,0.05)", color: "#9D9DB6" }}>
+            className="rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors"
+            style={filterStatus === s 
+              ? { background: "#6C47D1", borderColor: "#6C47D1", color: "#fff" } 
+              : { background: "#fff", borderColor: "#E5E7EB", color: "#374151" }}>
             {s || "Semua"}
           </button>
         ))}
@@ -95,11 +97,25 @@ export function JadwalSection() {
             const s = STATUS_STYLE[row.status];
             return <span className="rounded-full px-2.5 py-0.5 text-xs font-semibold" style={{ background: s.bg, color: s.color }}>{row.status}</span>;
           }},
-          { key: "roundName", header: "Ronde" },
+          { key: "roundName", header: "Babak" },
           { key: "groupName", header: "Grup", render: (row) => row.groupName ?? "-" },
           { key: "courtNumber", header: "Lapangan", render: (row) => row.courtNumber ? `Lap. ${row.courtNumber}` : "-" },
           { key: "scheduledTime", header: "Jadwal", render: (row) => row.scheduledTime ? new Date(row.scheduledTime).toLocaleString("id-ID") : "-" },
-          { key: "matchType", header: "Tipe" },
+          { key: "discipline", header: "Kategori", render: (row: any) => row.discipline?.name ?? "—" },
+          { key: "participantA", header: "Peserta A", render: (row: any) => {
+            const isIndividu = row.participantA;
+            const athletes = isIndividu ? row.participantA?.athletes?.map((a:any) => a.athlete.name).join(" & ") : null;
+            const instName = row.participantA?.institution?.name ?? row.teamA?.institution?.name ?? "—";
+            if (isIndividu && athletes) return <div className="flex flex-col"><span className="font-semibold">{athletes}</span><span className="text-xs text-gray-500">{instName}</span></div>;
+            return instName;
+          }},
+          { key: "participantB", header: "Peserta B", render: (row: any) => {
+            const isIndividu = row.participantB;
+            const athletes = isIndividu ? row.participantB?.athletes?.map((a:any) => a.athlete.name).join(" & ") : null;
+            const instName = row.participantB?.institution?.name ?? row.teamB?.institution?.name ?? "—";
+            if (isIndividu && athletes) return <div className="flex flex-col"><span className="font-semibold">{athletes}</span><span className="text-xs text-gray-500">{instName}</span></div>;
+            return instName;
+          }},
         ]}
         onDelete={handleDelete}
       />

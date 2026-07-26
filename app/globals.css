@@ -7,16 +7,21 @@
   --color-accent: #34e5a6;
   --color-accent-2: #a4f26a;
 
-  /* --- Dashboard design tokens (from design.md) --- */
-  --dash-sidebar-bg: #14183B;       /* Deep Purple */
-  --dash-sidebar-active: #8352D9;   /* Violet */
-  --dash-body-bg: #14182B;          /* Surface Dark */
-  --dash-card-bg: rgba(255,255,255,0.04);
-  --dash-card-border: rgba(255,255,255,0.08);
-  --dash-mint: #66FFB4;
-  --dash-violet: #8352D9;
-  --dash-text-muted: #9D9DB6;
-  --dash-text: #FFFFFF;
+  /* --- Dashboard design tokens (light theme) --- */
+  --dash-sidebar-bg: linear-gradient(180deg, #1A162B 0%, #0F0E1A 100%);
+  --dash-sidebar-active: #6C47D1;
+  --dash-body-bg: #F4F5F7;          /* Light surface */
+  --dash-card-bg: #FFFFFF;
+  --dash-card-border: #E5E7EB;
+  --dash-accent: #6C47D1;           /* Single accent — purple */
+  --dash-accent-hover: #5939B5;
+  --dash-text: #111827;
+  --dash-text-muted: #6B7280;
+  --dash-text-sidebar: #CBD5E1;
+  --dash-text-sidebar-muted: #64748B;
+  --dash-sidebar-hover: rgba(255,255,255,0.06);
+  --dash-topbar-bg: #FFFFFF;
+  --dash-topbar-border: #E5E7EB;
 }
 
 @theme inline {
@@ -27,14 +32,12 @@
   --color-accent-2: var(--color-accent-2);
   --font-sans: var(--font-montserrat);
 
-  /* Dashboard tokens exposed as Tailwind colors */
-  --color-dash-sidebar: var(--dash-sidebar-bg);
-  --color-dash-active: var(--dash-sidebar-active);
+  /* Dashboard tokens */
   --color-dash-body: var(--dash-body-bg);
-  --color-dash-mint: var(--dash-mint);
-  --color-dash-violet: var(--dash-violet);
+  --color-dash-accent: var(--dash-accent);
   --color-dash-muted: var(--dash-text-muted);
 }
+
 
 /* Reset default browser spacing. Each component sets the margin/padding it
    needs on its own. Kept in the base layer so Tailwind utilities still win. */

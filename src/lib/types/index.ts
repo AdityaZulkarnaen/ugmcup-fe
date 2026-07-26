@@ -103,6 +103,7 @@ export interface Match {
   teamA?: Team;
   teamB?: Team;
   discipline?: Discipline;
+  childMatches?: Match[];
 }
 
 // ================== BRACKET ==================

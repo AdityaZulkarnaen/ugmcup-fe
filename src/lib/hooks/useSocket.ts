@@ -17,7 +17,7 @@ export function useSocket(options: UseSocketOptions = {}) {
   useEffect(() => {
     if (!enabled) return;
 
-    const socket = io(`${API_BASE_URL}/realtime`, {
+    const socket = io(API_BASE_URL, {
       transports: ["websocket"],
       auth: {
         token: localStorage.getItem("ugmcup_token"),
@@ -53,7 +53,7 @@ export function useSocket(options: UseSocketOptions = {}) {
     return () => { socketRef.current?.off("match_finished", cb); };
   };
 
-  return { isConnected, joinRoom, leaveRoom, onScoreUpdate, onMatchFinished };
+  return { isConnected, joinRoom, leaveRoom, onScoreUpdate, onMatchFinished, socketRef };
 }
 
 /** Hook khusus untuk subscribe ke satu match */
@@ -92,4 +92,34 @@ export function useMatchRoom(matchId: string | null) {
   }, [isConnected, matchId]);
 
   return { isConnected, lastScore, isFinished };
+}
+
+// ─────────────────────────────────────────────
+// 3. Global Panitia Room Hook
+// ─────────────────────────────────────────────
+export function useGlobalPanitiaRoom() {
+  const { isConnected, socketRef } = useSocket();
+  const [lastUpdate, setLastUpdate] = useState<number>(Date.now());
+
+  useEffect(() => {
+    if (!isConnected) return;
+
+    const socket = socketRef.current;
+    if (!socket) return;
+
+    socket.emit("join_global_panitia");
+
+    const onGlobalRefresh = () => {
+      setLastUpdate(Date.now());
+    };
+
+    socket.on("global_refresh", onGlobalRefresh);
+
+    return () => {
+      socket.off("global_refresh", onGlobalRefresh);
+      socket.emit("leave_global_panitia");
+    };
+  }, [isConnected, socketRef]);
+
+  return { isConnected, lastUpdate };
 }

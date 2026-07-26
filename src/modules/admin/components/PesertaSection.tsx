@@ -60,7 +60,10 @@ export function PesertaSection() {
     try {
       const members = Object.entries(tForm.slots)
         .filter(([, athleteId]) => athleteId)
-        .map(([assignedSlot, athleteId]) => ({ assignedSlot, athleteId }));
+        .map(([key, athleteId]) => ({ 
+          assignedSlot: key.replace(/_[12]$/, ""), 
+          athleteId 
+        }));
       await createTeam({ disciplineId: tForm.disciplineId, institutionId: tForm.institutionId, members });
       setModalOpen(false); setTForm({ disciplineId: "", institutionId: "", slots: {} });
       await load();
@@ -83,11 +86,11 @@ export function PesertaSection() {
       <div className="mb-6 flex gap-2">
         {(["individu", "tim"] as const).map((t) => (
           <button key={t} onClick={() => setTab(t)}
-            className="rounded-xl px-4 py-2 text-sm font-semibold transition"
+            className="rounded-full border px-4 py-2 text-sm font-semibold transition-colors"
             style={tab === t
-              ? { background: "#8352D9", color: "#fff" }
-              : { background: "rgba(255,255,255,0.05)", color: "#9D9DB6" }}>
-            {t === "individu" ? "👤 Peserta Individu" : "🏆 Tim Beregu"}
+              ? { background: "#6C47D1", borderColor: "#6C47D1", color: "#fff" }
+              : { background: "#fff", borderColor: "#E5E7EB", color: "#374151" }}>
+            {t === "individu" ? "Peserta Individu" : "Tim Beregu"}
           </button>
         ))}
       </div>
@@ -96,27 +99,33 @@ export function PesertaSection() {
         <div className="flex justify-center py-16"><div className="h-8 w-8 animate-spin rounded-full border-2 border-transparent" style={{ borderTopColor: "#66FFB4" }} /></div>
       ) : tab === "individu" ? (
         <div className="space-y-3">
-          {participants.length === 0 ? <p className="text-center py-12" style={{ color: "#9D9DB6" }}>Belum ada peserta individu</p> : participants.map((p) => (
-            <div key={p.id} className="flex items-center justify-between rounded-2xl border px-5 py-4"
-              style={{ background: "var(--dash-card-bg)", borderColor: "rgba(255,255,255,0.08)" }}>
+          {participants.length === 0 ? <p className="text-center py-12" style={{ color: "#6B7280" }}>Belum ada peserta individu</p> : participants.map((p) => (
+            <div key={p.id} className="flex items-center justify-between rounded-lg border bg-white px-5 py-4"
+              style={{ borderColor: "#E5E7EB" }}>
               <div>
-                <p className="font-semibold text-white text-sm">{p.institution?.name ?? institutions.find(i => i.id === p.institutionId)?.name ?? "-"}</p>
-                <p className="text-xs mt-1" style={{ color: "#9D9DB6" }}>{p.discipline?.name ?? disciplines.find(d => d.id === p.disciplineId)?.name ?? "-"}</p>
+                <p className="font-semibold text-sm" style={{ color: "#111827" }}>
+                  {p.athletes && p.athletes.length > 0 
+                    ? p.athletes.map((a: any) => a.athlete?.name).join(" & ") 
+                    : (p.institution?.name ?? institutions.find(i => i.id === p.institutionId)?.name ?? "—")}
+                </p>
+                <p className="text-xs mt-1" style={{ color: "#6B7280" }}>
+                  <span className="font-medium" style={{ color: "#4B5563" }}>{p.institution?.name ?? institutions.find(i => i.id === p.institutionId)?.name ?? "—"}</span> • {p.discipline?.name ?? disciplines.find(d => d.id === p.disciplineId)?.name ?? "—"}
+                </p>
               </div>
-              <button onClick={() => deleteParticipant(p.id).then(load)} className="text-xs px-3 py-1 rounded-lg transition hover:bg-red-500/10" style={{ color: "#f87171" }}>Hapus</button>
+              <button onClick={() => deleteParticipant(p.id).then(load)} className="text-xs px-3 py-1 rounded-lg transition hover:bg-red-50" style={{ color: "#EF4444" }}>Hapus</button>
             </div>
           ))}
         </div>
       ) : (
         <div className="space-y-3">
-          {teams.length === 0 ? <p className="text-center py-12" style={{ color: "#9D9DB6" }}>Belum ada tim beregu</p> : teams.map((t) => (
-            <div key={t.id} className="flex items-center justify-between rounded-2xl border px-5 py-4"
-              style={{ background: "var(--dash-card-bg)", borderColor: "rgba(255,255,255,0.08)" }}>
+          {teams.length === 0 ? <p className="text-center py-12" style={{ color: "#6B7280" }}>Belum ada tim beregu</p> : teams.map((t) => (
+            <div key={t.id} className="flex items-center justify-between rounded-lg border bg-white px-5 py-4"
+              style={{ borderColor: "#E5E7EB" }}>
               <div>
-                <p className="font-semibold text-white text-sm">{t.institution?.name ?? institutions.find(i => i.id === t.institutionId)?.name ?? "-"}</p>
-                <p className="text-xs mt-1" style={{ color: "#9D9DB6" }}>Beregu · {t.members?.length ?? 0} anggota</p>
+                <p className="font-semibold text-sm" style={{ color: "#111827" }}>{t.institution?.name ?? institutions.find(i => i.id === t.institutionId)?.name ?? "—"}</p>
+                <p className="text-xs mt-1" style={{ color: "#6B7280" }}>Beregu · {t.members?.length ?? 0} anggota</p>
               </div>
-              <button onClick={() => deleteTeam(t.id).then(load)} className="text-xs px-3 py-1 rounded-lg transition hover:bg-red-500/10" style={{ color: "#f87171" }}>Hapus</button>
+              <button onClick={() => deleteTeam(t.id).then(load)} className="text-xs px-3 py-1 rounded-lg transition hover:bg-red-50" style={{ color: "#EF4444" }}>Hapus</button>
             </div>
           ))}
         </div>
@@ -124,7 +133,7 @@ export function PesertaSection() {
 
       <Modal isOpen={modalOpen} onClose={() => { setModalOpen(false); setError(""); }} title={tab === "individu" ? "Tambah Peserta Individu" : "Tambah Tim Beregu"} size="lg"
         footer={<><ModalCancelButton onClick={() => { setModalOpen(false); setError(""); }} /><ModalSubmitButton onClick={tab === "individu" ? handleSaveParticipant : handleSaveTeam} isLoading={isSaving} /></>}>
-        {error && <p className="mb-4 rounded-xl p-3 text-sm" style={{ background: "rgba(239,68,68,0.15)", color: "#f87171" }}>{error}</p>}
+        {error && <p className="mb-4 rounded-lg p-3 text-sm bg-red-50 text-red-600 border border-red-200">{error}</p>}
         {tab === "individu" ? (
           <>
             <FormField label="Cabang" required>
@@ -148,11 +157,27 @@ export function PesertaSection() {
             <FormField label="Institusi" required>
               <DashSelect value={tForm.institutionId} onChange={(v) => setTForm((f) => ({ ...f, institutionId: v }))} placeholder="Pilih institusi" options={institutions.map((i) => ({ value: i.id, label: i.name }))} />
             </FormField>
-            {TEAM_SLOTS.map((slot) => (
-              <FormField key={slot} label={slot.replace(/_/g, " ")}>
-                <DashSelect value={tForm.slots[slot] ?? ""} onChange={(v) => setTForm((f) => ({ ...f, slots: { ...f.slots, [slot]: v } }))} placeholder="Pilih atlet" options={athletes.filter(a => !tForm.institutionId || a.institutionId === tForm.institutionId).map((a) => ({ value: a.id, label: a.name }))} />
-              </FormField>
-            ))}
+            {TEAM_SLOTS.map((slot) => {
+              const isGanda = slot.startsWith("GANDA");
+              const options = athletes.filter(a => !tForm.institutionId || a.institutionId === tForm.institutionId).map((a) => ({ value: a.id, label: a.name }));
+              
+              if (isGanda) {
+                return (
+                  <FormField key={slot} label={slot.replace(/_/g, " ")}>
+                    <div className="flex flex-col gap-2">
+                      <DashSelect value={tForm.slots[`${slot}_1`] ?? ""} onChange={(v) => setTForm((f) => ({ ...f, slots: { ...f.slots, [`${slot}_1`]: v } }))} placeholder="Pilih atlet 1" options={options} />
+                      <DashSelect value={tForm.slots[`${slot}_2`] ?? ""} onChange={(v) => setTForm((f) => ({ ...f, slots: { ...f.slots, [`${slot}_2`]: v } }))} placeholder="Pilih atlet 2" options={options} />
+                    </div>
+                  </FormField>
+                );
+              }
+              
+              return (
+                <FormField key={slot} label={slot.replace(/_/g, " ")}>
+                  <DashSelect value={tForm.slots[slot] ?? ""} onChange={(v) => setTForm((f) => ({ ...f, slots: { ...f.slots, [slot]: v } }))} placeholder="Pilih atlet" options={options} />
+                </FormField>
+              );
+            })}
           </>
         )}
       </Modal>

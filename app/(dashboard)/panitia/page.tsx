@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { LayoutDashboard, Zap, Calendar } from "lucide-react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { useRequireRole } from "@/lib/hooks/useAuth";
 import { PanitiaHome } from "@/modules/panitia/components/PanitiaHome";
@@ -10,9 +11,9 @@ import { JadwalPanitiaSection } from "@/modules/panitia/components/JadwalPanitia
 type Section = "beranda" | "match-aktif" | "jadwal";
 
 const SIDEBAR_ITEMS = [
-  { key: "beranda",     label: "Beranda",       icon: "🏠" },
-  { key: "match-aktif", label: "Match Aktif",   icon: "⚡" },
-  { key: "jadwal",      label: "Jadwal",        icon: "📅" },
+  { key: "beranda",     label: "Beranda",      icon: <LayoutDashboard size={16} /> },
+  { key: "match-aktif", label: "Match Aktif",  icon: <Zap size={16} /> },
+  { key: "jadwal",      label: "Jadwal",       icon: <Calendar size={16} /> },
 ];
 
 export default function PanitiaPage() {
@@ -22,7 +23,7 @@ export default function PanitiaPage() {
   if (isLoading || !user) {
     return (
       <div className="flex h-screen items-center justify-center" style={{ background: "var(--dash-body-bg)" }}>
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-transparent" style={{ borderTopColor: "#66FFB4" }} />
+        <div className="h-7 w-7 animate-spin rounded-full border-2 border-transparent" style={{ borderTopColor: "#6C47D1" }} />
       </div>
     );
   }
@@ -34,7 +35,9 @@ export default function PanitiaPage() {
       case "jadwal":
         return (
           <JadwalPanitiaSection
-            onStartAndSwitch={() => setSection("match-aktif")}
+            onStartAndSwitch={(matchId) => {
+              setSection("match-aktif");
+            }}
           />
         );
       default: return <PanitiaHome />;
@@ -46,12 +49,11 @@ export default function PanitiaPage() {
       sidebarItems={SIDEBAR_ITEMS}
       activeSection={section}
       onSectionChange={(key) => setSection(key as Section)}
-      roleBadge="Panitia Lapangan"
-      roleColor="#66FFB4"
+      roleBadge="Panitia"
       username={user.username}
       onLogout={logout}
     >
-      <div className="p-8">{renderSection()}</div>
+      <div className="p-6">{renderSection()}</div>
     </DashboardLayout>
   );
 }

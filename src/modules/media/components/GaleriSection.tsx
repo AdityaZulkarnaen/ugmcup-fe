@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import { Image as ImageIcon } from "lucide-react";
 import { PageHeader, AddButton, FormField, DashInput, DashSelect } from "@/components/dashboard/PageHeader";
 import { Modal, ModalCancelButton, ModalSubmitButton } from "@/components/dashboard/Modal";
 import { getMedia, createMedia, deleteMedia } from "@/lib/api/content";
@@ -63,17 +64,17 @@ export function GaleriSection() {
       </div>
 
       {isLoading ? (
-        <div className="flex justify-center py-16"><div className="h-8 w-8 animate-spin rounded-full border-2 border-transparent" style={{ borderTopColor: "#66FFB4" }} /></div>
+        <div className="flex justify-center py-16"><div className="h-7 w-7 animate-spin rounded-full border-2 border-transparent" style={{ borderTopColor: "#6C47D1" }} /></div>
       ) : data.length === 0 ? (
-        <div className="flex flex-col items-center py-20 rounded-2xl border" style={{ borderColor: "rgba(255,255,255,0.08)", background: "var(--dash-card-bg)" }}>
-          <p className="text-4xl mb-4">🖼️</p>
-          <p className="text-white font-semibold">Belum ada foto</p>
+        <div className="flex flex-col items-center py-20 rounded-lg border bg-white" style={{ borderColor: "#E5E7EB" }}>
+          <ImageIcon className="mb-4 h-12 w-12 text-gray-400" />
+          <p className="font-semibold" style={{ color: "#374151" }}>Belum ada foto</p>
         </div>
       ) : (
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
           {data.map(item => (
-            <div key={item.id} className="group relative overflow-hidden rounded-2xl border aspect-square"
-              style={{ borderColor: "rgba(255,255,255,0.08)" }}>
+            <div key={item.id} className="group relative overflow-hidden rounded-lg border aspect-square bg-gray-100"
+              style={{ borderColor: "#E5E7EB" }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={item.imageUrl} alt={item.caption ?? ""} className="h-full w-full object-cover" onError={(e) => { (e.target as HTMLImageElement).src = "/images/global/logo.webp"; }} />
               <div className="absolute inset-0 bg-black/0 transition-all group-hover:bg-black/60 flex flex-col justify-end p-3 opacity-0 group-hover:opacity-100">

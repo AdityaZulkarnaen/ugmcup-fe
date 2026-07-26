@@ -1,6 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import {
+  LayoutDashboard, Building2, Users, UserCheck,
+  Calendar, GitBranch, BarChart2, ClipboardList,
+} from "lucide-react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { useRequireRole } from "@/lib/hooks/useAuth";
 import { AdminHome } from "@/modules/admin/components/AdminHome";
@@ -17,14 +21,14 @@ type Section =
   | "jadwal" | "bracket" | "grup" | "audit-log";
 
 const SIDEBAR_ITEMS = [
-  { key: "beranda",    label: "Beranda",          icon: "🏠" },
-  { key: "institusi",  label: "Institusi",         icon: "🏛️" },
-  { key: "atlet",      label: "Atlet",             icon: "🏸" },
-  { key: "peserta",    label: "Peserta & Tim",     icon: "👥" },
-  { key: "jadwal",     label: "Jadwal Pertandingan", icon: "🗓️" },
-  { key: "bracket",    label: "Bracket",           icon: "🔀" },
-  { key: "grup",       label: "Grup & Klasemen",   icon: "📊" },
-  { key: "audit-log",  label: "Audit Log",         icon: "📋" },
+  { key: "beranda",   label: "Beranda",           icon: <LayoutDashboard size={16} /> },
+  { key: "institusi", label: "Institusi",          icon: <Building2 size={16} /> },
+  { key: "atlet",     label: "Atlet",              icon: <Users size={16} /> },
+  { key: "peserta",   label: "Peserta & Tim",      icon: <UserCheck size={16} /> },
+  { key: "jadwal",    label: "Jadwal",             icon: <Calendar size={16} /> },
+  { key: "bracket",   label: "Bracket",            icon: <GitBranch size={16} /> },
+  { key: "grup",      label: "Grup & Klasemen",    icon: <BarChart2 size={16} /> },
+  { key: "audit-log", label: "Audit Log",          icon: <ClipboardList size={16} /> },
 ];
 
 export default function AdminPage() {
@@ -34,7 +38,7 @@ export default function AdminPage() {
   if (isLoading || !user) {
     return (
       <div className="flex h-screen items-center justify-center" style={{ background: "var(--dash-body-bg)" }}>
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-transparent" style={{ borderTopColor: "#66FFB4" }} />
+        <div className="h-7 w-7 animate-spin rounded-full border-2 border-transparent" style={{ borderTopColor: "#6C47D1" }} />
       </div>
     );
   }
@@ -58,12 +62,11 @@ export default function AdminPage() {
       sidebarItems={SIDEBAR_ITEMS}
       activeSection={section}
       onSectionChange={(key) => setSection(key as Section)}
-      roleBadge="Super Admin"
-      roleColor="#8352D9"
+      roleBadge="Admin"
       username={user.username}
       onLogout={logout}
     >
-      <div className="p-8">{renderSection()}</div>
+      <div className="p-6">{renderSection()}</div>
     </DashboardLayout>
   );
 }

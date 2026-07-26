@@ -69,8 +69,8 @@ export function InstitusiSection() {
                 className="rounded-full px-2.5 py-0.5 text-xs font-semibold"
                 style={
                   row.type === "UNIVERSITAS"
-                    ? { background: "rgba(131,82,217,0.2)", color: "#D9D3FF" }
-                    : { background: "rgba(102,255,180,0.15)", color: "#66FFB4" }
+                    ? { background: "#F3E8FF", color: "#7E22CE" } // Light purple bg, dark purple text
+                    : { background: "#DCFCE7", color: "#15803D" } // Light green bg, dark green text
                 }
               >
                 {row.type}

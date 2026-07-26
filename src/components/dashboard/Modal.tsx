@@ -2,6 +2,7 @@
 
 import type { ReactNode } from "react";
 import { useEffect } from "react";
+import { X } from "lucide-react";
 
 interface ModalProps {
   isOpen: boolean;
@@ -19,7 +20,6 @@ const sizeMap = {
 };
 
 export function Modal({ isOpen, onClose, title, children, footer, size = "md" }: ModalProps) {
-  // Tutup modal dengan Escape
   useEffect(() => {
     if (!isOpen) return;
     const handler = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
@@ -32,25 +32,23 @@ export function Modal({ isOpen, onClose, title, children, footer, size = "md" }:
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      style={{ background: "rgba(0,0,0,0.7)", backdropFilter: "blur(4px)" }}
+      style={{ background: "rgba(0,0,0,0.4)", backdropFilter: "blur(4px)" }}
       onClick={onClose}
     >
       <div
-        className={`w-full ${sizeMap[size]} rounded-2xl border shadow-2xl`}
-        style={{
-          background: "linear-gradient(135deg, #1A1830 0%, #14183B 100%)",
-          borderColor: "rgba(255,255,255,0.1)",
-        }}
+        className={`w-full ${sizeMap[size]} rounded-xl border bg-white shadow-xl`}
+        style={{ borderColor: "#E5E7EB" }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between border-b px-6 py-4" style={{ borderColor: "rgba(255,255,255,0.08)" }}>
-          <h3 className="text-base font-bold text-white">{title}</h3>
+        <div className="flex items-center justify-between border-b px-6 py-4" style={{ borderColor: "#F3F4F6" }}>
+          <h3 className="text-base font-bold" style={{ color: "#111827" }}>{title}</h3>
           <button
             onClick={onClose}
-            className="flex h-7 w-7 items-center justify-center rounded-lg text-white/50 transition hover:bg-white/10 hover:text-white"
+            className="flex h-7 w-7 items-center justify-center rounded-lg transition-colors hover:bg-gray-100"
+            style={{ color: "#6B7280" }}
           >
-            ✕
+            <X size={16} />
           </button>
         </div>
 
@@ -59,7 +57,7 @@ export function Modal({ isOpen, onClose, title, children, footer, size = "md" }:
 
         {/* Footer */}
         {footer && (
-          <div className="flex justify-end gap-3 border-t px-6 py-4" style={{ borderColor: "rgba(255,255,255,0.08)" }}>
+          <div className="flex justify-end gap-2 border-t px-6 py-4" style={{ borderColor: "#F3F4F6" }}>
             {footer}
           </div>
         )}
@@ -68,13 +66,12 @@ export function Modal({ isOpen, onClose, title, children, footer, size = "md" }:
   );
 }
 
-// Tombol-tombol standar untuk footer modal
 export function ModalCancelButton({ onClick, label = "Batal" }: { onClick: () => void; label?: string }) {
   return (
     <button
       onClick={onClick}
-      className="rounded-xl border px-5 py-2 text-sm font-semibold text-white/70 transition hover:border-white/30 hover:text-white"
-      style={{ borderColor: "rgba(255,255,255,0.12)" }}
+      className="rounded-lg border px-5 py-2 text-sm font-medium transition-colors hover:bg-gray-50"
+      style={{ borderColor: "#D1D5DB", color: "#374151" }}
     >
       {label}
     </button>
@@ -97,8 +94,8 @@ export function ModalSubmitButton({
       type={type}
       onClick={onClick}
       disabled={isLoading}
-      className="rounded-xl px-5 py-2 text-sm font-bold text-[#14183B] transition hover:brightness-110 disabled:opacity-50"
-      style={{ background: "linear-gradient(135deg, #66FFB4, #02F5D4)" }}
+      className="rounded-lg px-5 py-2 text-sm font-semibold text-white transition hover:opacity-90 disabled:opacity-50"
+      style={{ background: "#6C47D1" }}
     >
       {isLoading ? "Menyimpan..." : label}
     </button>

@@ -62,8 +62,8 @@ export function AtletSection() {
             render: (row) => (
               <span className="rounded-full px-2.5 py-0.5 text-xs font-semibold"
                 style={row.gender === "PUTRA"
-                  ? { background: "rgba(59,130,246,0.2)", color: "#93c5fd" }
-                  : { background: "rgba(236,72,153,0.2)", color: "#f9a8d4" }}>
+                  ? { background: "#DBEAFE", color: "#1E3A8A" }
+                  : { background: "#FCE7F3", color: "#831843" }}>
                 {row.gender}
               </span>
             ),
