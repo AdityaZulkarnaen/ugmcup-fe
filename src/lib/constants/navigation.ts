@@ -4,8 +4,8 @@ export interface NavLink {
 }
 
 export const navLinks: NavLink[] = [
-  { label: "Beranda", href: "#" },
-  { label: "Pertandingan", href: "#" },
+  { label: "Beranda", href: "/" },
+  { label: "Pertandingan", href: "/pertandingan" },
   { label: "Berita", href: "#" },
   { label: "Tentang kami", href: "#" },
 ];
