@@ -6,18 +6,31 @@ import { navLinks } from "@/lib/constants/navigation";
 import { Button } from "@/components/ui/Button";
 import { ArrowIcon } from "@/components/ui/icons";
 
-export function Navbar() {
+interface NavbarProps {
+  /**
+   * "auto" (default) switches to dark text once scrolled past the hero — used
+   * on the landing page. "dark" keeps the light-on-dark look permanently, for
+   * interior pages that have a dark background throughout.
+   */
+  variant?: "auto" | "dark";
+}
+
+export function Navbar({ variant = "auto" }: NavbarProps) {
   // True once the page has scrolled past the full-height hero section.
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
+    if (variant !== "auto") return;
     const onScroll = () => {
       setScrolled(window.scrollY > window.innerHeight - 96);
     };
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
-  }, []);
+  }, [variant]);
+
+  // Whether to render the dark-text-on-light treatment.
+  const inverted = variant === "auto" && scrolled;
 
   return (
     <header className="fixed inset-x-0 top-0 z-50 bg-transparent backdrop-blur-md">
@@ -29,7 +42,7 @@ export function Navbar() {
             width={4800}
             height={4800}
             className={`h-12 w-42 transition duration-300 ${
-              scrolled ? "invert" : ""
+              inverted ? "invert" : ""
             }`}
           />
         </div>
@@ -40,7 +53,7 @@ export function Navbar() {
               key={link.label}
               href={link.href}
               className={`text-sm font-medium transition-colors ${
-                scrolled
+                inverted
                   ? "text-black hover:text-black/70"
                   : "text-white hover:text-white/70"
               }`}
@@ -53,7 +66,7 @@ export function Navbar() {
         <Button
           href="#"
           variant="outline"
-          className={scrolled ? "border-black/30! text-black!" : ""}
+          className={inverted ? "border-black/30! text-black!" : ""}
         >
           Dokumentasi
           <ArrowIcon />

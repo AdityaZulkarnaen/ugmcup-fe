@@ -16,9 +16,9 @@ export function NewsCard({ item }: NewsCardProps) {
           className="object-cover"
           sizes="(max-width: 640px) 100vw, 33vw"
         />
-        {/* <span className="absolute left-3 top-3 rounded-xl bg-[#02F5D4] px-3 py-1 text-xs font-black text-[#8B5CF6]">
+        <span className="absolute left-3 top-3 rounded-xl bg-[#02F5D4] px-3 py-1 text-xs font-black text-[#8B5CF6]">
           {item.category}
-        </span> */}
+        </span>
       </div>
 
       <p className="mt-4 text-xs text-[#6B6B73]">{item.date}</p>
