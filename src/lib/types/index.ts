@@ -74,6 +74,9 @@ export interface MatchSet {
   scoreA: number;
   scoreB: number;
   isFinished: boolean;
+  durationSeconds?: number;
+  timerStatus?: "STOPPED" | "RUNNING";
+  timerStartedAt?: string;
 }
 
 export interface Match {
@@ -159,6 +162,7 @@ export interface AuditLog {
   entityId: string;
   oldValue?: Record<string, unknown>;
   newValue?: Record<string, unknown>;
+  isUndone?: boolean;
   createdAt: string;
   admin?: { username: string; role: string };
 }

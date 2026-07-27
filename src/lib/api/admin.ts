@@ -116,6 +116,15 @@ export const setupBracket = (data: {
     body: JSON.stringify(data),
   });
 
+export const reassignBracketNode = (
+  nodeId: string,
+  data: { participantAId?: string | null; participantBId?: string | null; teamAId?: string | null; teamBId?: string | null }
+) =>
+  apiRequest<BracketNode[]>(`/admin/brackets/nodes/${nodeId}/reassign`, {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+
 // ================== STANDINGS ==================
 
 export const getStandings = (disciplineId: string, groupName?: string) =>

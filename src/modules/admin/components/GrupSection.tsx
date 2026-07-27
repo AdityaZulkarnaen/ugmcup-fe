@@ -34,10 +34,10 @@ export function GrupSection() {
       <PageHeader title="Grup & Klasemen" subtitle="Lihat klasemen berdasarkan aturan PBSI per cabang dan grup" />
 
       <div className="mb-6 grid grid-cols-2 gap-4">
-        <FormField label="Cabang">
+        <FormField label="Cabang Beregu">
           <DashSelect value={selectedDisc} onChange={(v) => { setSelectedDisc(v); setGroupName(""); }}
-            placeholder="Pilih cabang"
-            options={disciplines.map(d => ({ value: d.id, label: d.name }))} />
+            placeholder="Pilih cabang beregu"
+            options={disciplines.filter(d => d.isTeamEvent).map(d => ({ value: d.id, label: d.name }))} />
         </FormField>
         <FormField label="Nama Grup (opsional)">
           <DashSelect value={groupName} onChange={setGroupName}

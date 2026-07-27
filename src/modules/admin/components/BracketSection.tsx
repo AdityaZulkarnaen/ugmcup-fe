@@ -1,11 +1,9 @@
-"use client";
-
 import { useEffect, useState, useCallback } from "react";
 import { PageHeader, FormField, DashSelect } from "@/components/dashboard/PageHeader";
 import { Modal, ModalCancelButton, ModalSubmitButton } from "@/components/dashboard/Modal";
-import { getDisciplines, getBracket, setupBracket, getParticipants, getTeams } from "@/lib/api/admin";
+import { getDisciplines, getBracket, setupBracket, getParticipants, getTeams, reassignBracketNode } from "@/lib/api/admin";
 import type { Discipline, BracketNode, Participant, Team } from "@/lib/types";
-import { GitMerge, Zap } from "lucide-react";
+import { GitMerge, Zap, Edit } from "lucide-react";
 
 export function BracketSection() {
   const [disciplines, setDisciplines] = useState<Discipline[]>([]);
@@ -13,11 +11,17 @@ export function BracketSection() {
   const [bracketNodes, setBracketNodes] = useState<BracketNode[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [setupModalOpen, setSetupModalOpen] = useState(false);
+  const [editNodeModalOpen, setEditNodeModalOpen] = useState(false);
+  const [selectedNode, setSelectedNode] = useState<BracketNode | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");
   const [participants, setParticipants] = useState<Participant[]>([]);
   const [teams, setTeams] = useState<Team[]>([]);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
+
+  // Slot edit form
+  const [slotAId, setSlotAId] = useState<string>("");
+  const [slotBId, setSlotBId] = useState<string>("");
 
   useEffect(() => {
     getDisciplines().then(setDisciplines).catch(() => {});
@@ -70,6 +74,38 @@ export function BracketSection() {
     finally { setIsSaving(false); }
   }
 
+  function openEditModal(node: BracketNode) {
+    setSelectedNode(node);
+    const disc = disciplines.find(d => d.id === selectedDisc);
+    if (disc?.isTeamEvent) {
+      setSlotAId(node.match?.teamAId ?? "");
+      setSlotBId(node.match?.teamBId ?? "");
+    } else {
+      setSlotAId(node.match?.participantAId ?? "");
+      setSlotBId(node.match?.participantBId ?? "");
+    }
+    setEditNodeModalOpen(true);
+  }
+
+  async function handleReassign() {
+    if (!selectedNode) return;
+    setIsSaving(true); setError("");
+    try {
+      const disc = disciplines.find(d => d.id === selectedDisc);
+      const payload = disc?.isTeamEvent
+        ? { teamAId: slotAId || null, teamBId: slotBId || null }
+        : { participantAId: slotAId || null, participantBId: slotBId || null };
+
+      const updatedNodes = await reassignBracketNode(selectedNode.id, payload);
+      setBracketNodes(updatedNodes);
+      setEditNodeModalOpen(false);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Gagal memperbarui slot bracket");
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
   const entityList = participants.length > 0 ? participants : teams;
   const getLabel = (item: Participant | Team) => {
     if ("athletes" in item) {
@@ -77,6 +113,11 @@ export function BracketSection() {
     }
     return (item as Team).institution?.name ?? "Tim";
   };
+
+  const optionsWithBye = [
+    { value: "", label: "[ BYE / Kosong ]" },
+    ...entityList.map(item => ({ value: item.id, label: getLabel(item) }))
+  ];
 
   const groupedByRound: Record<string, BracketNode[]> = {};
   bracketNodes.forEach(node => {
@@ -89,16 +130,16 @@ export function BracketSection() {
     <div>
       <PageHeader
         title="Bracket"
-        subtitle="Visualisasi dan setup bracket fase gugur"
+        subtitle="Visualisasi dan susun urutan bracket (termasuk BYE) secara fleksibel"
         action={
-          selectedDisc && bracketNodes.length === 0 ? (
+          selectedDisc ? (
             <button onClick={() => setSetupModalOpen(true)}
               className="flex items-center rounded-lg px-4 py-2 text-sm font-bold text-white transition-colors"
               style={{ background: "#6C47D1" }}
               onMouseEnter={(e) => (e.currentTarget.style.background = "#5b3cae")}
               onMouseLeave={(e) => (e.currentTarget.style.background = "#6C47D1")}>
               <Zap className="mr-2 h-4 w-4" />
-              Setup Bracket
+              {bracketNodes.length === 0 ? "Setup Bracket" : "Reset & Buat Ulang Bracket"}
             </button>
           ) : undefined
         }
@@ -115,7 +156,7 @@ export function BracketSection() {
         <div className="flex flex-col items-center justify-center py-20 rounded-lg border bg-white" style={{ borderColor: "#E5E7EB" }}>
           <GitMerge className="mb-4 h-12 w-12 text-gray-400" />
           <p className="font-semibold" style={{ color: "#374151" }}>Bracket belum dibuat</p>
-          <p className="text-sm mt-1" style={{ color: "#6B7280" }}>Klik "Setup Bracket" untuk generate bracket dari daftar peserta.</p>
+          <p className="text-sm mt-1" style={{ color: "#6B7280" }}>Klik "Setup Bracket" untuk membuat struktur bagan fase gugur.</p>
         </div>
       ) : (
         <div className="space-y-6">
@@ -131,15 +172,24 @@ export function BracketSection() {
                         #{node.position}
                       </span>
                       <span>
-                        {node.match?.participantA?.institution?.name ?? node.match?.teamA?.institution?.name ?? "TBD"}
+                        <strong className={!node.match?.participantA && !node.match?.teamA ? "text-amber-600 italic" : ""}>
+                          {node.match?.participantA?.institution?.name ?? node.match?.teamA?.institution?.name ?? "BYE"}
+                        </strong>
                         <span style={{ color: "#9CA3AF" }}> vs </span>
-                        {node.match?.participantB?.institution?.name ?? node.match?.teamB?.institution?.name ?? "TBD"}
+                        <strong className={!node.match?.participantB && !node.match?.teamB ? "text-amber-600 italic" : ""}>
+                          {node.match?.participantB?.institution?.name ?? node.match?.teamB?.institution?.name ?? "BYE"}
+                        </strong>
                       </span>
                     </div>
-                    <span className="rounded-full px-2.5 py-0.5 text-xs font-semibold"
-                      style={{ background: "#DCFCE7", color: "#166534" }}>
-                      {node.match?.status ?? "—"}
-                    </span>
+                    <div className="flex items-center gap-3">
+                      <span className="rounded-full px-2.5 py-0.5 text-xs font-semibold"
+                        style={{ background: node.match?.status === "WALKOVER" ? "#FEF3C7" : "#DCFCE7", color: node.match?.status === "WALKOVER" ? "#92400E" : "#166534" }}>
+                        {node.match?.status === "WALKOVER" ? "BYE (Lolos)" : node.match?.status ?? "—"}
+                      </span>
+                      <button onClick={() => openEditModal(node)} className="flex items-center gap-1 text-xs px-3 py-1.5 font-semibold rounded-lg border transition hover:bg-gray-100" style={{ borderColor: "#D1D5DB", color: "#374151", background: "#fff" }}>
+                        <Edit size={12} /> Susun Slot
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -148,11 +198,12 @@ export function BracketSection() {
         </div>
       )}
 
+      {/* Setup Bracket Modal */}
       <Modal isOpen={setupModalOpen} onClose={() => { setSetupModalOpen(false); setError(""); setSelectedIds([]); }}
         title="Setup Bracket Knockout" size="md"
         footer={<><ModalCancelButton onClick={() => { setSetupModalOpen(false); setError(""); setSelectedIds([]); }} /><ModalSubmitButton onClick={handleSetup} isLoading={isSaving} label="Generate Bracket" /></>}>
         {error && <p className="mb-4 rounded-lg p-3 text-sm bg-red-50 text-red-600 border border-red-200">{error}</p>}
-        <p className="mb-4 text-sm" style={{ color: "#6B7280" }}>Pilih {disciplines.find(d => d.id === selectedDisc)?.isTeamEvent ? "tim" : "peserta"} yang masuk bracket. Sistem akan generate pasangan match secara otomatis.</p>
+        <p className="mb-4 text-sm" style={{ color: "#6B7280" }}>Pilih {disciplines.find(d => d.id === selectedDisc)?.isTeamEvent ? "tim" : "peserta"} yang masuk bracket. Urutan atau slot BYE bisa disesuaikan kembali nanti.</p>
         <div className="space-y-2 max-h-64 overflow-y-auto">
           {entityList.map(item => (
             <label key={item.id} className="flex items-center gap-3 rounded-lg border px-4 py-3 cursor-pointer transition hover:bg-gray-50"
@@ -163,6 +214,22 @@ export function BracketSection() {
               <span className="text-sm" style={{ color: "#374151" }}>{getLabel(item)}</span>
             </label>
           ))}
+        </div>
+      </Modal>
+
+      {/* Reassign Slot Modal */}
+      <Modal isOpen={editNodeModalOpen} onClose={() => { setEditNodeModalOpen(false); setError(""); }}
+        title={`Susun Slot Match (${selectedNode?.match?.roundName ?? ""})`} size="md"
+        footer={<><ModalCancelButton onClick={() => setEditNodeModalOpen(false)} /><ModalSubmitButton onClick={handleReassign} isLoading={isSaving} label="Simpan Slot" /></>}>
+        {error && <p className="mb-4 rounded-lg p-3 text-sm bg-red-50 text-red-600 border border-red-200">{error}</p>}
+        <p className="mb-4 text-sm" style={{ color: "#6B7280" }}>Tentukan peserta/tim untuk slot A dan slot B match ini sesuai dengan bracket yang telah Anda buat di luar sistem.</p>
+        <div className="space-y-4">
+          <FormField label="Peserta / Tim Sisi A">
+            <DashSelect value={slotAId} onChange={setSlotAId} options={optionsWithBye} />
+          </FormField>
+          <FormField label="Peserta / Tim Sisi B">
+            <DashSelect value={slotBId} onChange={setSlotBId} options={optionsWithBye} />
+          </FormField>
         </div>
       </Modal>
     </div>

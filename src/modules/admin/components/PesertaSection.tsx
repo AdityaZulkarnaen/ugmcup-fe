@@ -10,7 +10,7 @@ import {
 } from "@/lib/api/admin";
 import type { Institution, Athlete, Discipline, Participant, Team } from "@/lib/types";
 
-const TEAM_SLOTS = ["TUNGGAL_PUTRA", "TUNGGAL_PUTRI", "GANDA_PUTRA", "GANDA_PUTRI", "GANDA_CAMPURAN"];
+const TEAM_SLOTS = ["TUNGGAL_PUTRA", "TUNGGAL_PUTRI", "GANDA_PUTRA", "GANDA_PUTRI", "TRIPLE_MIX"];
 
 export function PesertaSection() {
   const [tab, setTab] = useState<"individu" | "tim">("individu");
@@ -61,7 +61,7 @@ export function PesertaSection() {
       const members = Object.entries(tForm.slots)
         .filter(([, athleteId]) => athleteId)
         .map(([key, athleteId]) => ({ 
-          assignedSlot: key.replace(/_[12]$/, ""), 
+          assignedSlot: key.replace(/_[123]$/, ""), 
           athleteId 
         }));
       await createTeam({ disciplineId: tForm.disciplineId, institutionId: tForm.institutionId, members });
@@ -159,6 +159,7 @@ export function PesertaSection() {
             </FormField>
             {TEAM_SLOTS.map((slot) => {
               const isGanda = slot.startsWith("GANDA");
+              const isTriple = slot.startsWith("TRIPLE");
               const options = athletes.filter(a => !tForm.institutionId || a.institutionId === tForm.institutionId).map((a) => ({ value: a.id, label: a.name }));
               
               if (isGanda) {
@@ -167,6 +168,18 @@ export function PesertaSection() {
                     <div className="flex flex-col gap-2">
                       <DashSelect value={tForm.slots[`${slot}_1`] ?? ""} onChange={(v) => setTForm((f) => ({ ...f, slots: { ...f.slots, [`${slot}_1`]: v } }))} placeholder="Pilih atlet 1" options={options} />
                       <DashSelect value={tForm.slots[`${slot}_2`] ?? ""} onChange={(v) => setTForm((f) => ({ ...f, slots: { ...f.slots, [`${slot}_2`]: v } }))} placeholder="Pilih atlet 2" options={options} />
+                    </div>
+                  </FormField>
+                );
+              }
+
+              if (isTriple) {
+                return (
+                  <FormField key={slot} label={slot.replace(/_/g, " ")}>
+                    <div className="flex flex-col gap-2">
+                      <DashSelect value={tForm.slots[`${slot}_1`] ?? ""} onChange={(v) => setTForm((f) => ({ ...f, slots: { ...f.slots, [`${slot}_1`]: v } }))} placeholder="Pilih atlet 1" options={options} />
+                      <DashSelect value={tForm.slots[`${slot}_2`] ?? ""} onChange={(v) => setTForm((f) => ({ ...f, slots: { ...f.slots, [`${slot}_2`]: v } }))} placeholder="Pilih atlet 2" options={options} />
+                      <DashSelect value={tForm.slots[`${slot}_3`] ?? ""} onChange={(v) => setTForm((f) => ({ ...f, slots: { ...f.slots, [`${slot}_3`]: v } }))} placeholder="Pilih atlet 3" options={options} />
                     </div>
                   </FormField>
                 );

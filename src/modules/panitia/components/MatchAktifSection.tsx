@@ -1,11 +1,100 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { RefreshCw, ChevronDown, Plus, CheckCircle, Wifi, WifiOff, Zap } from "lucide-react";
+import { RefreshCw, ChevronDown, CheckCircle, Wifi, WifiOff, Zap, RotateCcw, RotateCw, Play, Pause, Timer, Plus } from "lucide-react";
 
-import { getMatches, getMatch, updateScore, finishMatch } from "@/lib/api/matches";
+import { getMatches, getMatch, updateScore, finishMatch, undoScore, redoScore, updateSetTimer } from "@/lib/api/matches";
 import { useMatchRoom, useGlobalPanitiaRoom } from "@/lib/hooks/useSocket";
 import type { Match, MatchSet } from "@/lib/types";
+
+function SetTimerControl({ matchId, setNumber, initialDuration = 0, initialStatus = "STOPPED", initialStartedAt }: {
+  matchId: string;
+  setNumber: number;
+  initialDuration?: number;
+  initialStatus?: "STOPPED" | "RUNNING";
+  initialStartedAt?: string | null;
+}) {
+  const [status, setStatus] = useState(initialStatus);
+  const [duration, setDuration] = useState(initialDuration);
+  const [startedAt, setStartedAt] = useState<string | null>(initialStartedAt ?? null);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    setStatus(initialStatus);
+    setDuration(initialDuration);
+    setStartedAt(initialStartedAt ?? null);
+  }, [initialDuration, initialStatus, initialStartedAt]);
+
+  const [elapsedSeconds, setElapsedSeconds] = useState(duration);
+
+  useEffect(() => {
+    let interval: any = null;
+    if (status === "RUNNING" && startedAt) {
+      const startTime = new Date(startedAt).getTime();
+      interval = setInterval(() => {
+        const diff = Math.floor((Date.now() - startTime) / 1000);
+        setElapsedSeconds(duration + Math.max(0, diff));
+      }, 1000);
+    } else {
+      setElapsedSeconds(duration);
+    }
+    return () => { if (interval) clearInterval(interval); };
+  }, [status, startedAt, duration]);
+
+  async function handleTimerAction(action: "START" | "PAUSE" | "RESET") {
+    setLoading(true);
+    try {
+      const res = await updateSetTimer(matchId, setNumber, action);
+      setDuration(res.durationSeconds);
+      setStatus(res.timerStatus as any);
+      setStartedAt(res.timerStartedAt ?? null);
+    } catch (e) {}
+    finally { setLoading(false); }
+  }
+
+  const mins = String(Math.floor(elapsedSeconds / 60)).padStart(2, "0");
+  const secs = String(elapsedSeconds % 60).padStart(2, "0");
+
+  return (
+    <div className="flex flex-col items-center gap-2 py-3 px-4 rounded-xl border mb-6" style={{ background: "#F5F3FF", borderColor: "#DDD6FE" }}>
+      <div className="flex items-center gap-2">
+        <Timer size={14} className="text-purple-600" />
+        <span className="text-xs font-bold uppercase tracking-wider" style={{ color: "#5B21B6" }}>Timer Waktu Set {setNumber}</span>
+        {status === "RUNNING" && <span className="h-2 w-2 rounded-full bg-green-500 animate-ping" />}
+      </div>
+      <span className="text-4xl font-mono font-black tracking-tight" style={{ color: "#2E1065" }}>{mins}:{secs}</span>
+      <div className="flex gap-2 mt-1">
+        {status === "RUNNING" ? (
+          <button
+            onClick={() => handleTimerAction("PAUSE")}
+            disabled={loading}
+            className="flex items-center gap-1 text-xs px-3 py-1.5 font-bold rounded-lg text-white transition shadow-sm hover:opacity-90"
+            style={{ background: "#F59E0B" }}
+          >
+            <Pause size={12} /> Pause (Istirahat)
+          </button>
+        ) : (
+          <button
+            onClick={() => handleTimerAction("START")}
+            disabled={loading}
+            className="flex items-center gap-1 text-xs px-3 py-1.5 font-bold rounded-lg text-white transition shadow-sm hover:opacity-90"
+            style={{ background: "#10B981" }}
+          >
+            <Play size={12} /> Mulai Waktu
+          </button>
+        )}
+        <button
+          onClick={() => handleTimerAction("RESET")}
+          disabled={loading}
+          className="text-xs px-2.5 py-1.5 font-semibold rounded-lg border transition hover:bg-purple-100"
+          style={{ borderColor: "#C4B5FD", color: "#6D28D9", background: "#fff" }}
+        >
+          Reset
+        </button>
+      </div>
+    </div>
+  );
+}
 
 // ─────────────────────────────────────────────
 // Scoring Panel — 1 match sekaligus, fokus
@@ -48,10 +137,9 @@ function ScoringPanel({ match, onRefresh }: { match: Match; onRefresh: () => voi
     id: `new-${activeSet}`, matchId: match.id, setNumber: activeSet, scoreA: 0, scoreB: 0, isFinished: false,
   };
 
-  async function handleScore(field: "scoreA" | "scoreB", delta: 1 | -1) {
-    const newVal = Math.max(0, currentSet[field] + delta);
-    const newScoreA = field === "scoreA" ? newVal : currentSet.scoreA;
-    const newScoreB = field === "scoreB" ? newVal : currentSet.scoreB;
+  async function handleAddScore(field: "scoreA" | "scoreB") {
+    const newScoreA = field === "scoreA" ? currentSet.scoreA + 1 : currentSet.scoreA;
+    const newScoreB = field === "scoreB" ? currentSet.scoreB + 1 : currentSet.scoreB;
 
     // Optimistic update
     setSets((prev) => {
@@ -74,6 +162,28 @@ function ScoringPanel({ match, onRefresh }: { match: Match; onRefresh: () => voi
       } else {
         setError(e instanceof Error ? e.message : "Gagal update skor");
       }
+    } finally { setSaving(false); }
+  }
+
+  async function handleUndo() {
+    setSaving(true); setError("");
+    try {
+      const updated = await undoScore(match.id);
+      setVersion(updated.version);
+      if (updated.sets) setSets(updated.sets);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Tidak ada skor untuk di-undo");
+    } finally { setSaving(false); }
+  }
+
+  async function handleRedo() {
+    setSaving(true); setError("");
+    try {
+      const updated = await redoScore(match.id);
+      setVersion(updated.version);
+      if (updated.sets) setSets(updated.sets);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Tidak ada skor untuk di-redo");
     } finally { setSaving(false); }
   }
 
@@ -149,12 +259,21 @@ function ScoringPanel({ match, onRefresh }: { match: Match; onRefresh: () => voi
         </div>
 
         {/* Score area */}
-        <div className="px-6 py-8">
+        <div className="px-6 py-6">
           {error && (
             <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
               {error}
             </div>
           )}
+
+          {/* Set Timer Control */}
+          <SetTimerControl
+            matchId={match.id}
+            setNumber={activeSet}
+            initialDuration={currentSet.durationSeconds}
+            initialStatus={currentSet.timerStatus as any}
+            initialStartedAt={currentSet.timerStartedAt}
+          />
 
           <div className="grid grid-cols-3 items-center gap-4">
             {/* Team A */}
@@ -164,23 +283,15 @@ function ScoringPanel({ match, onRefresh }: { match: Match; onRefresh: () => voi
               <span className="text-6xl font-black tabular-nums" style={{ color: "#111827" }}>
                 {currentSet.scoreA}
               </span>
-              {/* +/- buttons */}
+              {/* +1 Button */}
               <div className="flex flex-col gap-2 w-full">
                 <button
-                  onClick={() => handleScore("scoreA", 1)}
+                  onClick={() => handleAddScore("scoreA")}
                   disabled={saving}
-                  className="w-full rounded-lg py-3 text-lg font-bold text-white transition hover:opacity-90 disabled:opacity-50 active:scale-95"
+                  className="w-full rounded-lg py-4 text-xl font-bold text-white transition hover:opacity-90 disabled:opacity-50 active:scale-95 shadow-md"
                   style={{ background: "#6C47D1" }}
                 >
-                  +1
-                </button>
-                <button
-                  onClick={() => handleScore("scoreA", -1)}
-                  disabled={saving || currentSet.scoreA === 0}
-                  className="w-full rounded-lg border py-2.5 text-sm font-semibold transition hover:bg-gray-50 disabled:opacity-30"
-                  style={{ borderColor: "#E5E7EB", color: "#374151" }}
-                >
-                  −1
+                  +1 Point
                 </button>
               </div>
             </div>
@@ -201,23 +312,35 @@ function ScoringPanel({ match, onRefresh }: { match: Match; onRefresh: () => voi
               </span>
               <div className="flex flex-col gap-2 w-full">
                 <button
-                  onClick={() => handleScore("scoreB", 1)}
+                  onClick={() => handleAddScore("scoreB")}
                   disabled={saving}
-                  className="w-full rounded-lg py-3 text-lg font-bold text-white transition hover:opacity-90 disabled:opacity-50 active:scale-95"
+                  className="w-full rounded-lg py-4 text-xl font-bold text-white transition hover:opacity-90 disabled:opacity-50 active:scale-95 shadow-md"
                   style={{ background: "#6C47D1" }}
                 >
-                  +1
-                </button>
-                <button
-                  onClick={() => handleScore("scoreB", -1)}
-                  disabled={saving || currentSet.scoreB === 0}
-                  className="w-full rounded-lg border py-2.5 text-sm font-semibold transition hover:bg-gray-50 disabled:opacity-30"
-                  style={{ borderColor: "#E5E7EB", color: "#374151" }}
-                >
-                  −1
+                  +1 Point
                 </button>
               </div>
             </div>
+          </div>
+
+          {/* Undo / Redo Control Bar */}
+          <div className="mt-6 flex justify-center gap-3 border-t pt-4" style={{ borderColor: "#F3F4F6" }}>
+            <button
+              onClick={handleUndo}
+              disabled={saving}
+              className="flex items-center gap-2 rounded-lg border px-4 py-2.5 text-xs font-bold transition hover:bg-gray-50 disabled:opacity-40"
+              style={{ borderColor: "#D1D5DB", color: "#374151" }}
+            >
+              <RotateCcw size={14} /> Undo Skor
+            </button>
+            <button
+              onClick={handleRedo}
+              disabled={saving}
+              className="flex items-center gap-2 rounded-lg border px-4 py-2.5 text-xs font-bold transition hover:bg-gray-50 disabled:opacity-40"
+              style={{ borderColor: "#D1D5DB", color: "#374151" }}
+            >
+              <RotateCw size={14} /> Redo Skor
+            </button>
           </div>
         </div>
 
@@ -309,7 +432,7 @@ export function MatchAktifSection() {
           </p>
         </div>
         <button
-          onClick={load}
+          onClick={() => load()}
           className="flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition hover:bg-gray-50"
           style={{ borderColor: "#E5E7EB", color: "#374151" }}
         >

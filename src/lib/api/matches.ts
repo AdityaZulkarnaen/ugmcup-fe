@@ -94,3 +94,28 @@ export const updateScore = (
     method: "PATCH",
     body: JSON.stringify(data),
   });
+
+export const undoScore = (id: string) =>
+  apiRequest<Match>(`/admin/matches/${id}/undo`, {
+    method: "POST",
+    body: JSON.stringify({}),
+  });
+
+export const redoScore = (id: string) =>
+  apiRequest<Match>(`/admin/matches/${id}/redo`, {
+    method: "POST",
+    body: JSON.stringify({}),
+  });
+
+export const updateSetTimer = (
+  id: string,
+  setNumber: number,
+  action: "START" | "PAUSE" | "RESET"
+) =>
+  apiRequest<{ durationSeconds: number; timerStatus: string; timerStartedAt?: string }>(
+    `/admin/matches/${id}/timer`,
+    {
+      method: "POST",
+      body: JSON.stringify({ setNumber, action }),
+    }
+  );
