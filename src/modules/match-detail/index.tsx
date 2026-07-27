@@ -4,7 +4,6 @@ import { ChevronIcon } from "@/components/ui/icons";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { getMatchDetail } from "@/lib/constants/matches";
-import { MatchScoreboard } from "./components/MatchScoreboard";
 import { MatchDetailTabs } from "./components/MatchDetailTabs";
 
 /**
@@ -30,19 +29,9 @@ export default function MatchDetailPage({ id }: { id: string }) {
             Kembali
           </Link>
 
-          <header className="text-center">
-            <h1 className="text-5xl font-black italic text-white sm:text-7xl">
-              Statistik Pertandingan
-            </h1>
-            <p className="mt-3 text-sm text-[#8A8A93] sm:text-base">
-              Ringkasan hasil akhir, skor per set, dan lokasi pertandingan.
-            </p>
-          </header>
-
-          <div className="mt-8 flex flex-col gap-4">
-            <MatchScoreboard match={match} />
-            <MatchDetailTabs match={match} />
-          </div>
+          {/* Header, scoreboard and panels live together: the subtitle changes
+              with the open tab. */}
+          <MatchDetailTabs match={match} />
         </div>
       </main>
 

@@ -5,10 +5,11 @@ import {
   categoryBrackets,
   disciplineLabel,
   findBracketAthlete,
-  sideName,
   type MatchDetail,
 } from "@/lib/constants/matches";
 import { BracketBoard } from "@/modules/match/components/BracketBoard";
+import { MatchScoreboard } from "./MatchScoreboard";
+import { PointHistory } from "./PointHistory";
 import { ScoreTable } from "./ScoreTable";
 import { MatchInfo } from "./MatchInfo";
 
@@ -21,6 +22,13 @@ const subTabs = [
   { id: "ringkasan", label: "Ringkasan" },
   { id: "sejarah", label: "Sejarah Pertandingan" },
 ];
+
+/** The page subtitle follows whatever view is open. */
+const subtitles: Record<string, string> = {
+  ringkasan: "Ringkasan hasil akhir, skor per set, dan lokasi pertandingan.",
+  sejarah: "Alur perolehan poin dan riwayat pergerakan servis sepanjang laga.",
+  bracket: "Posisi pertandingan ini pada bagan knockout kategorinya.",
+};
 
 function EmptyState({ children }: { children: React.ReactNode }) {
   return (
@@ -40,6 +48,19 @@ export function MatchDetailTabs({ match }: { match: MatchDetail }) {
 
   return (
     <div className="flex flex-col gap-4">
+      <header className="text-center">
+        <h1 className="text-5xl font-black italic text-white sm:text-7xl">
+          Statistik Pertandingan
+        </h1>
+        <p className="mt-3 text-sm text-[#8A8A93] sm:text-base">
+          {subtitles[tab === "bracket" ? "bracket" : subTab]}
+        </p>
+      </header>
+
+      <div className="mt-8">
+        <MatchScoreboard match={match} />
+      </div>
+
       <div className="overflow-hidden rounded-xl border border-white/[0.06] bg-white/[0.02]">
         {/* Primary tabs */}
         <div
@@ -115,10 +136,7 @@ export function MatchDetailTabs({ match }: { match: MatchDetail }) {
           <MatchInfo match={match} />
         </>
       ) : (
-        <EmptyState>
-          Belum ada riwayat pertemuan antara {sideName(match.home.players)} dan{" "}
-          {sideName(match.away.players)}.
-        </EmptyState>
+        <PointHistory match={match} />
       )}
     </div>
   );

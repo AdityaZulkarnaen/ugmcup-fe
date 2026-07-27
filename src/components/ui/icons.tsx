@@ -78,6 +78,28 @@ export function ChevronIcon({ className }: { className?: string }) {
   );
 }
 
+/** Shuttlecock, marking who holds serve in the point-by-point history. */
+export function ShuttleIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      width="12"
+      height="12"
+      viewBox="0 0 12 12"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.1"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      xmlns="http://www.w3.org/2000/svg"
+      className={className}
+    >
+      <path d="M6 1 3.1 7.2h5.8L6 1Z" />
+      <path d="M4.6 4h2.8M3.9 5.6h4.2M6 1v6.2" />
+      <path d="M4.4 7.2h3.2l-.5 2.3a1.2 1.2 0 0 1-2.2 0l-.5-2.3Z" fill="currentColor" fillOpacity="0.35" />
+    </svg>
+  );
+}
+
 /** Stadium/scoreboard mark used by the match information rows. */
 export function StadiumIcon({ className }: { className?: string }) {
   return (

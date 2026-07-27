@@ -714,6 +714,88 @@ export function searchBracketAthletes(
 /** Single venue for the whole tournament, shown on the match detail page. */
 export const tournamentVenue = { name: "GOR Nusantara", org: "UGM" };
 
+export type MatchSideKey = "home" | "away";
+
+/**
+ * One score update recorded from the admin dashboard. Live scoring only needs
+ * the side that won the rally — everything else (running score, who serves
+ * next) is derived, so the operator taps one button per rally.
+ */
+export interface RallyEntry {
+  scorer: MatchSideKey;
+  /** Points added; defaults to 1. More when the operator catches up at once. */
+  gained?: number;
+}
+
+/** Point-by-point record of one set. */
+export interface SetHistory {
+  /** Side that served the very first rally of the set. */
+  firstServer: MatchSideKey;
+  entries: RallyEntry[];
+}
+
+/** A history row ready to render: derived score and serve holder included. */
+export interface RallyRow {
+  scorer: MatchSideKey;
+  gained: number;
+  /** Side that served this rally — the winner of the previous one. */
+  server: MatchSideKey;
+  /** Running score after this entry. */
+  home: number;
+  away: number;
+}
+
+/**
+ * Expands recorded rallies into rows. Serve follows the badminton rally-scoring
+ * rule: whoever won the last rally serves the next one.
+ */
+export function buildRallyRows(history: SetHistory): RallyRow[] {
+  let home = 0;
+  let away = 0;
+
+  return history.entries.map((entry, index) => {
+    const gained = entry.gained ?? 1;
+    if (entry.scorer === "home") home += gained;
+    else away += gained;
+
+    return {
+      scorer: entry.scorer,
+      gained,
+      server:
+        index === 0 ? history.firstServer : history.entries[index - 1].scorer,
+      home,
+      away,
+    };
+  });
+}
+
+/** Compact authoring helper: "HAHH" -> one entry per rally winner. */
+function rallies(sequence: string, firstServer: MatchSideKey): SetHistory {
+  return {
+    firstServer,
+    entries: [...sequence].map((mark) => ({
+      scorer: mark === "H" ? "home" : "away",
+    })),
+  };
+}
+
+/**
+ * Point-by-point histories, keyed by match id. Kept apart from the match record
+ * because live scoring is its own stream — the admin dashboard appends to this
+ * while the match record itself barely changes.
+ */
+export const matchHistories: Record<string, SetHistory[]> = {
+  "sched-7": [
+    rallies("HAHAHHAHAHHAHAHAHHAHAHHAHAHAHHAHAHHA", "home"),
+    rallies("AHAHAHAHAHAHAAHAHAHAHAHAHAAHAHAHAHAHAHA", "home"),
+    rallies("HAHHAHHAHHAHAHHAHHAHHAHAHHAHHAHHA", "away"),
+  ],
+  "match-1": [
+    rallies("HAHAHAHAHAHHAHAHAHAHAHAHHAHAHAHAHAHAHHA", "home"),
+    rallies("HAHAHAHHAHAHAHAHHAHAHAHHA", "home"),
+  ],
+};
+
 /** One set of a match; the set in progress is not counted in the totals yet. */
 export interface MatchDetailSet extends MatchGame {
   inProgress?: boolean;
@@ -736,9 +818,11 @@ export interface MatchDetail {
   away: MatchSide;
   sets: MatchDetailSet[];
   status: ScheduleStatus;
-  winner?: "home" | "away";
+  winner?: MatchSideKey;
   /** Set in progress, e.g. "Set 2"; live matches only. */
   setLabel?: string;
+  /** Point-by-point record per set; empty when nothing was logged. */
+  history: SetHistory[];
 }
 
 /** "2026-08-10" + "11:30" -> "10.08.2026 11:30". */
@@ -772,6 +856,7 @@ export function getMatchDetail(id: string): MatchDetail | undefined {
       sets: [...live.games, { ...live.live, inProgress: true }],
       status: "live",
       setLabel: live.setLabel,
+      history: matchHistories[live.id] ?? [],
     };
   }
 
@@ -790,6 +875,7 @@ export function getMatchDetail(id: string): MatchDetail | undefined {
     sets: scheduled.games ?? [],
     status: scheduled.status,
     winner: scheduled.winner,
+    history: matchHistories[scheduled.id] ?? [],
   };
 }
 
