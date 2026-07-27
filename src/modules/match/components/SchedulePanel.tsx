@@ -5,46 +5,9 @@ import {
   scheduleCategories,
   scheduleDays,
   scheduleMatches,
-  type ScheduleFilter,
 } from "@/lib/constants/matches";
+import { FilterSelect } from "@/components/ui/FilterSelect";
 import { ScheduleRow } from "./ScheduleRow";
-
-/** One row of pill filters; "Semua" is always the first option. */
-function FilterPills({
-  options,
-  active,
-  onChange,
-  label,
-}: {
-  options: ScheduleFilter[];
-  active: string;
-  onChange: (id: string) => void;
-  label: string;
-}) {
-  return (
-    <div className="flex flex-wrap gap-2" role="group" aria-label={label}>
-      {options.map((option) => {
-        const isActive = option.id === active;
-        const isCategory = label.toLowerCase().includes("kategori");
-        return (
-          <button
-            key={option.id}
-            type="button"
-            aria-pressed={isActive}
-            onClick={() => onChange(option.id)}
-            className={`rounded-full border px-3.5 py-1.5 text-xs font-medium transition-colors ${
-              isActive
-                ? ` ${isCategory ? "border-[#8B5CF6]/40 bg-[#8B5CF6]/20 text-[#C4B5FD]" : "border-[#EF9F27]/30 bg-[#EF9F27]/15 text-[#FAC775]"}`
-                : "border-white/[0.08] bg-white/[0.02] text-[#8A8A93] hover:border-white/15 hover:text-white"
-            }`}
-          >
-            {option.label}
-          </button>
-        );
-      })}
-    </div>
-  );
-}
 
 export function SchedulePanel() {
   const [day, setDay] = useState("all");
@@ -54,7 +17,7 @@ export function SchedulePanel() {
     () =>
       scheduleMatches.filter(
         (match) =>
-          (day === "all" || match.dayId === day) &&
+          (day === "all" || match.date === day) &&
           (category === "all" || match.categoryId === category),
       ),
     [day, category],
@@ -62,19 +25,31 @@ export function SchedulePanel() {
 
   return (
     <div className="flex flex-col gap-5">
-      {/* Filters */}
-      <div className="flex flex-col gap-2.5">
-        <FilterPills
+      {/* Filters — kept on one row at every width */}
+      <div className="flex gap-2.5">
+        <FilterSelect
           options={scheduleDays}
-          active={day}
+          value={day}
           onChange={setDay}
           label="Filter hari"
+          accent="gold"
+          accented={day !== "all"}
+          className="min-w-0 flex-1 sm:max-w-56"
+          optionLabel={(option) =>
+            option.id === "all" ? "Semua Hari" : option.label
+          }
         />
-        <FilterPills
+        <FilterSelect
           options={scheduleCategories}
-          active={category}
+          value={category}
           onChange={setCategory}
           label="Filter kategori"
+          accent="violet"
+          accented={category !== "all"}
+          className="min-w-0 flex-1 sm:max-w-56"
+          optionLabel={(option) =>
+            option.id === "all" ? "Semua Kategori" : option.label
+          }
         />
       </div>
 

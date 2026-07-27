@@ -15,7 +15,9 @@ export default function MatchPage() {
     <>
       <Navbar variant="dark" />
 
-      <main className="relative overflow-hidden bg-linear-to-b from-[#1A162B] to-[#0F0E1A] pt-28 pb-24">
+      {/* No `overflow-hidden` here: it would clip the filter dropdowns at the
+          footer edge when a panel is short. Clip decorations locally instead. */}
+      <main className="relative bg-linear-to-b from-[#1A162B] to-[#0F0E1A] pt-28 pb-24">
 
         {/* Header */}
         <header className="relative mx-auto flex w-full max-w-6xl flex-col items-center px-6 text-center">

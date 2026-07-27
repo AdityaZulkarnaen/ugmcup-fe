@@ -78,6 +78,105 @@ export function ChevronIcon({ className }: { className?: string }) {
   );
 }
 
+/** Shuttlecock, marking who holds serve in the point-by-point history. */
+export function ShuttleIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      width="12"
+      height="12"
+      viewBox="0 0 12 12"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.1"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      xmlns="http://www.w3.org/2000/svg"
+      className={className}
+    >
+      <path d="M6 1 3.1 7.2h5.8L6 1Z" />
+      <path d="M4.6 4h2.8M3.9 5.6h4.2M6 1v6.2" />
+      <path d="M4.4 7.2h3.2l-.5 2.3a1.2 1.2 0 0 1-2.2 0l-.5-2.3Z" fill="currentColor" fillOpacity="0.35" />
+    </svg>
+  );
+}
+
+/** Stadium/scoreboard mark used by the match information rows. */
+export function StadiumIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 16 16"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.3"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      xmlns="http://www.w3.org/2000/svg"
+      className={className}
+    >
+      <rect x="1.5" y="3.5" width="13" height="9" rx="1.5" />
+      <path d="M4.5 6v4M8 6v4M11.5 6v4" />
+    </svg>
+  );
+}
+
+export function SearchIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 16 16"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.6"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      xmlns="http://www.w3.org/2000/svg"
+      className={className}
+    >
+      <circle cx="7" cy="7" r="4.5" />
+      <path d="m10.5 10.5 3 3" />
+    </svg>
+  );
+}
+
+export function MenuIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 20 20"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      xmlns="http://www.w3.org/2000/svg"
+      className={className}
+    >
+      <path d="M3 5.5h14M3 10h14M3 14.5h14" />
+    </svg>
+  );
+}
+
+export function CloseIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      width="14"
+      height="14"
+      viewBox="0 0 14 14"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      xmlns="http://www.w3.org/2000/svg"
+      className={className}
+    >
+      <path d="m3.5 3.5 7 7M10.5 3.5l-7 7" />
+    </svg>
+  );
+}
+
 export function YoutubeIcon({ className }: { className?: string }) {
   return (
     <svg
