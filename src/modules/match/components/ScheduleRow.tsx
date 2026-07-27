@@ -1,10 +1,11 @@
 import Link from "next/link";
 import {
+  disciplineLabel,
   sideName,
   type ScheduleMatch,
   type ScheduleStatus,
 } from "@/lib/constants/matches";
-import { CheckIcon, CourtIcon } from "@/components/ui/icons";
+import { CheckIcon, ChevronIcon, CourtIcon } from "@/components/ui/icons";
 
 interface ScheduleRowProps {
   match: ScheduleMatch;
@@ -61,7 +62,7 @@ export function ScheduleRow({ match }: ScheduleRowProps) {
     <Link
       href={`/pertandingan/${match.id}`}
       aria-label={`Statistik ${sideName(match.home.players)} vs ${sideName(match.away.players)}`}
-      className="relative block overflow-hidden rounded-xl border border-white/[0.06] bg-white/[0.02] pl-6 pr-4 py-3.5 transition-colors hover:border-white/30"
+      className="group relative block overflow-hidden rounded-xl border border-white/[0.06] bg-white/[0.02] pl-6 pr-4 py-3.5 transition-all hover:border-white/30 hover:bg-white/[0.04] active:scale-[0.995] active:border-white/30 active:bg-white/[0.05]"
     >
       {/* Left accent, red while the match is running */}
       {isLive && (
@@ -78,7 +79,7 @@ export function ScheduleRow({ match }: ScheduleRowProps) {
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
             <span className="rounded-full border border-[#C79A3B]/40 bg-[#C79A3B]/[0.08] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[#E3B24D]">
-              {match.category}
+              {disciplineLabel(match.categoryId)}
             </span>
             <span className="text-[11px] font-medium text-[#7A7A83]">
               {match.level}
@@ -129,6 +130,9 @@ export function ScheduleRow({ match }: ScheduleRowProps) {
             {badge.label}
           </span>
         </div>
+
+        {/* Always-visible tap affordance, so touch screens do not rely on hover */}
+        <ChevronIcon className="shrink-0 text-[#5A5A63] transition-all group-hover:translate-x-0.5 group-hover:text-[#E3B24D]" />
       </div>
     </Link>
   );

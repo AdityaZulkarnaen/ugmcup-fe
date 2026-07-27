@@ -13,9 +13,7 @@ export interface MatchSide {
 
 export interface LiveMatch {
   id: string;
-  /** Discipline label shown in the gold pill, e.g. "Tunggal Putra". */
-  category: string;
-  /** Category filter key, matches a `categoryBrackets` id. */
+  /** Discipline key, matches a `disciplines` id. */
   categoryId: string;
   /** Age group / division, e.g. "U-21" or "Open". */
   level: string;
@@ -42,7 +40,6 @@ export interface LiveMatch {
 export const liveMatches: LiveMatch[] = [
   {
     id: "match-1",
-    category: "Tunggal Putra",
     categoryId: "tunggal-putra",
     level: "U-21",
     date: "2026-08-10",
@@ -58,7 +55,6 @@ export const liveMatches: LiveMatch[] = [
   },
   {
     id: "match-2",
-    category: "Ganda Putri",
     categoryId: "ganda-putri",
     level: "Open",
     date: "2026-08-10",
@@ -77,7 +73,6 @@ export const liveMatches: LiveMatch[] = [
   },
   {
     id: "match-3",
-    category: "Ganda Campuran",
     categoryId: "ganda-campuran",
     level: "U-19",
     date: "2026-08-10",
@@ -101,14 +96,12 @@ export type ScheduleStatus = "live" | "upcoming" | "done";
 
 export interface ScheduleMatch {
   id: string;
-  /** Day filter key, matches a `scheduleDays` id. */
-  dayId: string;
-  /** Category filter key, matches a `scheduleCategories` id. */
+  /** ISO day the match is played on, e.g. "2026-08-09"; drives the day filter. */
+  date: string;
+  /** Category filter key, matches a `disciplines` id. */
   categoryId: string;
   /** Start time, e.g. "08:00". */
   time: string;
-  /** Discipline label shown in the gold pill, e.g. "Tunggal Putra". */
-  category: string;
   /** Age group / division shown next to the pill, e.g. "U-21" or "Open". */
   level: string;
   /** Court label, e.g. "Lapangan 1". */
@@ -127,16 +120,12 @@ export interface ScheduleFilter {
   label: string;
 }
 
-export const scheduleDays: ScheduleFilter[] = [
-  { id: "all", label: "Semua" },
-  { id: "2025-07-16", label: "Rab, 16 Jul" },
-  { id: "2025-07-17", label: "Kam, 17 Jul" },
-  { id: "2025-07-18", label: "Jum, 18 Jul" },
-  { id: "2025-07-19", label: "Sab, 19 Jul" },
-];
-
-export const scheduleCategories: ScheduleFilter[] = [
-  { id: "all", label: "Semua" },
+/**
+ * Single source of truth for the disciplines. The schedule filter, the bracket
+ * categories and every match record key off these ids, so an admin-supplied
+ * match only has to carry the id.
+ */
+export const disciplines: ScheduleFilter[] = [
   { id: "tunggal-putra", label: "Tunggal Putra" },
   { id: "tunggal-putri", label: "Tunggal Putri" },
   { id: "ganda-putra", label: "Ganda Putra" },
@@ -144,85 +133,44 @@ export const scheduleCategories: ScheduleFilter[] = [
   { id: "ganda-campuran", label: "Ganda Campuran" },
 ];
 
+export function disciplineLabel(id: string): string {
+  return disciplines.find((item) => item.id === id)?.label ?? id;
+}
+
+export const scheduleCategories: ScheduleFilter[] = [
+  { id: "all", label: "Semua" },
+  ...disciplines,
+];
+
+const dayNames = ["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"];
+const monthNames = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "Mei",
+  "Jun",
+  "Jul",
+  "Agu",
+  "Sep",
+  "Okt",
+  "Nov",
+  "Des",
+];
+
+/** "2026-08-09" -> "Min, 9 Agu". Read as UTC so the label never shifts. */
+export function formatMatchDay(date: string): string {
+  const [year, month, day] = date.split("-").map(Number);
+  const weekday = new Date(Date.UTC(year, month - 1, day)).getUTCDay();
+  return `${dayNames[weekday]}, ${day} ${monthNames[month - 1]}`;
+}
+
 export const scheduleMatches: ScheduleMatch[] = [
   {
-    id: "sched-1",
-    dayId: "2025-07-16",
-    categoryId: "tunggal-putra",
-    time: "08:00",
-    category: "Tunggal Putra",
-    level: "U-21",
-    court: "Lapangan 1",
-    home: { players: ["Rizky Fadhilah"], team: "FT UGM" },
-    away: { players: ["Arya Pratama"], team: "FEB UGM" },
-    status: "live",
-  },
-  {
-    id: "sched-2",
-    dayId: "2025-07-16",
-    categoryId: "ganda-putri",
-    time: "08:00",
-    category: "Ganda Putri",
-    level: "Open",
-    court: "Lapangan 2",
-    home: { players: ["Sinta Rahayu", "Devi Kurnia"], team: "FT UGM" },
-    away: { players: ["Layla Azhar", "Putri Wulandari"], team: "FEB UGM" },
-    status: "live",
-  },
-  {
-    id: "sched-3",
-    dayId: "2025-07-17",
-    categoryId: "ganda-putra",
-    time: "08:00",
-    category: "Ganda Putra",
-    level: "Open",
-    court: "Lapangan 1",
-    home: { players: ["Dani Setiawan", "Hendra Kusuma"], team: "FT UGM" },
-    away: { players: ["Yogi Pratama", "Wahyu Nugroho"], team: "FEB UGM" },
-    status: "upcoming",
-  },
-  {
-    id: "sched-4",
-    dayId: "2025-07-17",
-    categoryId: "tunggal-putra",
-    time: "08:00",
-    category: "Tunggal Putra",
-    level: "U-21",
-    court: "Lapangan 1",
-    home: { players: ["Rizky Fadhilah"], team: "FT UGM" },
-    away: { players: ["Arya Pratama"], team: "FEB UGM" },
-    status: "upcoming",
-  },
-  {
-    id: "sched-5",
-    dayId: "2025-07-18",
-    categoryId: "ganda-putra",
-    time: "08:00",
-    category: "Ganda Putra",
-    level: "U-21",
-    court: "Lapangan 1",
-    home: { players: ["Dani Setiawan", "Hendra Kusuma"], team: "FT UGM" },
-    away: { players: ["Yogi Pratama", "Wahyu Nugroho"], team: "FEB UGM" },
-    status: "upcoming",
-  },
-  {
-    id: "sched-6",
-    dayId: "2025-07-18",
-    categoryId: "ganda-putra",
-    time: "08:00",
-    category: "Ganda Putra",
-    level: "Open",
-    court: "Lapangan 1",
-    home: { players: ["Dani Setiawan", "Hendra Kusuma"], team: "FT UGM" },
-    away: { players: ["Yogi Pratama", "Wahyu Nugroho"], team: "FEB UGM" },
-    status: "upcoming",
-  },
-  {
     id: "sched-7",
-    dayId: "2025-07-19",
+    date: "2026-08-09",
     categoryId: "tunggal-putra",
-    time: "08:00",
-    category: "Tunggal Putra",
+    time: "11:30",
     level: "Open",
     court: "Lapangan 1",
     home: { players: ["Dani Setiawan"], team: "FT UGM" },
@@ -237,10 +185,9 @@ export const scheduleMatches: ScheduleMatch[] = [
   },
   {
     id: "sched-8",
-    dayId: "2025-07-19",
+    date: "2026-08-09",
     categoryId: "ganda-putra",
-    time: "08:00",
-    category: "Ganda Putra",
+    time: "15:45",
     level: "U-21",
     court: "Lapangan 2",
     home: { players: ["Dani Setiawan", "Hendra Kusuma"], team: "FT UGM" },
@@ -252,6 +199,105 @@ export const scheduleMatches: ScheduleMatch[] = [
       { home: 16, away: 21 },
     ],
   },
+  {
+    id: "sched-1",
+    date: "2026-08-10",
+    categoryId: "tunggal-putra",
+    time: "11:30",
+    level: "U-21",
+    court: "Lapangan 1",
+    home: { players: ["Rizky Fadhilah"], team: "FT UGM" },
+    away: { players: ["Arya Pratama"], team: "FEB UGM" },
+    status: "live",
+  },
+  {
+    id: "sched-2",
+    date: "2026-08-10",
+    categoryId: "ganda-putri",
+    time: "12:15",
+    level: "Open",
+    court: "Lapangan 2",
+    home: { players: ["Sinta Rahayu", "Devi Kurnia"], team: "FT UGM" },
+    away: { players: ["Layla Azhar", "Putri Wulandari"], team: "FEB UGM" },
+    status: "live",
+  },
+  {
+    id: "sched-3",
+    date: "2026-08-11",
+    categoryId: "ganda-putra",
+    time: "08:00",
+    level: "Open",
+    court: "Lapangan 1",
+    home: { players: ["Dani Setiawan", "Hendra Kusuma"], team: "FT UGM" },
+    away: { players: ["Yogi Pratama", "Wahyu Nugroho"], team: "FEB UGM" },
+    status: "upcoming",
+  },
+  {
+    id: "sched-4",
+    date: "2026-08-11",
+    categoryId: "tunggal-putra",
+    time: "10:15",
+    level: "U-21",
+    court: "Lapangan 1",
+    home: { players: ["Rizky Fadhilah"], team: "FT UGM" },
+    away: { players: ["Bagas Nugroho"], team: "FMIPA UGM" },
+    status: "upcoming",
+  },
+  {
+    id: "sched-5",
+    date: "2026-08-12",
+    categoryId: "ganda-putra",
+    time: "09:00",
+    level: "U-21",
+    court: "Lapangan 1",
+    home: { players: ["Dani Setiawan", "Hendra Kusuma"], team: "FT UGM" },
+    away: { players: ["Adi Nugraha", "Bayu Saputra"], team: "FISIPOL UGM" },
+    status: "upcoming",
+  },
+  {
+    id: "sched-6",
+    date: "2026-08-13",
+    categoryId: "ganda-putra",
+    time: "13:00",
+    level: "Open",
+    court: "Lapangan 1",
+    home: { players: ["Eko Purnomo", "Firman Hidayat"], team: "FK-KMK UGM" },
+    away: { players: ["Yogi Pratama", "Wahyu Nugroho"], team: "FEB UGM" },
+    status: "upcoming",
+  },
+  {
+    id: "sched-9",
+    date: "2026-08-14",
+    categoryId: "tunggal-putri",
+    time: "09:30",
+    level: "Open",
+    court: "Lapangan 2",
+    home: { players: ["Sinta Rahayu"], team: "FT UGM" },
+    away: { players: ["Rani Oktaviani"], team: "FIB UGM" },
+    status: "upcoming",
+  },
+  {
+    id: "sched-10",
+    date: "2026-08-15",
+    categoryId: "ganda-campuran",
+    time: "16:00",
+    level: "Open",
+    court: "Lapangan 1",
+    home: { players: ["Rizky Fadhilah", "Sinta Rahayu"], team: "FT UGM" },
+    away: { players: ["Dani Setiawan", "Devi Kurnia"], team: "FEB UGM" },
+    status: "upcoming",
+  },
+];
+
+/**
+ * Day filters built from the matches themselves, so a match the admin adds on a
+ * new day shows up in the filter without this list being touched.
+ */
+export const scheduleDays: ScheduleFilter[] = [
+  { id: "all", label: "Semua" },
+  ...Array.from(new Set(scheduleMatches.map((match) => match.date)))
+    .sort()
+    .map((date) => ({ id: date, label: formatMatchDay(date) })),
 ];
 
 /**
@@ -279,7 +325,7 @@ export const participants: Participant[] = [
   {
     ...athlete("dani-setiawan", "FEB UGM", "Dani Setiawan"),
     // Demo of an admin-supplied badge; drop this line to fall back to the mark.
-    avatar: "/images/hero/cock1.png",
+    avatar: "/images/global/Logo icon.svg",
   },
   athlete("arya-pratama", "FISIPOL UGM", "Arya Pratama"),
   athlete("bagas-nugroho", "FMIPA UGM", "Bagas Nugroho"),
@@ -717,7 +763,7 @@ export function getMatchDetail(id: string): MatchDetail | undefined {
     return {
       id: live.id,
       startsAt: formatMatchDateTime(live.date, live.time),
-      category: live.category,
+      category: disciplineLabel(live.categoryId),
       categoryId: live.categoryId,
       level: live.level,
       court: live.court,
@@ -734,8 +780,8 @@ export function getMatchDetail(id: string): MatchDetail | undefined {
 
   return {
     id: scheduled.id,
-    startsAt: formatMatchDateTime(scheduled.dayId, scheduled.time),
-    category: scheduled.category,
+    startsAt: formatMatchDateTime(scheduled.date, scheduled.time),
+    category: disciplineLabel(scheduled.categoryId),
     categoryId: scheduled.categoryId,
     level: scheduled.level,
     court: scheduled.court,

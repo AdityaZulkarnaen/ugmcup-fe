@@ -17,7 +17,7 @@ export function SchedulePanel() {
     () =>
       scheduleMatches.filter(
         (match) =>
-          (day === "all" || match.dayId === day) &&
+          (day === "all" || match.date === day) &&
           (category === "all" || match.categoryId === category),
       ),
     [day, category],

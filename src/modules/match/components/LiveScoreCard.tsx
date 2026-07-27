@@ -1,6 +1,10 @@
 import Link from "next/link";
-import { sideName, type LiveMatch } from "@/lib/constants/matches";
-import { ArrowIcon, CourtIcon } from "@/components/ui/icons";
+import {
+  disciplineLabel,
+  sideName,
+  type LiveMatch,
+} from "@/lib/constants/matches";
+import { ArrowIcon, ChevronIcon, CourtIcon } from "@/components/ui/icons";
 
 interface LiveScoreCardProps {
   match: LiveMatch;
@@ -42,7 +46,7 @@ export function LiveScoreCard({ match }: LiveScoreCardProps) {
     <Link
       href={`/pertandingan/${match.id}`}
       aria-label={`Statistik ${sideName(match.home.players)} vs ${sideName(match.away.players)}`}
-      className="block rounded-2xl border border-white/[0.06] bg-white/[0.02] px-6 py-5 shadow-[0_1px_0_rgba(255,255,255,0.03)_inset] transition-colors hover:border-white/30"
+      className="group block rounded-2xl border border-white/[0.06] bg-white/[0.02] px-6 py-5 shadow-[0_1px_0_rgba(255,255,255,0.03)_inset] transition-all hover:border-white/30 hover:bg-white/[0.04] active:scale-[0.995] active:border-white/30 active:bg-white/[0.05]"
     >
       {/* Top row: status + court */}
       <div className="flex items-center justify-between">
@@ -56,7 +60,7 @@ export function LiveScoreCard({ match }: LiveScoreCardProps) {
           </span>
           <span className="text-white/25">·</span>
           <span className="rounded-full border border-[#C79A3B]/40 bg-[#C79A3B]/[0.08] px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-[#E3B24D]">
-            {match.category} {match.level}
+            {disciplineLabel(match.categoryId)} {match.level}
           </span>
         </div>
 
@@ -150,6 +154,12 @@ export function LiveScoreCard({ match }: LiveScoreCardProps) {
         <span className="text-xs font-medium text-[#7A7A83]">
           Game {match.currentGame}
         </span>
+      </div>
+
+      {/* Always-visible tap affordance, so touch screens do not rely on hover */}
+      <div className="mt-4 flex items-center justify-end gap-1 border-t border-white/[0.06] pt-3 text-xs font-semibold text-[#E3B24D]">
+        Lihat statistik
+        <ChevronIcon className="transition-transform group-hover:translate-x-0.5" />
       </div>
     </Link>
   );

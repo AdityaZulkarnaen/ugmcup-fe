@@ -21,8 +21,8 @@ export interface HighlightProps {
 }
 
 /**
- * Participant badge: the image the admin registered, or the gold shuttlecock
- * mark while no image has been uploaded.
+ * Participant badge: the image the admin registered, or the UGM CUP mark while
+ * no image has been uploaded.
  */
 function ParticipantBadge({
   avatar,
@@ -31,25 +31,14 @@ function ParticipantBadge({
   avatar?: string;
   name: string;
 }) {
-  if (avatar) {
-    return (
-      <Image
-        src={avatar}
-        alt={name}
-        width={32}
-        height={32}
-        className="h-4 w-4 shrink-0 rounded-full border border-white/10 object-cover"
-      />
-    );
-  }
-
   return (
-    <span
-      aria-hidden
-      className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-white/8 text-[10px] font-bold leading-none text-[#8A8A93]"
-    >
-      ?
-    </span>
+    <Image
+      src={avatar ?? "/images/global/Logo icon.svg"}
+      alt={name}
+      width={16}
+      height={16}
+      className="h-4 w-4 shrink-0 rounded-full border border-white/10 object-contain"
+    />
   );
 }
 

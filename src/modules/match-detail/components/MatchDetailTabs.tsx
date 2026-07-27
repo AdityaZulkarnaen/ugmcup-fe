@@ -2,11 +2,13 @@
 
 import { useState } from "react";
 import {
+  categoryBrackets,
+  disciplineLabel,
   findBracketAthlete,
   sideName,
   type MatchDetail,
 } from "@/lib/constants/matches";
-import { BracketPanel } from "@/modules/match/components/BracketPanel";
+import { BracketBoard } from "@/modules/match/components/BracketBoard";
 import { ScoreTable } from "./ScoreTable";
 import { MatchInfo } from "./MatchInfo";
 
@@ -32,7 +34,8 @@ export function MatchDetailTabs({ match }: { match: MatchDetail }) {
   const [tab, setTab] = useState(tabs[0].id);
   const [subTab, setSubTab] = useState(subTabs[0].id);
 
-  /** The home side's bracket entry, so the bracket tab opens on their path. */
+  /** The bracket of this match's category, with the home side's path lit. */
+  const bracket = categoryBrackets.find((item) => item.id === match.categoryId);
   const athlete = findBracketAthlete(match.categoryId, match.home.players);
 
   return (
@@ -90,10 +93,22 @@ export function MatchDetailTabs({ match }: { match: MatchDetail }) {
       </div>
 
       {tab === "bracket" ? (
-        <BracketPanel
-          initialCategoryId={match.categoryId}
-          initialParticipantId={athlete?.participant.id}
-        />
+        bracket ? (
+          <div className="flex flex-col gap-4">
+            <p className="text-[11px] font-bold uppercase tracking-wider text-[#7A7A83]">
+              Bagan {disciplineLabel(match.categoryId)}
+            </p>
+            <BracketBoard
+              bracket={bracket}
+              pinnedId={athlete?.participant.id}
+              interactive={false}
+            />
+          </div>
+        ) : (
+          <EmptyState>
+            Bagan {disciplineLabel(match.categoryId)} belum tersedia.
+          </EmptyState>
+        )
       ) : subTab === "ringkasan" ? (
         <>
           <ScoreTable match={match} />

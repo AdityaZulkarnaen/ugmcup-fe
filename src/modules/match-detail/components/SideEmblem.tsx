@@ -6,7 +6,7 @@ import { participants, sideName } from "@/lib/constants/matches";
  * to the gold shuttlecock mark. Sides are matched by name because live and
  * scheduled matches store names rather than participant ids.
  */
-const FALLBACK_EMBLEM = "/images/hero/cock1.png";
+const FALLBACK_EMBLEM = "/images/global/Logo icon.svg";
 
 const sizes = {
   lg: { box: "h-14 w-14 rounded-2xl", image: 40 },
