@@ -140,7 +140,15 @@ export function PesertaSection() {
               <DashSelect value={pForm.disciplineId} onChange={(v) => setPForm((f) => ({ ...f, disciplineId: v }))} placeholder="Pilih cabang" options={individualDisciplines.map((d) => ({ value: d.id, label: d.name }))} />
             </FormField>
             <FormField label="Institusi" required>
-              <DashSelect value={pForm.institutionId} onChange={(v) => setPForm((f) => ({ ...f, institutionId: v }))} placeholder="Pilih institusi" options={institutions.map((i) => ({ value: i.id, label: i.name }))} />
+              <DashSelect 
+                value={pForm.institutionId} 
+                onChange={(v) => setPForm((f) => ({ ...f, institutionId: v }))} 
+                placeholder="Pilih institusi" 
+                groups={[
+                  { label: "Universitas", options: institutions.filter(i => i.type === "UNIVERSITAS").map(i => ({ value: i.id, label: i.name })) },
+                  { label: "SMA/SMK", options: institutions.filter(i => i.type === "SMA").map(i => ({ value: i.id, label: i.name })) }
+                ]}
+              />
             </FormField>
             <FormField label="Atlet 1" required>
               <DashSelect value={pForm.athlete1} onChange={(v) => setPForm((f) => ({ ...f, athlete1: v }))} placeholder="Pilih atlet" options={athletes.filter(a => !pForm.institutionId || a.institutionId === pForm.institutionId).map((a) => ({ value: a.id, label: a.name }))} />
@@ -155,7 +163,15 @@ export function PesertaSection() {
               <DashSelect value={tForm.disciplineId} onChange={(v) => setTForm((f) => ({ ...f, disciplineId: v }))} placeholder="Pilih cabang beregu" options={teamDisciplines.map((d) => ({ value: d.id, label: d.name }))} />
             </FormField>
             <FormField label="Institusi" required>
-              <DashSelect value={tForm.institutionId} onChange={(v) => setTForm((f) => ({ ...f, institutionId: v }))} placeholder="Pilih institusi" options={institutions.map((i) => ({ value: i.id, label: i.name }))} />
+              <DashSelect 
+                value={tForm.institutionId} 
+                onChange={(v) => setTForm((f) => ({ ...f, institutionId: v }))} 
+                placeholder="Pilih institusi" 
+                groups={[
+                  { label: "Universitas", options: institutions.filter(i => i.type === "UNIVERSITAS").map(i => ({ value: i.id, label: i.name })) },
+                  { label: "SMA/SMK", options: institutions.filter(i => i.type === "SMA").map(i => ({ value: i.id, label: i.name })) }
+                ]}
+              />
             </FormField>
             {TEAM_SLOTS.map((slot) => {
               const isGanda = slot.startsWith("GANDA");

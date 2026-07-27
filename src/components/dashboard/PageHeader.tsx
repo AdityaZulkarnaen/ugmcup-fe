@@ -84,11 +84,13 @@ export function DashSelect({
   value,
   onChange,
   options,
+  groups,
   placeholder,
 }: {
   value: string;
   onChange: (v: string) => void;
-  options: { value: string; label: string }[];
+  options?: { value: string; label: string }[];
+  groups?: { label: string; options: { value: string; label: string }[] }[];
   placeholder?: string;
 }) {
   return (
@@ -99,10 +101,19 @@ export function DashSelect({
       style={{ borderColor: "#D1D5DB", color: "#111827" }}
     >
       {placeholder && <option value="">{placeholder}</option>}
-      {options.map((opt) => (
+      {options && options.map((opt) => (
         <option key={opt.value} value={opt.value}>
           {opt.label}
         </option>
+      ))}
+      {groups && groups.map((g) => (
+        <optgroup key={g.label} label={g.label}>
+          {g.options.map((opt) => (
+            <option key={opt.value} value={opt.value}>
+              {opt.label}
+            </option>
+          ))}
+        </optgroup>
       ))}
     </select>
   );
