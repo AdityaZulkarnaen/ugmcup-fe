@@ -4,6 +4,7 @@ import {
   type MatchDetail,
   type MatchSide,
 } from "@/lib/constants/matches";
+import { CheckIcon } from "@/components/ui/icons";
 import { SideEmblem } from "./SideEmblem";
 
 const headCell =
@@ -15,27 +16,44 @@ function ScoreRow({
   scores,
   total,
   won,
+  decided,
   opponentScores,
 }: {
   side: MatchSide;
   scores: number[];
   total: number;
+  /** Leading, or the winner once the match is over. */
   won: boolean;
+  /** Match is finished, so the lead can be marked with a check. */
+  decided: boolean;
   opponentScores: number[];
 }) {
   return (
-    <tr className="border-t border-white/[0.04]">
-      <td className="px-4 py-3">
+    <tr
+      className={`border-t border-white/[0.04] ${won ? "bg-[#34E5A6]/[0.07]" : ""}`}
+    >
+      <td className="relative px-4 py-3">
+        {/* Green accent + tint marks the winning side */}
+        {won && (
+          <span className="absolute inset-y-0 left-0 w-0.5 bg-[#34E5A6]" />
+        )}
         <div className="flex items-center gap-2.5">
           <SideEmblem players={side.players} />
-          <span className="truncate text-sm font-medium text-white">
+          <span
+            className={`truncate text-sm font-medium ${
+              won ? "font-bold text-[#34E5A6]" : "text-white"
+            }`}
+          >
             {sideName(side.players)}
           </span>
+          {won && decided && (
+            <CheckIcon className="shrink-0 text-[#34E5A6]" />
+          )}
         </div>
       </td>
       <td
         className={`px-2 py-3 text-center text-sm font-bold tabular-nums ${
-          won ? "text-[#02F5D4]" : "text-[#6B6B73]"
+          won ? "text-[#34E5A6]" : "text-[#6B6B73]"
         }`}
       >
         {total}
@@ -59,6 +77,7 @@ export function ScoreTable({ match }: { match: MatchDetail }) {
   const awayScores = match.sets.map((set) => set.away);
   const homeTotal = setsWon(match.sets, "home");
   const awayTotal = setsWon(match.sets, "away");
+  const decided = match.status === "done";
 
   return (
     <section className="overflow-hidden rounded-xl border border-white/[0.06]">
@@ -93,6 +112,7 @@ export function ScoreTable({ match }: { match: MatchDetail }) {
                 opponentScores={awayScores}
                 total={homeTotal}
                 won={homeTotal > awayTotal}
+                decided={decided}
               />
               <ScoreRow
                 side={match.away}
@@ -100,6 +120,7 @@ export function ScoreTable({ match }: { match: MatchDetail }) {
                 opponentScores={homeScores}
                 total={awayTotal}
                 won={awayTotal > homeTotal}
+                decided={decided}
               />
             </tbody>
           </table>

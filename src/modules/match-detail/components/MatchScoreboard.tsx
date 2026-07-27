@@ -4,6 +4,7 @@ import {
   type MatchDetail,
   type MatchSide,
 } from "@/lib/constants/matches";
+import { CheckIcon } from "@/components/ui/icons";
 import { SideEmblem } from "./SideEmblem";
 
 /** Gold caption under the score, phrased per match status. */
@@ -19,13 +20,26 @@ function statusLine(match: MatchDetail): string {
     : "Selesai / Berhenti";
 }
 
-function SideColumn({ side, category }: { side: MatchSide; category: string }) {
+function SideColumn({
+  side,
+  category,
+  won,
+}: {
+  side: MatchSide;
+  category: string;
+  won: boolean;
+}) {
   return (
     <div className="flex flex-col items-center gap-2.5 text-center">
       <SideEmblem players={side.players} size="lg" />
       <div className="min-w-0">
-        <p className="truncate text-[15px] font-bold text-white">
+        <p
+          className={`flex items-center justify-center gap-1.5 truncate text-[15px] font-bold ${
+            won ? "text-[#34E5A6]" : "text-white"
+          }`}
+        >
           {sideName(side.players)}
+          {won && <CheckIcon className="shrink-0" />}
         </p>
         <p className="mt-0.5 truncate text-[13px] text-[#8A8A93]">{category}</p>
       </div>
@@ -46,13 +60,17 @@ export function MatchScoreboard({ match }: { match: MatchDetail }) {
       </p>
 
       <div className="mt-5 grid grid-cols-[1fr_auto_1fr] items-start gap-4 sm:gap-8">
-        <SideColumn side={match.home} category={match.category} />
+        <SideColumn
+          side={match.home}
+          category={match.category}
+          won={match.winner === "home"}
+        />
 
         <div className="flex flex-col items-center pt-3">
           <p className="flex items-baseline gap-2.5">
             <span
               className={`text-4xl font-black tabular-nums ${
-                !level && home > away ? "text-[#02F5D4]" : "text-white"
+                !level && home > away ? "text-[#34E5A6]" : "text-white"
               }`}
             >
               {home}
@@ -60,7 +78,7 @@ export function MatchScoreboard({ match }: { match: MatchDetail }) {
             <span className="text-2xl font-black text-[#5A5A63]">:</span>
             <span
               className={`text-4xl font-black tabular-nums ${
-                !level && away > home ? "text-[#02F5D4]" : "text-white"
+                !level && away > home ? "text-[#34E5A6]" : "text-white"
               }`}
             >
               {away}
@@ -71,7 +89,11 @@ export function MatchScoreboard({ match }: { match: MatchDetail }) {
           </p>
         </div>
 
-        <SideColumn side={match.away} category={match.category} />
+        <SideColumn
+          side={match.away}
+          category={match.category}
+          won={match.winner === "away"}
+        />
       </div>
     </section>
   );
