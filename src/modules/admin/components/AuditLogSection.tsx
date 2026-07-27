@@ -24,6 +24,8 @@ export function AuditLogSection() {
     setIsLoading(true);
     try {
       setData(await getAuditLogs(actionFilter ? { action: actionFilter } : undefined));
+    } catch (e) {
+      console.error(e);
     } finally { setIsLoading(false); }
   }, [actionFilter]);
 
