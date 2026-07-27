@@ -1,4 +1,8 @@
-import type { ScheduleMatch, ScheduleStatus } from "@/lib/constants/matches";
+import {
+  sideName,
+  type ScheduleMatch,
+  type ScheduleStatus,
+} from "@/lib/constants/matches";
 import { CheckIcon, CourtIcon } from "@/components/ui/icons";
 
 interface ScheduleRowProps {
@@ -40,7 +44,7 @@ function SideName({
       {won && align === "right" && (
         <CheckIcon className="shrink-0 text-[#34E5A6]" />
       )}
-      <span className="truncate">{players.join(" / ")}</span>
+      <span className="truncate">{sideName(players)}</span>
       {won && align === "left" && (
         <CheckIcon className="shrink-0 text-[#34E5A6]" />
       )}

@@ -248,23 +248,74 @@ export interface Participant extends MatchSide {
   avatar?: string;
 }
 
+/** Compact registry entry helper: `athlete(id, team, ...players)`. */
+function athlete(id: string, team: string, ...players: string[]): Participant {
+  return { id, players, team };
+}
+
 export const participants: Participant[] = [
+  // Tunggal Putra
+  athlete("rizky-fadhilah", "FT UGM", "Rizky Fadhilah"),
   {
-    id: "rizky-fadhilah",
-    players: ["Rizky Fadhilah"],
-    team: "FT UGM",
-  },
-  {
-    id: "dani-setiawan",
-    players: ["Dani Setiawan"],
-    team: "FEB UGM",
+    ...athlete("dani-setiawan", "FEB UGM", "Dani Setiawan"),
     // Demo of an admin-supplied badge; drop this line to fall back to the mark.
     avatar: "/images/hero/cock1.png",
   },
+  athlete("arya-pratama", "FISIPOL UGM", "Arya Pratama"),
+  athlete("bagas-nugroho", "FMIPA UGM", "Bagas Nugroho"),
+  athlete("candra-wijaya", "FK-KMK UGM", "Candra Wijaya"),
+  athlete("fajar-ramadhan", "FIB UGM", "Fajar Ramadhan"),
+  athlete("galih-saputra", "FH UGM", "Galih Saputra"),
+  athlete("hendra-kusuma", "Fapet UGM", "Hendra Kusuma"),
+
+  // Tunggal Putri
+  athlete("sinta-rahayu", "FT UGM", "Sinta Rahayu"),
+  athlete("devi-kurnia", "FEB UGM", "Devi Kurnia"),
+  athlete("layla-azhar", "FISIPOL UGM", "Layla Azhar"),
+  athlete("putri-wulandari", "FMIPA UGM", "Putri Wulandari"),
+  athlete("anisa-maharani", "FK-KMK UGM", "Anisa Maharani"),
+  athlete("rani-oktaviani", "FIB UGM", "Rani Oktaviani"),
+  athlete("tiara-safitri", "FH UGM", "Tiara Safitri"),
+  athlete("maya-lestari", "Farmasi UGM", "Maya Lestari"),
+
+  // Ganda Putra
+  athlete("gpa-dani-hendra", "FT UGM", "Dani Setiawan", "Hendra Kusuma"),
+  athlete("gpa-yogi-wahyu", "FEB UGM", "Yogi Pratama", "Wahyu Nugroho"),
+  athlete("gpa-adi-bayu", "FISIPOL UGM", "Adi Nugraha", "Bayu Saputra"),
+  athlete("gpa-cakra-dimas", "FMIPA UGM", "Cakra Aditya", "Dimas Prakoso"),
+  athlete("gpa-eko-firman", "FK-KMK UGM", "Eko Purnomo", "Firman Hidayat"),
+  athlete("gpa-gilang-haris", "FIB UGM", "Gilang Ramadhan", "Haris Setiadi"),
+  athlete("gpa-ilham-joko", "FH UGM", "Ilham Maulana", "Joko Susanto"),
+  athlete("gpa-krisna-lutfi", "Fapet UGM", "Krisna Adi", "Lutfi Hakim"),
+
+  // Ganda Putri
+  athlete("gpi-sinta-devi", "FT UGM", "Sinta Rahayu", "Devi Kurnia"),
+  athlete("gpi-layla-putri", "FEB UGM", "Layla Azhar", "Putri Wulandari"),
+  athlete("gpi-anisa-rani", "FISIPOL UGM", "Anisa Maharani", "Rani Oktaviani"),
+  athlete("gpi-tiara-maya", "FMIPA UGM", "Tiara Safitri", "Maya Lestari"),
+  athlete("gpi-bella-citra", "FK-KMK UGM", "Bella Anggraini", "Citra Dewi"),
+  athlete("gpi-dinda-elsa", "FIB UGM", "Dinda Paramita", "Elsa Wijayanti"),
+  athlete("gpi-fira-gita", "FH UGM", "Fira Ananda", "Gita Permata"),
+  athlete("gpi-hana-indah", "Farmasi UGM", "Hana Salsabila", "Indah Puspita"),
+
+  // Ganda Campuran
+  athlete("gc-rizky-sinta", "FT UGM", "Rizky Fadhilah", "Sinta Rahayu"),
+  athlete("gc-dani-devi", "FEB UGM", "Dani Setiawan", "Devi Kurnia"),
+  athlete("gc-arya-layla", "FISIPOL UGM", "Arya Pratama", "Layla Azhar"),
+  athlete("gc-bagas-putri", "FMIPA UGM", "Bagas Nugroho", "Putri Wulandari"),
+  athlete("gc-candra-anisa", "FK-KMK UGM", "Candra Wijaya", "Anisa Maharani"),
+  athlete("gc-fajar-rani", "FIB UGM", "Fajar Ramadhan", "Rani Oktaviani"),
+  athlete("gc-galih-tiara", "FH UGM", "Galih Saputra", "Tiara Safitri"),
+  athlete("gc-hendra-maya", "Fapet UGM", "Hendra Kusuma", "Maya Lestari"),
 ];
 
 export function getParticipant(id: string): Participant | undefined {
   return participants.find((participant) => participant.id === id);
+}
+
+/** Display name for a side; doubles pairs are joined with a dash. */
+export function sideName(players: string[]): string {
+  return players.join(" - ");
 }
 
 /** One competitor slot inside a bracket match. */
@@ -288,52 +339,295 @@ export interface BracketRound {
   label: string;
   matches: BracketMatch[];
   /** Set on the last column: renders the champion box instead of match cards. */
-  champion?: { label: string; name: string };
+  champion?: { label: string; name: string; participantId?: string };
 }
 
-/** Builds the repeated placeholder pairing used by the mock bracket. */
-function bracketPair(id: string): BracketMatch {
-  return {
-    id,
-    home: { participantId: "rizky-fadhilah", score: 2, winner: true },
-    away: { participantId: "dani-setiawan", score: 0 },
-  };
+/** A knockout bracket for one discipline, e.g. Tunggal Putra. */
+export interface CategoryBracket {
+  id: string;
+  label: string;
+  /** Entrants in first-round slot order; length must be a power of two. */
+  seeds: string[];
+  rounds: BracketRound[];
 }
 
-export const bracketRounds: BracketRound[] = [
-  {
-    id: "perempat-final",
-    label: "Perempat Final",
-    matches: [
-      bracketPair("qf-1"),
-      bracketPair("qf-2"),
-      bracketPair("qf-3"),
-      bracketPair("qf-4"),
-    ],
-  },
-  {
-    id: "semi-final",
-    label: "Semi Final",
-    matches: [bracketPair("sf-1"), bracketPair("sf-2")],
-  },
-  {
-    id: "final",
-    label: "Final",
-    matches: [
-      {
-        id: "final-1",
-        home: { score: null },
-        away: { score: null },
-      },
-    ],
-  },
-  {
-    id: "juara",
+/**
+ * Outcome of one match: winning side, then games won by winner and loser.
+ * `null` means the match has not been played, so the next slot stays TBD.
+ */
+type MatchOutcome = [winner: 0 | 1, winnerScore: number, loserScore: number];
+
+/** Round names counting back from the final; index 0 is the last round. */
+const roundLabels = ["Final", "Semi Final", "Perempat Final", "16 Besar"];
+
+/**
+ * Expands seeds plus per-round outcomes into bracket rounds, so a winner always
+ * lands in the right slot of the next round and the champion box follows from
+ * the final. Unplayed matches leave the slots ahead of them empty (TBD).
+ */
+function buildRounds(
+  categoryId: string,
+  seeds: string[],
+  outcomes: (MatchOutcome | null)[][],
+): BracketRound[] {
+  const rounds: BracketRound[] = [];
+  let slots: (string | undefined)[] = seeds;
+  const totalRounds = Math.log2(seeds.length);
+
+  for (let r = 0; r < totalRounds; r++) {
+    const matches: BracketMatch[] = [];
+    const winners: (string | undefined)[] = [];
+
+    for (let i = 0; i < slots.length / 2; i++) {
+      const homeId = slots[2 * i];
+      const awayId = slots[2 * i + 1];
+      const outcome = outcomes[r]?.[i] ?? null;
+      const homeWon = outcome?.[0] === 0;
+
+      matches.push({
+        id: `${categoryId}-r${r + 1}-m${i + 1}`,
+        home: {
+          participantId: homeId,
+          score: outcome ? (homeWon ? outcome[1] : outcome[2]) : null,
+          winner: homeWon || undefined,
+        },
+        away: {
+          participantId: awayId,
+          score: outcome ? (homeWon ? outcome[2] : outcome[1]) : null,
+          winner: outcome && !homeWon ? true : undefined,
+        },
+      });
+      winners.push(outcome ? (homeWon ? homeId : awayId) : undefined);
+    }
+
+    rounds.push({
+      id: `${categoryId}-r${r + 1}`,
+      label: roundLabels[totalRounds - 1 - r] ?? `Babak ${r + 1}`,
+      matches,
+    });
+    slots = winners;
+  }
+
+  const championId = slots[0];
+  const champion = championId ? getParticipant(championId) : undefined;
+  rounds.push({
+    id: `${categoryId}-juara`,
     label: "Juara",
     matches: [],
-    champion: { label: "Juara", name: "TBD" },
+    champion: {
+      label: "Juara",
+      name: champion ? sideName(champion.players) : "TBD",
+      participantId: championId,
+    },
+  });
+
+  return rounds;
+}
+
+interface BracketInput {
+  id: string;
+  label: string;
+  seeds: string[];
+  outcomes: (MatchOutcome | null)[][];
+}
+
+/**
+ * Mock brackets, deliberately at different stages: some categories are decided,
+ * others still have matches to play.
+ */
+const bracketInputs: BracketInput[] = [
+  {
+    id: "tunggal-putra",
+    label: "Tunggal Putra",
+    seeds: [
+      "rizky-fadhilah",
+      "dani-setiawan",
+      "arya-pratama",
+      "bagas-nugroho",
+      "candra-wijaya",
+      "fajar-ramadhan",
+      "galih-saputra",
+      "hendra-kusuma",
+    ],
+    outcomes: [
+      [
+        [0, 2, 0],
+        [1, 2, 1],
+        [0, 2, 1],
+        [1, 2, 0],
+      ],
+      [[0, 2, 1], null],
+      [null],
+    ],
+  },
+  {
+    id: "tunggal-putri",
+    label: "Tunggal Putri",
+    seeds: [
+      "sinta-rahayu",
+      "devi-kurnia",
+      "layla-azhar",
+      "putri-wulandari",
+      "anisa-maharani",
+      "rani-oktaviani",
+      "tiara-safitri",
+      "maya-lestari",
+    ],
+    outcomes: [
+      [
+        [0, 2, 1],
+        [0, 2, 0],
+        [1, 2, 1],
+        [0, 2, 1],
+      ],
+      [
+        [1, 2, 0],
+        [0, 2, 1],
+      ],
+      [[1, 2, 1]],
+    ],
+  },
+  {
+    id: "ganda-putra",
+    label: "Ganda Putra",
+    seeds: [
+      "gpa-dani-hendra",
+      "gpa-yogi-wahyu",
+      "gpa-adi-bayu",
+      "gpa-cakra-dimas",
+      "gpa-eko-firman",
+      "gpa-gilang-haris",
+      "gpa-ilham-joko",
+      "gpa-krisna-lutfi",
+    ],
+    outcomes: [
+      [
+        [0, 2, 1],
+        [1, 2, 0],
+        [0, 2, 1],
+        [0, 2, 1],
+      ],
+      [null, null],
+      [null],
+    ],
+  },
+  {
+    id: "ganda-putri",
+    label: "Ganda Putri",
+    seeds: [
+      "gpi-sinta-devi",
+      "gpi-layla-putri",
+      "gpi-anisa-rani",
+      "gpi-tiara-maya",
+      "gpi-bella-citra",
+      "gpi-dinda-elsa",
+      "gpi-fira-gita",
+      "gpi-hana-indah",
+    ],
+    outcomes: [
+      [[0, 2, 0], [1, 2, 1], null, null],
+      [null, null],
+      [null],
+    ],
+  },
+  {
+    id: "ganda-campuran",
+    label: "Ganda Campuran",
+    seeds: [
+      "gc-rizky-sinta",
+      "gc-dani-devi",
+      "gc-arya-layla",
+      "gc-bagas-putri",
+      "gc-candra-anisa",
+      "gc-fajar-rani",
+      "gc-galih-tiara",
+      "gc-hendra-maya",
+    ],
+    outcomes: [
+      [
+        [1, 2, 1],
+        [0, 2, 1],
+        [0, 2, 0],
+        [1, 2, 1],
+      ],
+      [
+        [0, 2, 1],
+        [1, 2, 0],
+      ],
+      [[0, 2, 0]],
+    ],
   },
 ];
+
+export const categoryBrackets: CategoryBracket[] = bracketInputs.map(
+  ({ id, label, seeds, outcomes }) => ({
+    id,
+    label,
+    seeds,
+    rounds: buildRounds(id, seeds, outcomes),
+  }),
+);
+
+/** One searchable entrant, tagged with the bracket they compete in. */
+export interface BracketAthlete {
+  participant: Participant;
+  categoryId: string;
+  categoryLabel: string;
+}
+
+export const bracketAthletes: BracketAthlete[] = categoryBrackets.flatMap(
+  (bracket) =>
+    bracket.seeds.flatMap((id) => {
+      const participant = getParticipant(id);
+      return participant
+        ? [{ participant, categoryId: bracket.id, categoryLabel: bracket.label }]
+        : [];
+    }),
+);
+
+/**
+ * Keys of every column slot a participant occupies: the ids of the matches they
+ * play, plus the champion column id when they win the final. Feeding this to the
+ * bracket lights up their run from the first round to where they stand now.
+ */
+export function bracketPathFor(
+  bracket: CategoryBracket,
+  participantId?: string,
+): Set<string> {
+  const path = new Set<string>();
+  if (!participantId) return path;
+
+  for (const round of bracket.rounds) {
+    for (const match of round.matches) {
+      if (
+        match.home.participantId === participantId ||
+        match.away.participantId === participantId
+      ) {
+        path.add(match.id);
+      }
+    }
+    if (round.champion?.participantId === participantId) path.add(round.id);
+  }
+
+  return path;
+}
+
+/** Name/team search across every bracket; empty query returns nothing. */
+export function searchBracketAthletes(
+  query: string,
+  limit = 6,
+): BracketAthlete[] {
+  const needle = query.trim().toLowerCase();
+  if (!needle) return [];
+
+  return bracketAthletes
+    .filter(({ participant, categoryLabel }) =>
+      [...participant.players, participant.team, categoryLabel].some((field) =>
+        field.toLowerCase().includes(needle),
+      ),
+    )
+    .slice(0, limit);
+}
 
 export interface MatchTab {
   id: string;
