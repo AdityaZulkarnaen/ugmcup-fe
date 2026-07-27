@@ -29,7 +29,7 @@ export function BracketSection() {
 
   const loadBracket = useCallback(async () => {
     if (!selectedDisc) return;
-    setIsLoading(true);
+    setIsLoading(true); setError("");
     try {
       const nodes = await getBracket(selectedDisc);
       setBracketNodes(nodes);
@@ -41,6 +41,8 @@ export function BracketSection() {
         const p = await getParticipants(selectedDisc);
         setParticipants(p); setTeams([]);
       }
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Gagal memuat bracket");
     } finally { setIsLoading(false); }
   }, [selectedDisc, disciplines]);
 
