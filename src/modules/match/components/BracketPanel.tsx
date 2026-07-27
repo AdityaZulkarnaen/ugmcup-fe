@@ -60,12 +60,12 @@ export function BracketPanel() {
           onChange={changeCategory}
           label="Filter kategori bracket"
           accent="violet"
-          className="min-w-0 basis-6/12"
+          className="min-w-0 basis-6/12 md:basis-2/12"
         />
         <AthleteSearch
           selected={pinned}
           onSelect={selectAthlete}
-          className="min-w-0 basis-6/12"
+          className="min-w-0 basis-6/12 md:basis-2/12"
         />
       </div>
 
