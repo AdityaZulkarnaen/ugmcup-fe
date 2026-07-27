@@ -13,8 +13,14 @@ export interface MatchSide {
 
 export interface LiveMatch {
   id: string;
-  /** Discipline label shown in the gold pill, e.g. "Tunggal Putra U-21". */
-  category: string;
+  /** Discipline key, matches a `disciplines` id. */
+  categoryId: string;
+  /** Age group / division, e.g. "U-21" or "Open". */
+  level: string;
+  /** ISO day the match is played on, e.g. "2026-08-10". */
+  date: string;
+  /** Start time, e.g. "11:30". */
+  time: string;
   /** Court label, e.g. "Lapangan 1". */
   court: string;
   home: MatchSide;
@@ -34,7 +40,10 @@ export interface LiveMatch {
 export const liveMatches: LiveMatch[] = [
   {
     id: "match-1",
-    category: "Tunggal Putra U-21",
+    categoryId: "tunggal-putra",
+    level: "U-21",
+    date: "2026-08-10",
+    time: "11:30",
     court: "Lapangan 1",
     home: { players: ["Rizky Fadhilah"], team: "FT UGM" },
     away: { players: ["Arya Pratama"], team: "FEB UGM" },
@@ -46,7 +55,10 @@ export const liveMatches: LiveMatch[] = [
   },
   {
     id: "match-2",
-    category: "Ganda Putri Open",
+    categoryId: "ganda-putri",
+    level: "Open",
+    date: "2026-08-10",
+    time: "12:15",
     court: "Lapangan 2",
     home: { players: ["Sinta Rahayu", "Devi Kurnia"], team: "FT UGM" },
     away: { players: ["Arya Pratama", "Arya Pratama"], team: "FEB UGM" },
@@ -61,7 +73,10 @@ export const liveMatches: LiveMatch[] = [
   },
   {
     id: "match-3",
-    category: "Ganda Campuran U-19",
+    categoryId: "ganda-campuran",
+    level: "U-19",
+    date: "2026-08-10",
+    time: "13:00",
     court: "Lapangan 3",
     home: { players: ["Sinta Rahayu", "Devi Kurnia"], team: "FT UGM" },
     away: { players: ["Arya Pratama", "Arya Pratama"], team: "FEB UGM" },
@@ -81,14 +96,12 @@ export type ScheduleStatus = "live" | "upcoming" | "done";
 
 export interface ScheduleMatch {
   id: string;
-  /** Day filter key, matches a `scheduleDays` id. */
-  dayId: string;
-  /** Category filter key, matches a `scheduleCategories` id. */
+  /** ISO day the match is played on, e.g. "2026-08-09"; drives the day filter. */
+  date: string;
+  /** Category filter key, matches a `disciplines` id. */
   categoryId: string;
   /** Start time, e.g. "08:00". */
   time: string;
-  /** Discipline label shown in the gold pill, e.g. "Tunggal Putra". */
-  category: string;
   /** Age group / division shown next to the pill, e.g. "U-21" or "Open". */
   level: string;
   /** Court label, e.g. "Lapangan 1". */
@@ -107,16 +120,12 @@ export interface ScheduleFilter {
   label: string;
 }
 
-export const scheduleDays: ScheduleFilter[] = [
-  { id: "all", label: "Semua" },
-  { id: "2025-07-16", label: "Rab, 16 Jul" },
-  { id: "2025-07-17", label: "Kam, 17 Jul" },
-  { id: "2025-07-18", label: "Jum, 18 Jul" },
-  { id: "2025-07-19", label: "Sab, 19 Jul" },
-];
-
-export const scheduleCategories: ScheduleFilter[] = [
-  { id: "all", label: "Semua" },
+/**
+ * Single source of truth for the disciplines. The schedule filter, the bracket
+ * categories and every match record key off these ids, so an admin-supplied
+ * match only has to carry the id.
+ */
+export const disciplines: ScheduleFilter[] = [
   { id: "tunggal-putra", label: "Tunggal Putra" },
   { id: "tunggal-putri", label: "Tunggal Putri" },
   { id: "ganda-putra", label: "Ganda Putra" },
@@ -124,85 +133,44 @@ export const scheduleCategories: ScheduleFilter[] = [
   { id: "ganda-campuran", label: "Ganda Campuran" },
 ];
 
+export function disciplineLabel(id: string): string {
+  return disciplines.find((item) => item.id === id)?.label ?? id;
+}
+
+export const scheduleCategories: ScheduleFilter[] = [
+  { id: "all", label: "Semua" },
+  ...disciplines,
+];
+
+const dayNames = ["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"];
+const monthNames = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "Mei",
+  "Jun",
+  "Jul",
+  "Agu",
+  "Sep",
+  "Okt",
+  "Nov",
+  "Des",
+];
+
+/** "2026-08-09" -> "Min, 9 Agu". Read as UTC so the label never shifts. */
+export function formatMatchDay(date: string): string {
+  const [year, month, day] = date.split("-").map(Number);
+  const weekday = new Date(Date.UTC(year, month - 1, day)).getUTCDay();
+  return `${dayNames[weekday]}, ${day} ${monthNames[month - 1]}`;
+}
+
 export const scheduleMatches: ScheduleMatch[] = [
   {
-    id: "sched-1",
-    dayId: "2025-07-16",
-    categoryId: "tunggal-putra",
-    time: "08:00",
-    category: "Tunggal Putra",
-    level: "U-21",
-    court: "Lapangan 1",
-    home: { players: ["Rizky Fadhilah"], team: "FT UGM" },
-    away: { players: ["Arya Pratama"], team: "FEB UGM" },
-    status: "live",
-  },
-  {
-    id: "sched-2",
-    dayId: "2025-07-16",
-    categoryId: "ganda-putri",
-    time: "08:00",
-    category: "Ganda Putri",
-    level: "Open",
-    court: "Lapangan 2",
-    home: { players: ["Sinta Rahayu", "Devi Kurnia"], team: "FT UGM" },
-    away: { players: ["Layla Azhar", "Putri Wulandari"], team: "FEB UGM" },
-    status: "live",
-  },
-  {
-    id: "sched-3",
-    dayId: "2025-07-17",
-    categoryId: "ganda-putra",
-    time: "08:00",
-    category: "Ganda Putra",
-    level: "Open",
-    court: "Lapangan 1",
-    home: { players: ["Dani Setiawan", "Hendra Kusuma"], team: "FT UGM" },
-    away: { players: ["Yogi Pratama", "Wahyu Nugroho"], team: "FEB UGM" },
-    status: "upcoming",
-  },
-  {
-    id: "sched-4",
-    dayId: "2025-07-17",
-    categoryId: "tunggal-putra",
-    time: "08:00",
-    category: "Tunggal Putra",
-    level: "U-21",
-    court: "Lapangan 1",
-    home: { players: ["Rizky Fadhilah"], team: "FT UGM" },
-    away: { players: ["Arya Pratama"], team: "FEB UGM" },
-    status: "upcoming",
-  },
-  {
-    id: "sched-5",
-    dayId: "2025-07-18",
-    categoryId: "ganda-putra",
-    time: "08:00",
-    category: "Ganda Putra",
-    level: "U-21",
-    court: "Lapangan 1",
-    home: { players: ["Dani Setiawan", "Hendra Kusuma"], team: "FT UGM" },
-    away: { players: ["Yogi Pratama", "Wahyu Nugroho"], team: "FEB UGM" },
-    status: "upcoming",
-  },
-  {
-    id: "sched-6",
-    dayId: "2025-07-18",
-    categoryId: "ganda-putra",
-    time: "08:00",
-    category: "Ganda Putra",
-    level: "Open",
-    court: "Lapangan 1",
-    home: { players: ["Dani Setiawan", "Hendra Kusuma"], team: "FT UGM" },
-    away: { players: ["Yogi Pratama", "Wahyu Nugroho"], team: "FEB UGM" },
-    status: "upcoming",
-  },
-  {
     id: "sched-7",
-    dayId: "2025-07-19",
+    date: "2026-08-09",
     categoryId: "tunggal-putra",
-    time: "08:00",
-    category: "Tunggal Putra",
+    time: "11:30",
     level: "Open",
     court: "Lapangan 1",
     home: { players: ["Dani Setiawan"], team: "FT UGM" },
@@ -217,10 +185,9 @@ export const scheduleMatches: ScheduleMatch[] = [
   },
   {
     id: "sched-8",
-    dayId: "2025-07-19",
+    date: "2026-08-09",
     categoryId: "ganda-putra",
-    time: "08:00",
-    category: "Ganda Putra",
+    time: "15:45",
     level: "U-21",
     court: "Lapangan 2",
     home: { players: ["Dani Setiawan", "Hendra Kusuma"], team: "FT UGM" },
@@ -232,6 +199,105 @@ export const scheduleMatches: ScheduleMatch[] = [
       { home: 16, away: 21 },
     ],
   },
+  {
+    id: "sched-1",
+    date: "2026-08-10",
+    categoryId: "tunggal-putra",
+    time: "11:30",
+    level: "U-21",
+    court: "Lapangan 1",
+    home: { players: ["Rizky Fadhilah"], team: "FT UGM" },
+    away: { players: ["Arya Pratama"], team: "FEB UGM" },
+    status: "live",
+  },
+  {
+    id: "sched-2",
+    date: "2026-08-10",
+    categoryId: "ganda-putri",
+    time: "12:15",
+    level: "Open",
+    court: "Lapangan 2",
+    home: { players: ["Sinta Rahayu", "Devi Kurnia"], team: "FT UGM" },
+    away: { players: ["Layla Azhar", "Putri Wulandari"], team: "FEB UGM" },
+    status: "live",
+  },
+  {
+    id: "sched-3",
+    date: "2026-08-11",
+    categoryId: "ganda-putra",
+    time: "08:00",
+    level: "Open",
+    court: "Lapangan 1",
+    home: { players: ["Dani Setiawan", "Hendra Kusuma"], team: "FT UGM" },
+    away: { players: ["Yogi Pratama", "Wahyu Nugroho"], team: "FEB UGM" },
+    status: "upcoming",
+  },
+  {
+    id: "sched-4",
+    date: "2026-08-11",
+    categoryId: "tunggal-putra",
+    time: "10:15",
+    level: "U-21",
+    court: "Lapangan 1",
+    home: { players: ["Rizky Fadhilah"], team: "FT UGM" },
+    away: { players: ["Bagas Nugroho"], team: "FMIPA UGM" },
+    status: "upcoming",
+  },
+  {
+    id: "sched-5",
+    date: "2026-08-12",
+    categoryId: "ganda-putra",
+    time: "09:00",
+    level: "U-21",
+    court: "Lapangan 1",
+    home: { players: ["Dani Setiawan", "Hendra Kusuma"], team: "FT UGM" },
+    away: { players: ["Adi Nugraha", "Bayu Saputra"], team: "FISIPOL UGM" },
+    status: "upcoming",
+  },
+  {
+    id: "sched-6",
+    date: "2026-08-13",
+    categoryId: "ganda-putra",
+    time: "13:00",
+    level: "Open",
+    court: "Lapangan 1",
+    home: { players: ["Eko Purnomo", "Firman Hidayat"], team: "FK-KMK UGM" },
+    away: { players: ["Yogi Pratama", "Wahyu Nugroho"], team: "FEB UGM" },
+    status: "upcoming",
+  },
+  {
+    id: "sched-9",
+    date: "2026-08-14",
+    categoryId: "tunggal-putri",
+    time: "09:30",
+    level: "Open",
+    court: "Lapangan 2",
+    home: { players: ["Sinta Rahayu"], team: "FT UGM" },
+    away: { players: ["Rani Oktaviani"], team: "FIB UGM" },
+    status: "upcoming",
+  },
+  {
+    id: "sched-10",
+    date: "2026-08-15",
+    categoryId: "ganda-campuran",
+    time: "16:00",
+    level: "Open",
+    court: "Lapangan 1",
+    home: { players: ["Rizky Fadhilah", "Sinta Rahayu"], team: "FT UGM" },
+    away: { players: ["Dani Setiawan", "Devi Kurnia"], team: "FEB UGM" },
+    status: "upcoming",
+  },
+];
+
+/**
+ * Day filters built from the matches themselves, so a match the admin adds on a
+ * new day shows up in the filter without this list being touched.
+ */
+export const scheduleDays: ScheduleFilter[] = [
+  { id: "all", label: "Semua" },
+  ...Array.from(new Set(scheduleMatches.map((match) => match.date)))
+    .sort()
+    .map((date) => ({ id: date, label: formatMatchDay(date) })),
 ];
 
 /**
@@ -248,23 +314,74 @@ export interface Participant extends MatchSide {
   avatar?: string;
 }
 
+/** Compact registry entry helper: `athlete(id, team, ...players)`. */
+function athlete(id: string, team: string, ...players: string[]): Participant {
+  return { id, players, team };
+}
+
 export const participants: Participant[] = [
+  // Tunggal Putra
+  athlete("rizky-fadhilah", "FT UGM", "Rizky Fadhilah"),
   {
-    id: "rizky-fadhilah",
-    players: ["Rizky Fadhilah"],
-    team: "FT UGM",
-  },
-  {
-    id: "dani-setiawan",
-    players: ["Dani Setiawan"],
-    team: "FEB UGM",
+    ...athlete("dani-setiawan", "FEB UGM", "Dani Setiawan"),
     // Demo of an admin-supplied badge; drop this line to fall back to the mark.
-    avatar: "/images/hero/cock1.png",
+    avatar: "/images/global/Logo icon.svg",
   },
+  athlete("arya-pratama", "FISIPOL UGM", "Arya Pratama"),
+  athlete("bagas-nugroho", "FMIPA UGM", "Bagas Nugroho"),
+  athlete("candra-wijaya", "FK-KMK UGM", "Candra Wijaya"),
+  athlete("fajar-ramadhan", "FIB UGM", "Fajar Ramadhan"),
+  athlete("galih-saputra", "FH UGM", "Galih Saputra"),
+  athlete("hendra-kusuma", "Fapet UGM", "Hendra Kusuma"),
+
+  // Tunggal Putri
+  athlete("sinta-rahayu", "FT UGM", "Sinta Rahayu"),
+  athlete("devi-kurnia", "FEB UGM", "Devi Kurnia"),
+  athlete("layla-azhar", "FISIPOL UGM", "Layla Azhar"),
+  athlete("putri-wulandari", "FMIPA UGM", "Putri Wulandari"),
+  athlete("anisa-maharani", "FK-KMK UGM", "Anisa Maharani"),
+  athlete("rani-oktaviani", "FIB UGM", "Rani Oktaviani"),
+  athlete("tiara-safitri", "FH UGM", "Tiara Safitri"),
+  athlete("maya-lestari", "Farmasi UGM", "Maya Lestari"),
+
+  // Ganda Putra
+  athlete("gpa-dani-hendra", "FT UGM", "Dani Setiawan", "Hendra Kusuma"),
+  athlete("gpa-yogi-wahyu", "FEB UGM", "Yogi Pratama", "Wahyu Nugroho"),
+  athlete("gpa-adi-bayu", "FISIPOL UGM", "Adi Nugraha", "Bayu Saputra"),
+  athlete("gpa-cakra-dimas", "FMIPA UGM", "Cakra Aditya", "Dimas Prakoso"),
+  athlete("gpa-eko-firman", "FK-KMK UGM", "Eko Purnomo", "Firman Hidayat"),
+  athlete("gpa-gilang-haris", "FIB UGM", "Gilang Ramadhan", "Haris Setiadi"),
+  athlete("gpa-ilham-joko", "FH UGM", "Ilham Maulana", "Joko Susanto"),
+  athlete("gpa-krisna-lutfi", "Fapet UGM", "Krisna Adi", "Lutfi Hakim"),
+
+  // Ganda Putri
+  athlete("gpi-sinta-devi", "FT UGM", "Sinta Rahayu", "Devi Kurnia"),
+  athlete("gpi-layla-putri", "FEB UGM", "Layla Azhar", "Putri Wulandari"),
+  athlete("gpi-anisa-rani", "FISIPOL UGM", "Anisa Maharani", "Rani Oktaviani"),
+  athlete("gpi-tiara-maya", "FMIPA UGM", "Tiara Safitri", "Maya Lestari"),
+  athlete("gpi-bella-citra", "FK-KMK UGM", "Bella Anggraini", "Citra Dewi"),
+  athlete("gpi-dinda-elsa", "FIB UGM", "Dinda Paramita", "Elsa Wijayanti"),
+  athlete("gpi-fira-gita", "FH UGM", "Fira Ananda", "Gita Permata"),
+  athlete("gpi-hana-indah", "Farmasi UGM", "Hana Salsabila", "Indah Puspita"),
+
+  // Ganda Campuran
+  athlete("gc-rizky-sinta", "FT UGM", "Rizky Fadhilah", "Sinta Rahayu"),
+  athlete("gc-dani-devi", "FEB UGM", "Dani Setiawan", "Devi Kurnia"),
+  athlete("gc-arya-layla", "FISIPOL UGM", "Arya Pratama", "Layla Azhar"),
+  athlete("gc-bagas-putri", "FMIPA UGM", "Bagas Nugroho", "Putri Wulandari"),
+  athlete("gc-candra-anisa", "FK-KMK UGM", "Candra Wijaya", "Anisa Maharani"),
+  athlete("gc-fajar-rani", "FIB UGM", "Fajar Ramadhan", "Rani Oktaviani"),
+  athlete("gc-galih-tiara", "FH UGM", "Galih Saputra", "Tiara Safitri"),
+  athlete("gc-hendra-maya", "Fapet UGM", "Hendra Kusuma", "Maya Lestari"),
 ];
 
 export function getParticipant(id: string): Participant | undefined {
   return participants.find((participant) => participant.id === id);
+}
+
+/** Display name for a side; doubles pairs are joined with a dash. */
+export function sideName(players: string[]): string {
+  return players.join(" - ");
 }
 
 /** One competitor slot inside a bracket match. */
@@ -288,52 +405,487 @@ export interface BracketRound {
   label: string;
   matches: BracketMatch[];
   /** Set on the last column: renders the champion box instead of match cards. */
-  champion?: { label: string; name: string };
+  champion?: { label: string; name: string; participantId?: string };
 }
 
-/** Builds the repeated placeholder pairing used by the mock bracket. */
-function bracketPair(id: string): BracketMatch {
-  return {
+/** A knockout bracket for one discipline, e.g. Tunggal Putra. */
+export interface CategoryBracket {
+  id: string;
+  label: string;
+  /** Entrants in first-round slot order; length must be a power of two. */
+  seeds: string[];
+  rounds: BracketRound[];
+}
+
+/**
+ * Outcome of one match: winning side, then games won by winner and loser.
+ * `null` means the match has not been played, so the next slot stays TBD.
+ */
+type MatchOutcome = [winner: 0 | 1, winnerScore: number, loserScore: number];
+
+/** Round names counting back from the final; index 0 is the last round. */
+const roundLabels = ["Final", "Semi Final", "Perempat Final", "16 Besar"];
+
+/**
+ * Expands seeds plus per-round outcomes into bracket rounds, so a winner always
+ * lands in the right slot of the next round and the champion box follows from
+ * the final. Unplayed matches leave the slots ahead of them empty (TBD).
+ */
+function buildRounds(
+  categoryId: string,
+  seeds: string[],
+  outcomes: (MatchOutcome | null)[][],
+): BracketRound[] {
+  const rounds: BracketRound[] = [];
+  let slots: (string | undefined)[] = seeds;
+  const totalRounds = Math.log2(seeds.length);
+
+  for (let r = 0; r < totalRounds; r++) {
+    const matches: BracketMatch[] = [];
+    const winners: (string | undefined)[] = [];
+
+    for (let i = 0; i < slots.length / 2; i++) {
+      const homeId = slots[2 * i];
+      const awayId = slots[2 * i + 1];
+      const outcome = outcomes[r]?.[i] ?? null;
+      const homeWon = outcome?.[0] === 0;
+
+      matches.push({
+        id: `${categoryId}-r${r + 1}-m${i + 1}`,
+        home: {
+          participantId: homeId,
+          score: outcome ? (homeWon ? outcome[1] : outcome[2]) : null,
+          winner: homeWon || undefined,
+        },
+        away: {
+          participantId: awayId,
+          score: outcome ? (homeWon ? outcome[2] : outcome[1]) : null,
+          winner: outcome && !homeWon ? true : undefined,
+        },
+      });
+      winners.push(outcome ? (homeWon ? homeId : awayId) : undefined);
+    }
+
+    rounds.push({
+      id: `${categoryId}-r${r + 1}`,
+      label: roundLabels[totalRounds - 1 - r] ?? `Babak ${r + 1}`,
+      matches,
+    });
+    slots = winners;
+  }
+
+  const championId = slots[0];
+  const champion = championId ? getParticipant(championId) : undefined;
+  rounds.push({
+    id: `${categoryId}-juara`,
+    label: "Juara",
+    matches: [],
+    champion: {
+      label: "Juara",
+      name: champion ? sideName(champion.players) : "TBD",
+      participantId: championId,
+    },
+  });
+
+  return rounds;
+}
+
+interface BracketInput {
+  id: string;
+  label: string;
+  seeds: string[];
+  outcomes: (MatchOutcome | null)[][];
+}
+
+/**
+ * Mock brackets, deliberately at different stages: some categories are decided,
+ * others still have matches to play.
+ */
+const bracketInputs: BracketInput[] = [
+  {
+    id: "tunggal-putra",
+    label: "Tunggal Putra",
+    seeds: [
+      "rizky-fadhilah",
+      "dani-setiawan",
+      "arya-pratama",
+      "bagas-nugroho",
+      "candra-wijaya",
+      "fajar-ramadhan",
+      "galih-saputra",
+      "hendra-kusuma",
+    ],
+    outcomes: [
+      [
+        [0, 2, 0],
+        [1, 2, 1],
+        [0, 2, 1],
+        [1, 2, 0],
+      ],
+      [[0, 2, 1], null],
+      [null],
+    ],
+  },
+  {
+    id: "tunggal-putri",
+    label: "Tunggal Putri",
+    seeds: [
+      "sinta-rahayu",
+      "devi-kurnia",
+      "layla-azhar",
+      "putri-wulandari",
+      "anisa-maharani",
+      "rani-oktaviani",
+      "tiara-safitri",
+      "maya-lestari",
+    ],
+    outcomes: [
+      [
+        [0, 2, 1],
+        [0, 2, 0],
+        [1, 2, 1],
+        [0, 2, 1],
+      ],
+      [
+        [1, 2, 0],
+        [0, 2, 1],
+      ],
+      [[1, 2, 1]],
+    ],
+  },
+  {
+    id: "ganda-putra",
+    label: "Ganda Putra",
+    seeds: [
+      "gpa-dani-hendra",
+      "gpa-yogi-wahyu",
+      "gpa-adi-bayu",
+      "gpa-cakra-dimas",
+      "gpa-eko-firman",
+      "gpa-gilang-haris",
+      "gpa-ilham-joko",
+      "gpa-krisna-lutfi",
+    ],
+    outcomes: [
+      [
+        [0, 2, 1],
+        [1, 2, 0],
+        [0, 2, 1],
+        [0, 2, 1],
+      ],
+      [null, null],
+      [null],
+    ],
+  },
+  {
+    id: "ganda-putri",
+    label: "Ganda Putri",
+    seeds: [
+      "gpi-sinta-devi",
+      "gpi-layla-putri",
+      "gpi-anisa-rani",
+      "gpi-tiara-maya",
+      "gpi-bella-citra",
+      "gpi-dinda-elsa",
+      "gpi-fira-gita",
+      "gpi-hana-indah",
+    ],
+    outcomes: [
+      [[0, 2, 0], [1, 2, 1], null, null],
+      [null, null],
+      [null],
+    ],
+  },
+  {
+    id: "ganda-campuran",
+    label: "Ganda Campuran",
+    seeds: [
+      "gc-rizky-sinta",
+      "gc-dani-devi",
+      "gc-arya-layla",
+      "gc-bagas-putri",
+      "gc-candra-anisa",
+      "gc-fajar-rani",
+      "gc-galih-tiara",
+      "gc-hendra-maya",
+    ],
+    outcomes: [
+      [
+        [1, 2, 1],
+        [0, 2, 1],
+        [0, 2, 0],
+        [1, 2, 1],
+      ],
+      [
+        [0, 2, 1],
+        [1, 2, 0],
+      ],
+      [[0, 2, 0]],
+    ],
+  },
+];
+
+export const categoryBrackets: CategoryBracket[] = bracketInputs.map(
+  ({ id, label, seeds, outcomes }) => ({
     id,
-    home: { participantId: "rizky-fadhilah", score: 2, winner: true },
-    away: { participantId: "dani-setiawan", score: 0 },
+    label,
+    seeds,
+    rounds: buildRounds(id, seeds, outcomes),
+  }),
+);
+
+/** One searchable entrant, tagged with the bracket they compete in. */
+export interface BracketAthlete {
+  participant: Participant;
+  categoryId: string;
+  categoryLabel: string;
+}
+
+export const bracketAthletes: BracketAthlete[] = categoryBrackets.flatMap(
+  (bracket) =>
+    bracket.seeds.flatMap((id) => {
+      const participant = getParticipant(id);
+      return participant
+        ? [{ participant, categoryId: bracket.id, categoryLabel: bracket.label }]
+        : [];
+    }),
+);
+
+/**
+ * Keys of every column slot a participant occupies: the ids of the matches they
+ * play, plus the champion column id when they win the final. Feeding this to the
+ * bracket lights up their run from the first round to where they stand now.
+ */
+export function bracketPathFor(
+  bracket: CategoryBracket,
+  participantId?: string,
+): Set<string> {
+  const path = new Set<string>();
+  if (!participantId) return path;
+
+  for (const round of bracket.rounds) {
+    for (const match of round.matches) {
+      if (
+        match.home.participantId === participantId ||
+        match.away.participantId === participantId
+      ) {
+        path.add(match.id);
+      }
+    }
+    if (round.champion?.participantId === participantId) path.add(round.id);
+  }
+
+  return path;
+}
+
+/**
+ * Best-effort link from a match side to its bracket entry, matched on names.
+ * Returns undefined when that side never entered the knockout stage.
+ */
+export function findBracketAthlete(
+  categoryId: string,
+  players: string[],
+): BracketAthlete | undefined {
+  const key = sideName(players);
+  return bracketAthletes.find(
+    (athlete) =>
+      athlete.categoryId === categoryId &&
+      sideName(athlete.participant.players) === key,
+  );
+}
+
+/** Name/team search across every bracket; empty query returns nothing. */
+export function searchBracketAthletes(
+  query: string,
+  limit = 6,
+): BracketAthlete[] {
+  const needle = query.trim().toLowerCase();
+  if (!needle) return [];
+
+  return bracketAthletes
+    .filter(({ participant, categoryLabel }) =>
+      [...participant.players, participant.team, categoryLabel].some((field) =>
+        field.toLowerCase().includes(needle),
+      ),
+    )
+    .slice(0, limit);
+}
+
+/** Single venue for the whole tournament, shown on the match detail page. */
+export const tournamentVenue = { name: "GOR Nusantara", org: "UGM" };
+
+export type MatchSideKey = "home" | "away";
+
+/**
+ * One score update recorded from the admin dashboard. Live scoring only needs
+ * the side that won the rally — everything else (running score, who serves
+ * next) is derived, so the operator taps one button per rally.
+ */
+export interface RallyEntry {
+  scorer: MatchSideKey;
+  /** Points added; defaults to 1. More when the operator catches up at once. */
+  gained?: number;
+}
+
+/** Point-by-point record of one set. */
+export interface SetHistory {
+  /** Side that served the very first rally of the set. */
+  firstServer: MatchSideKey;
+  entries: RallyEntry[];
+}
+
+/** A history row ready to render: derived score and serve holder included. */
+export interface RallyRow {
+  scorer: MatchSideKey;
+  gained: number;
+  /** Side that served this rally — the winner of the previous one. */
+  server: MatchSideKey;
+  /** Running score after this entry. */
+  home: number;
+  away: number;
+}
+
+/**
+ * Expands recorded rallies into rows. Serve follows the badminton rally-scoring
+ * rule: whoever won the last rally serves the next one.
+ */
+export function buildRallyRows(history: SetHistory): RallyRow[] {
+  let home = 0;
+  let away = 0;
+
+  return history.entries.map((entry, index) => {
+    const gained = entry.gained ?? 1;
+    if (entry.scorer === "home") home += gained;
+    else away += gained;
+
+    return {
+      scorer: entry.scorer,
+      gained,
+      server:
+        index === 0 ? history.firstServer : history.entries[index - 1].scorer,
+      home,
+      away,
+    };
+  });
+}
+
+/** Compact authoring helper: "HAHH" -> one entry per rally winner. */
+function rallies(sequence: string, firstServer: MatchSideKey): SetHistory {
+  return {
+    firstServer,
+    entries: [...sequence].map((mark) => ({
+      scorer: mark === "H" ? "home" : "away",
+    })),
   };
 }
 
-export const bracketRounds: BracketRound[] = [
-  {
-    id: "perempat-final",
-    label: "Perempat Final",
-    matches: [
-      bracketPair("qf-1"),
-      bracketPair("qf-2"),
-      bracketPair("qf-3"),
-      bracketPair("qf-4"),
-    ],
-  },
-  {
-    id: "semi-final",
-    label: "Semi Final",
-    matches: [bracketPair("sf-1"), bracketPair("sf-2")],
-  },
-  {
-    id: "final",
-    label: "Final",
-    matches: [
-      {
-        id: "final-1",
-        home: { score: null },
-        away: { score: null },
-      },
-    ],
-  },
-  {
-    id: "juara",
-    label: "Juara",
-    matches: [],
-    champion: { label: "Juara", name: "TBD" },
-  },
-];
+/**
+ * Point-by-point histories, keyed by match id. Kept apart from the match record
+ * because live scoring is its own stream — the admin dashboard appends to this
+ * while the match record itself barely changes.
+ */
+export const matchHistories: Record<string, SetHistory[]> = {
+  "sched-7": [
+    rallies("HAHAHHAHAHHAHAHAHHAHAHHAHAHAHHAHAHHA", "home"),
+    rallies("AHAHAHAHAHAHAAHAHAHAHAHAHAAHAHAHAHAHAHA", "home"),
+    rallies("HAHHAHHAHHAHAHHAHHAHHAHAHHAHHAHHA", "away"),
+  ],
+  "match-1": [
+    rallies("HAHAHAHAHAHHAHAHAHAHAHAHHAHAHAHAHAHAHHA", "home"),
+    rallies("HAHAHAHHAHAHAHAHHAHAHAHHA", "home"),
+  ],
+};
+
+/** One set of a match; the set in progress is not counted in the totals yet. */
+export interface MatchDetailSet extends MatchGame {
+  inProgress?: boolean;
+}
+
+/**
+ * A live or scheduled match flattened into everything the statistics page
+ * shows, so the page does not care which list the match came from.
+ */
+export interface MatchDetail {
+  id: string;
+  /** Display stamp, e.g. "10.08.2026 11:30". */
+  startsAt: string;
+  category: string;
+  /** Bracket key, matches a `categoryBrackets` id. */
+  categoryId: string;
+  level: string;
+  court: string;
+  home: MatchSide;
+  away: MatchSide;
+  sets: MatchDetailSet[];
+  status: ScheduleStatus;
+  winner?: MatchSideKey;
+  /** Set in progress, e.g. "Set 2"; live matches only. */
+  setLabel?: string;
+  /** Point-by-point record per set; empty when nothing was logged. */
+  history: SetHistory[];
+}
+
+/** "2026-08-10" + "11:30" -> "10.08.2026 11:30". */
+export function formatMatchDateTime(date: string, time: string): string {
+  const [year, month, day] = date.split("-");
+  return `${day}.${month}.${year} ${time}`;
+}
+
+/** Sets won, ignoring the one still being played. */
+export function setsWon(sets: MatchDetailSet[], side: "home" | "away"): number {
+  return sets.filter(
+    (set) =>
+      !set.inProgress &&
+      (side === "home" ? set.home > set.away : set.away > set.home),
+  ).length;
+}
+
+/** Resolves a live or scheduled match id into its statistics-page shape. */
+export function getMatchDetail(id: string): MatchDetail | undefined {
+  const live = liveMatches.find((match) => match.id === id);
+  if (live) {
+    return {
+      id: live.id,
+      startsAt: formatMatchDateTime(live.date, live.time),
+      category: disciplineLabel(live.categoryId),
+      categoryId: live.categoryId,
+      level: live.level,
+      court: live.court,
+      home: live.home,
+      away: live.away,
+      sets: [...live.games, { ...live.live, inProgress: true }],
+      status: "live",
+      setLabel: live.setLabel,
+      history: matchHistories[live.id] ?? [],
+    };
+  }
+
+  const scheduled = scheduleMatches.find((match) => match.id === id);
+  if (!scheduled) return undefined;
+
+  return {
+    id: scheduled.id,
+    startsAt: formatMatchDateTime(scheduled.date, scheduled.time),
+    category: disciplineLabel(scheduled.categoryId),
+    categoryId: scheduled.categoryId,
+    level: scheduled.level,
+    court: scheduled.court,
+    home: scheduled.home,
+    away: scheduled.away,
+    sets: scheduled.games ?? [],
+    status: scheduled.status,
+    winner: scheduled.winner,
+    history: matchHistories[scheduled.id] ?? [],
+  };
+}
+
+/** Every match id that has a statistics page, for static prerendering. */
+export function matchDetailIds(): string[] {
+  return [
+    ...liveMatches.map((match) => match.id),
+    ...scheduleMatches.map((match) => match.id),
+  ];
+}
 
 export interface MatchTab {
   id: string;

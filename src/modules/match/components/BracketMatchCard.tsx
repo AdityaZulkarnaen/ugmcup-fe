@@ -1,13 +1,28 @@
+"use client";
+
 import Image from "next/image";
 import {
   getParticipant,
+  sideName,
   type BracketMatch,
   type BracketSide,
 } from "@/lib/constants/matches";
 
+/** Shared hover/select wiring so a card can drive the path highlight. */
+export interface HighlightProps {
+  /** Participant whose run is currently lit up, if any. */
+  activeId?: string;
+  /** True when this card sits on the active path. */
+  onPath?: boolean;
+  /** True when some path is active and this card is not on it. */
+  dimmed?: boolean;
+  onHover?: (participantId?: string) => void;
+  onSelect?: (participantId: string) => void;
+}
+
 /**
- * Participant badge: the image the admin registered, or the gold shuttlecock
- * mark while no image has been uploaded.
+ * Participant badge: the image the admin registered, or a neutral placeholder
+ * while no image has been uploaded.
  */
 function ParticipantBadge({
   avatar,
@@ -38,30 +53,51 @@ function ParticipantBadge({
   );
 }
 
-/** One competitor line: badge + name + games won. */
-function SideRow({ side }: { side: BracketSide }) {
+/**
+ * One competitor line: badge + name + games won. Hovering or focusing the row
+ * lights that athlete's path; clicking pins it.
+ */
+function SideRow({
+  side,
+  activeId,
+  onHover,
+  onSelect,
+}: { side: BracketSide } & HighlightProps) {
   const participant = side.participantId
     ? getParticipant(side.participantId)
     : undefined;
+  const name = participant ? sideName(participant.players) : "TBD";
+  const isActive = Boolean(participant && participant.id === activeId);
 
   return (
-    <div className="flex items-center gap-2 py-2 pl-3.5 pr-3">
+    <button
+      type="button"
+      disabled={!participant}
+      aria-pressed={participant ? isActive : undefined}
+      onPointerEnter={() => onHover?.(participant?.id)}
+      onPointerLeave={() => onHover?.(undefined)}
+      onFocus={() => onHover?.(participant?.id)}
+      onBlur={() => onHover?.(undefined)}
+      onClick={() => participant && onSelect?.(participant.id)}
+      className={`flex w-full items-center gap-2 py-2 pl-3.5 pr-3 text-left transition-colors enabled:hover:bg-white/[0.03] disabled:cursor-default ${
+        isActive ? "bg-[#EF9F27]/10" : ""
+      }`}
+    >
       {participant && (
-        <ParticipantBadge
-          avatar={participant.avatar}
-          name={participant.players.join(" / ")}
-        />
+        <ParticipantBadge avatar={participant.avatar} name={name} />
       )}
       <span
         className={`min-w-0 flex-1 truncate text-[13px] font-semibold ${
           !participant
             ? "italic text-[#6B6B73]"
-            : side.winner
-              ? "text-white"
-              : "text-[#7A7A83]"
+            : isActive
+              ? "text-[#FAC775]"
+              : side.winner
+                ? "text-white"
+                : "text-[#7A7A83]"
         }`}
       >
-        {participant ? participant.players.join(" / ") : "TBD"}
+        {name}
       </span>
       {side.score !== null && (
         <span
@@ -72,16 +108,27 @@ function SideRow({ side }: { side: BracketSide }) {
           {side.score}
         </span>
       )}
-    </div>
+    </button>
   );
 }
 
-export function BracketMatchCard({ match }: { match: BracketMatch }) {
+export function BracketMatchCard({
+  match,
+  onPath,
+  dimmed,
+  ...highlight
+}: { match: BracketMatch } & HighlightProps) {
   return (
-    <article className="relative overflow-hidden rounded-xl border border-white/[0.06] bg-white/[0.02] transition-colors hover:border-white/15">
+    <article
+      className={`relative overflow-hidden rounded-xl border transition-all ${
+        onPath
+          ? "border-[#EF9F27]/60 bg-[#EF9F27]/[0.06] shadow-[0_0_12px_-2px_rgba(239,159,39,0.35)]"
+          : "border-white/[0.06] bg-white/[0.02] hover:border-white/15"
+      } ${dimmed ? "opacity-35" : ""}`}
+    >
       <div className="divide-y divide-white/[0.04]">
-        <SideRow side={match.home} />
-        <SideRow side={match.away} />
+        <SideRow side={match.home} onPath={onPath} {...highlight} />
+        <SideRow side={match.away} onPath={onPath} {...highlight} />
       </div>
     </article>
   );
@@ -90,12 +137,20 @@ export function BracketMatchCard({ match }: { match: BracketMatch }) {
 export function BracketChampionCard({
   label,
   name,
+  onPath,
+  dimmed,
 }: {
   label: string;
   name: string;
-}) {
+} & HighlightProps) {
   return (
-    <div className="rounded-lg border border-[#C79A3B]/45 bg-linear-to-b from-[#4A3A1E] to-[#2B2114] px-4 py-3 text-center">
+    <div
+      className={`rounded-lg border bg-linear-to-b from-[#4A3A1E] to-[#2B2114] px-4 py-3 text-center transition-all ${
+        onPath
+          ? "border-[#EF9F27] shadow-[0_0_12px_-2px_rgba(239,159,39,0.45)]"
+          : "border-[#C79A3B]/45"
+      } ${dimmed ? "opacity-35" : ""}`}
+    >
       <p className="text-xs font-bold uppercase tracking-widest text-[#F0C97A]">
         {label}
       </p>

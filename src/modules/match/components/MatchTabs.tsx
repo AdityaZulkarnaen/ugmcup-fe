@@ -5,6 +5,7 @@ import { liveMatches, matchTabs } from "@/lib/constants/matches";
 import { LiveScoreCard } from "./LiveScoreCard";
 import { SchedulePanel } from "./SchedulePanel";
 import { BracketPanel } from "./BracketPanel";
+import { StandingsPanel } from "./StandingsPanel";
 
 export function MatchTabs() {
   const [active, setActive] = useState(matchTabs[0].id);
@@ -63,16 +64,7 @@ export function MatchTabs() {
         ) : active === "bracket" ? (
           <BracketPanel />
         ) : (
-          <div className="flex min-h-64 flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-white/10 bg-white/[0.01] p-10 text-center">
-            <p className="text-lg font-bold italic text-white">
-              {matchTabs.find((t) => t.id === active)?.label}
-            </p>
-            <p className="max-w-sm text-sm text-[#7A7A83]">
-              Bagian ini akan segera hadir. Nantikan{" "}
-              {matchTabs.find((t) => t.id === active)?.caption.toLowerCase()} di
-              sini.
-            </p>
-          </div>
+          <StandingsPanel />
         )}
       </div>
     </div>
