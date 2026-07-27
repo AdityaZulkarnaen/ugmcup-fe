@@ -78,6 +78,27 @@ export function ChevronIcon({ className }: { className?: string }) {
   );
 }
 
+/** Stadium/scoreboard mark used by the match information rows. */
+export function StadiumIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 16 16"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.3"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      xmlns="http://www.w3.org/2000/svg"
+      className={className}
+    >
+      <rect x="1.5" y="3.5" width="13" height="9" rx="1.5" />
+      <path d="M4.5 6v4M8 6v4M11.5 6v4" />
+    </svg>
+  );
+}
+
 export function SearchIcon({ className }: { className?: string }) {
   return (
     <svg

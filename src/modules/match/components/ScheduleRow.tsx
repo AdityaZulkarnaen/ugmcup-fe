@@ -1,3 +1,4 @@
+import Link from "next/link";
 import {
   sideName,
   type ScheduleMatch,
@@ -57,7 +58,11 @@ export function ScheduleRow({ match }: ScheduleRowProps) {
   const isLive = match.status === "live";
 
   return (
-    <article className="relative overflow-hidden rounded-xl border border-white/[0.06] bg-white/[0.02] pl-6 pr-4 py-3.5 transition-colors hover:border-white/30 hover:cursor-pointer">
+    <Link
+      href={`/pertandingan/${match.id}`}
+      aria-label={`Statistik ${sideName(match.home.players)} vs ${sideName(match.away.players)}`}
+      className="relative block overflow-hidden rounded-xl border border-white/[0.06] bg-white/[0.02] pl-6 pr-4 py-3.5 transition-colors hover:border-white/30"
+    >
       {/* Left accent, red while the match is running */}
       {isLive && (
         <span className="absolute inset-y-0 left-0 w-[3px] bg-[#FB2C36]" />
@@ -125,6 +130,6 @@ export function ScheduleRow({ match }: ScheduleRowProps) {
           </span>
         </div>
       </div>
-    </article>
+    </Link>
   );
 }

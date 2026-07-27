@@ -1,4 +1,5 @@
-import type { LiveMatch } from "@/lib/constants/matches";
+import Link from "next/link";
+import { sideName, type LiveMatch } from "@/lib/constants/matches";
 import { ArrowIcon, CourtIcon } from "@/components/ui/icons";
 
 interface LiveScoreCardProps {
@@ -38,7 +39,11 @@ export function LiveScoreCard({ match }: LiveScoreCardProps) {
   const homeLeading = match.live.home >= match.live.away;
 
   return (
-    <article className="rounded-2xl border border-white/[0.06] bg-white/[0.02] px-6 py-5 shadow-[0_1px_0_rgba(255,255,255,0.03)_inset] transition-colors hover:border-white/10">
+    <Link
+      href={`/pertandingan/${match.id}`}
+      aria-label={`Statistik ${sideName(match.home.players)} vs ${sideName(match.away.players)}`}
+      className="block rounded-2xl border border-white/[0.06] bg-white/[0.02] px-6 py-5 shadow-[0_1px_0_rgba(255,255,255,0.03)_inset] transition-colors hover:border-white/30"
+    >
       {/* Top row: status + court */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
@@ -51,7 +56,7 @@ export function LiveScoreCard({ match }: LiveScoreCardProps) {
           </span>
           <span className="text-white/25">·</span>
           <span className="rounded-full border border-[#C79A3B]/40 bg-[#C79A3B]/[0.08] px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-[#E3B24D]">
-            {match.category}
+            {match.category} {match.level}
           </span>
         </div>
 
@@ -146,6 +151,6 @@ export function LiveScoreCard({ match }: LiveScoreCardProps) {
           Game {match.currentGame}
         </span>
       </div>
-    </article>
+    </Link>
   );
 }

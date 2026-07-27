@@ -13,8 +13,16 @@ export interface MatchSide {
 
 export interface LiveMatch {
   id: string;
-  /** Discipline label shown in the gold pill, e.g. "Tunggal Putra U-21". */
+  /** Discipline label shown in the gold pill, e.g. "Tunggal Putra". */
   category: string;
+  /** Category filter key, matches a `categoryBrackets` id. */
+  categoryId: string;
+  /** Age group / division, e.g. "U-21" or "Open". */
+  level: string;
+  /** ISO day the match is played on, e.g. "2026-08-10". */
+  date: string;
+  /** Start time, e.g. "11:30". */
+  time: string;
   /** Court label, e.g. "Lapangan 1". */
   court: string;
   home: MatchSide;
@@ -34,7 +42,11 @@ export interface LiveMatch {
 export const liveMatches: LiveMatch[] = [
   {
     id: "match-1",
-    category: "Tunggal Putra U-21",
+    category: "Tunggal Putra",
+    categoryId: "tunggal-putra",
+    level: "U-21",
+    date: "2026-08-10",
+    time: "11:30",
     court: "Lapangan 1",
     home: { players: ["Rizky Fadhilah"], team: "FT UGM" },
     away: { players: ["Arya Pratama"], team: "FEB UGM" },
@@ -46,7 +58,11 @@ export const liveMatches: LiveMatch[] = [
   },
   {
     id: "match-2",
-    category: "Ganda Putri Open",
+    category: "Ganda Putri",
+    categoryId: "ganda-putri",
+    level: "Open",
+    date: "2026-08-10",
+    time: "12:15",
     court: "Lapangan 2",
     home: { players: ["Sinta Rahayu", "Devi Kurnia"], team: "FT UGM" },
     away: { players: ["Arya Pratama", "Arya Pratama"], team: "FEB UGM" },
@@ -61,7 +77,11 @@ export const liveMatches: LiveMatch[] = [
   },
   {
     id: "match-3",
-    category: "Ganda Campuran U-19",
+    category: "Ganda Campuran",
+    categoryId: "ganda-campuran",
+    level: "U-19",
+    date: "2026-08-10",
+    time: "13:00",
     court: "Lapangan 3",
     home: { players: ["Sinta Rahayu", "Devi Kurnia"], team: "FT UGM" },
     away: { players: ["Arya Pratama", "Arya Pratama"], team: "FEB UGM" },
@@ -612,6 +632,22 @@ export function bracketPathFor(
   return path;
 }
 
+/**
+ * Best-effort link from a match side to its bracket entry, matched on names.
+ * Returns undefined when that side never entered the knockout stage.
+ */
+export function findBracketAthlete(
+  categoryId: string,
+  players: string[],
+): BracketAthlete | undefined {
+  const key = sideName(players);
+  return bracketAthletes.find(
+    (athlete) =>
+      athlete.categoryId === categoryId &&
+      sideName(athlete.participant.players) === key,
+  );
+}
+
 /** Name/team search across every bracket; empty query returns nothing. */
 export function searchBracketAthletes(
   query: string,
@@ -627,6 +663,96 @@ export function searchBracketAthletes(
       ),
     )
     .slice(0, limit);
+}
+
+/** Single venue for the whole tournament, shown on the match detail page. */
+export const tournamentVenue = { name: "GOR Nusantara", org: "UGM" };
+
+/** One set of a match; the set in progress is not counted in the totals yet. */
+export interface MatchDetailSet extends MatchGame {
+  inProgress?: boolean;
+}
+
+/**
+ * A live or scheduled match flattened into everything the statistics page
+ * shows, so the page does not care which list the match came from.
+ */
+export interface MatchDetail {
+  id: string;
+  /** Display stamp, e.g. "10.08.2026 11:30". */
+  startsAt: string;
+  category: string;
+  /** Bracket key, matches a `categoryBrackets` id. */
+  categoryId: string;
+  level: string;
+  court: string;
+  home: MatchSide;
+  away: MatchSide;
+  sets: MatchDetailSet[];
+  status: ScheduleStatus;
+  winner?: "home" | "away";
+  /** Set in progress, e.g. "Set 2"; live matches only. */
+  setLabel?: string;
+}
+
+/** "2026-08-10" + "11:30" -> "10.08.2026 11:30". */
+export function formatMatchDateTime(date: string, time: string): string {
+  const [year, month, day] = date.split("-");
+  return `${day}.${month}.${year} ${time}`;
+}
+
+/** Sets won, ignoring the one still being played. */
+export function setsWon(sets: MatchDetailSet[], side: "home" | "away"): number {
+  return sets.filter(
+    (set) =>
+      !set.inProgress &&
+      (side === "home" ? set.home > set.away : set.away > set.home),
+  ).length;
+}
+
+/** Resolves a live or scheduled match id into its statistics-page shape. */
+export function getMatchDetail(id: string): MatchDetail | undefined {
+  const live = liveMatches.find((match) => match.id === id);
+  if (live) {
+    return {
+      id: live.id,
+      startsAt: formatMatchDateTime(live.date, live.time),
+      category: live.category,
+      categoryId: live.categoryId,
+      level: live.level,
+      court: live.court,
+      home: live.home,
+      away: live.away,
+      sets: [...live.games, { ...live.live, inProgress: true }],
+      status: "live",
+      setLabel: live.setLabel,
+    };
+  }
+
+  const scheduled = scheduleMatches.find((match) => match.id === id);
+  if (!scheduled) return undefined;
+
+  return {
+    id: scheduled.id,
+    startsAt: formatMatchDateTime(scheduled.dayId, scheduled.time),
+    category: scheduled.category,
+    categoryId: scheduled.categoryId,
+    level: scheduled.level,
+    court: scheduled.court,
+    home: scheduled.home,
+    away: scheduled.away,
+    sets: scheduled.games ?? [],
+    status: scheduled.status,
+    winner: scheduled.winner,
+  };
+}
+
+/** Every match id that has a statistics page, for static prerendering. */
+export function matchDetailIds(): string[] {
+  return [
+    ...liveMatches.map((match) => match.id),
+    ...scheduleMatches.map((match) => match.id),
+  ];
 }
 
 export interface MatchTab {

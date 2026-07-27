@@ -30,6 +30,16 @@ function columnKeys(round: BracketRound): string[] {
   return round.champion ? [round.id] : round.matches.map((match) => match.id);
 }
 
+/** Index of the furthest round an athlete reached; drives the mobile pager. */
+function pageOfDeepestRound(target: CategoryBracket, participantId: string) {
+  const targetPath = bracketPathFor(target, participantId);
+  return target.rounds.reduce(
+    (deepest, round, index) =>
+      columnKeys(round).some((key) => targetPath.has(key)) ? index : deepest,
+    0,
+  );
+}
+
 /** Card of a round, or the champion box for the last column. */
 function RoundCard({
   round,
@@ -148,11 +158,32 @@ function RoundColumn({
   );
 }
 
-export function BracketPanel() {
-  const [categoryId, setCategoryId] = useState(categoryBrackets[0].id);
-  const [pinned, setPinned] = useState<BracketAthlete>();
+export function BracketPanel({
+  initialCategoryId,
+  initialParticipantId,
+}: {
+  /** Opens on this category instead of the first one. */
+  initialCategoryId?: string;
+  /** Pins this athlete's path on first render, e.g. from a match page. */
+  initialParticipantId?: string;
+} = {}) {
+  const [categoryId, setCategoryId] = useState(
+    initialCategoryId ?? categoryBrackets[0].id,
+  );
+  const [pinned, setPinned] = useState<BracketAthlete | undefined>(() =>
+    bracketAthletes.find(
+      (item) =>
+        item.participant.id === initialParticipantId &&
+        item.categoryId === categoryId,
+    ),
+  );
   const [hovered, setHovered] = useState<string>();
-  const [page, setPage] = useState(0);
+  const [page, setPage] = useState(() => {
+    const target = categoryBrackets.find((item) => item.id === categoryId);
+    return target && initialParticipantId
+      ? pageOfDeepestRound(target, initialParticipantId)
+      : 0;
+  });
 
   const bracket =
     categoryBrackets.find((item) => item.id === categoryId) ??
@@ -174,16 +205,6 @@ export function BracketPanel() {
 
   const lastPage = columns.length - 1;
   const current = columns[Math.min(page, lastPage)];
-
-  /** Jumps the mobile pager to the furthest round the athlete reached. */
-  function pageOfDeepestRound(target: CategoryBracket, participantId: string) {
-    const targetPath = bracketPathFor(target, participantId);
-    return target.rounds.reduce(
-      (deepest, round, index) =>
-        columnKeys(round).some((key) => targetPath.has(key)) ? index : deepest,
-      0,
-    );
-  }
 
   /** Picking an athlete switches to their category and pins their path. */
   function selectAthlete(athlete?: BracketAthlete) {
