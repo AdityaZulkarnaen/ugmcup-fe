@@ -22,6 +22,8 @@ export function GrupSection() {
     setIsLoading(true);
     try {
       setStandings(await getStandings(selectedDisc));
+    } catch (e) {
+      console.error(e);
     } finally { setIsLoading(false); }
   }, [selectedDisc]);
 
