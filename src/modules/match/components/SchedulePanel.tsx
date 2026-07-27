@@ -25,8 +25,8 @@ export function SchedulePanel() {
 
   return (
     <div className="flex flex-col gap-5">
-      {/* Filters */}
-      <div className="flex flex-col gap-2.5 sm:flex-row">
+      {/* Filters — kept on one row at every width */}
+      <div className="flex gap-2.5">
         <FilterSelect
           options={scheduleDays}
           value={day}
@@ -34,6 +34,7 @@ export function SchedulePanel() {
           label="Filter hari"
           accent="gold"
           accented={day !== "all"}
+          className="min-w-0 flex-1 sm:max-w-56"
           optionLabel={(option) =>
             option.id === "all" ? "Semua Hari" : option.label
           }
@@ -45,6 +46,7 @@ export function SchedulePanel() {
           label="Filter kategori"
           accent="violet"
           accented={category !== "all"}
+          className="min-w-0 flex-1 sm:max-w-56"
           optionLabel={(option) =>
             option.id === "all" ? "Semua Kategori" : option.label
           }

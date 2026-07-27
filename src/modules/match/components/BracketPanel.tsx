@@ -52,16 +52,21 @@ export function BracketPanel() {
 
   return (
     <div className="flex flex-col gap-5">
-      {/* Category filter + athlete search */}
-      <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center">
+      {/* Category filter beside the search, which takes three quarters of the row */}
+      <div className="flex items-center gap-2.5">
         <FilterSelect
           options={categoryBrackets.map(({ id, label }) => ({ id, label }))}
           value={bracket.id}
           onChange={changeCategory}
           label="Filter kategori bracket"
           accent="violet"
+          className="min-w-0 basis-6/12"
         />
-        <AthleteSearch selected={pinned} onSelect={selectAthlete} />
+        <AthleteSearch
+          selected={pinned}
+          onSelect={selectAthlete}
+          className="min-w-0 basis-6/12"
+        />
       </div>
 
       {/* Remounting on category or pin resets the mobile pager to the right round */}

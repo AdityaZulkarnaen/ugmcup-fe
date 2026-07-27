@@ -15,9 +15,11 @@ import { CloseIcon, SearchIcon } from "@/components/ui/icons";
 export function AthleteSearch({
   selected,
   onSelect,
+  className = "w-full sm:max-w-xs",
 }: {
   selected?: BracketAthlete;
   onSelect: (athlete?: BracketAthlete) => void;
+  className?: string;
 }) {
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
@@ -73,7 +75,11 @@ export function AthleteSearch({
   }
 
   return (
-    <div ref={rootRef} className="relative w-full sm:max-w-xs" onKeyDown={handleKeyDown}>
+    <div
+      ref={rootRef}
+      className={`relative ${className}`}
+      onKeyDown={handleKeyDown}
+    >
       <div
         className={`flex items-center gap-2 rounded-full border px-4 py-2 transition-colors ${
           selected
