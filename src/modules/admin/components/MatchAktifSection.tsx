@@ -142,11 +142,10 @@ function SetTimerControl({
                 disabled={loading || !isSetCreated}
                 aria-label="Mulai Timer"
                 title={!isSetCreated ? "Buat Set 1 terlebih dahulu" : "Mulai Timer"}
-                className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold transition ${
-                  !isSetCreated
+                className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold transition ${!isSetCreated
                     ? "bg-gray-200 text-gray-400 cursor-not-allowed shadow-none"
                     : "bg-[#66FFB4] text-[#0F172A] hover:bg-[#50E69D] active:scale-95 shadow-[0_2px_8px_rgba(102,255,180,0.4)]"
-                }`}
+                  }`}
               >
                 <Play size={12} fill="currentColor" /> Mulai
               </button>
@@ -162,9 +161,8 @@ function SetTimerControl({
               disabled={loading || !isSetCreated}
               aria-label="Berhenti & Kunci Timer"
               title={!isSetCreated ? "Buat Set 1 terlebih dahulu" : "Berhenti & Kunci Timer"}
-              className={`flex items-center justify-center p-1.5 rounded-lg text-white transition shadow-xs ${
-                !isSetCreated ? "bg-gray-300 cursor-not-allowed" : "bg-[#EF4444] hover:opacity-90 active:scale-95"
-              }`}
+              className={`flex items-center justify-center p-1.5 rounded-lg text-white transition shadow-xs ${!isSetCreated ? "bg-gray-300 cursor-not-allowed" : "bg-[#EF4444] hover:opacity-90 active:scale-95"
+                }`}
             >
               <Square size={12} fill="currentColor" />
             </button>
@@ -385,9 +383,9 @@ function ScoringPanel({ match, onRefresh }: { match: Match; onRefresh: () => voi
   const instA =
     match.participantA?.institution?.name ??
     match.teamA?.institution?.name ??
-    null;
-  const primaryA = athleteNamesA || instA || "Tim A";
-  const secondaryA = athleteNamesA && instA && athleteNamesA !== instA ? instA : null;
+    "Tim A";
+  const primaryA = athleteNamesA || "Tim A";
+  const secondaryA = instA;
 
   const athleteNamesB =
     (match.participantB?.athletes?.length ?? 0) > 0
@@ -396,9 +394,9 @@ function ScoringPanel({ match, onRefresh }: { match: Match; onRefresh: () => voi
   const instB =
     match.participantB?.institution?.name ??
     match.teamB?.institution?.name ??
-    null;
-  const primaryB = athleteNamesB || instB || "Tim B";
-  const secondaryB = athleteNamesB && instB && athleteNamesB !== instB ? instB : null;
+    "Tim B";
+  const primaryB = athleteNamesB || "Tim B";
+  const secondaryB = instB;
 
   const totalSeconds = sets.reduce((sum, s) => sum + (s.durationSeconds || 0), 0);
   const totalMins = String(Math.floor(totalSeconds / 60)).padStart(2, "0");
@@ -454,11 +452,10 @@ function ScoringPanel({ match, onRefresh }: { match: Match; onRefresh: () => voi
           <button
             key={s.setNumber}
             onClick={() => setActiveSet(s.setNumber)}
-            className={`rounded-t-xl border border-b-0 px-5 py-2 text-xs font-semibold transition-colors shadow-xs ${
-              activeSet === s.setNumber
+            className={`rounded-t-xl border border-b-0 px-5 py-2 text-xs font-semibold transition-colors shadow-xs ${activeSet === s.setNumber
                 ? "bg-[#8352D9] text-white border-[#8352D9]"
                 : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"
-            }`}
+              }`}
           >
             Set {s.setNumber}
           </button>
@@ -475,7 +472,7 @@ function ScoringPanel({ match, onRefresh }: { match: Match; onRefresh: () => voi
       </div>
 
       {/* 3. Score & Timer Card */}
-      <div className="bg-white border border-gray-200 rounded-b-2xl rounded-tr-2xl p-5 shadow-xs flex flex-col justify-between gap-3">
+      <div className="bg-white border border-gray-200 rounded-b-2xl rounded-tr-2xl px-4 py-8 shadow-xs flex flex-col justify-between gap-3">
         {error && (
           <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-semibold text-red-600">
             {error}
@@ -499,11 +496,10 @@ function ScoringPanel({ match, onRefresh }: { match: Match; onRefresh: () => voi
               disabled={saving || !isTimerRunning}
               aria-label={`Tambah 1 poin untuk ${primaryA} (Tekan A)`}
               title={isTimerRunning ? "Tekan A pada keyboard" : "Nyalakan timer dahulu"}
-              className={`w-full max-w-[240px] rounded-full py-4 text-2xl font-bold transition-all active:scale-95 shadow-[0_4px_14px_0_rgba(102,255,180,0.4)] ${
-                !isTimerRunning
+              className={`w-full max-w-[240px] rounded-full py-4 text-2xl font-bold transition-all active:scale-95 shadow-[0_4px_14px_0_rgba(102,255,180,0.4)] ${!isTimerRunning
                   ? "bg-gray-200 text-gray-400 cursor-not-allowed shadow-none"
                   : "bg-[#66FFB4] text-[#0F172A] hover:bg-[#50E69D]"
-              }`}
+                }`}
             >
               +1 Point
             </button>
@@ -541,11 +537,10 @@ function ScoringPanel({ match, onRefresh }: { match: Match; onRefresh: () => voi
               disabled={saving || !isTimerRunning}
               aria-label={`Tambah 1 poin untuk ${primaryB} (Tekan B)`}
               title={isTimerRunning ? "Tekan B pada keyboard" : "Nyalakan timer dahulu"}
-              className={`w-full max-w-[240px] rounded-full py-4 text-2xl font-bold transition-all active:scale-95 shadow-[0_4px_14px_0_rgba(102,255,180,0.4)] ${
-                !isTimerRunning
+              className={`w-full max-w-[240px] rounded-full py-4 text-2xl font-bold transition-all active:scale-95 shadow-[0_4px_14px_0_rgba(102,255,180,0.4)] ${!isTimerRunning
                   ? "bg-gray-200 text-gray-400 cursor-not-allowed shadow-none"
                   : "bg-[#66FFB4] text-[#0F172A] hover:bg-[#50E69D]"
-              }`}
+                }`}
             >
               +1 Point
             </button>
@@ -560,11 +555,10 @@ function ScoringPanel({ match, onRefresh }: { match: Match; onRefresh: () => voi
               {sets.map((s) => (
                 <span
                   key={s.setNumber}
-                  className={`text-xs font-semibold px-2.5 py-1 rounded-md border ${
-                    s.setNumber === activeSet
+                  className={`text-xs font-semibold px-2.5 py-1 rounded-md border ${s.setNumber === activeSet
                       ? "bg-purple-50 text-[#8352D9] border-purple-200"
                       : "bg-gray-50 text-gray-700 border-gray-200"
-                  }`}
+                    }`}
                 >
                   Set {s.setNumber}: <strong className="font-bold">{s.scoreA}–{s.scoreB}</strong>
                 </span>
@@ -669,11 +663,10 @@ function ScoringPanel({ match, onRefresh }: { match: Match; onRefresh: () => voi
               <div className="flex flex-col gap-2.5">
                 <button
                   onClick={() => setRetiredWinnerId(match.participantA?.id || match.teamA?.id || "")}
-                  className={`p-3.5 border-2 rounded-xl text-left transition-all ${
-                    retiredWinnerId === (match.participantA?.id || match.teamA?.id)
+                  className={`p-3.5 border-2 rounded-xl text-left transition-all ${retiredWinnerId === (match.participantA?.id || match.teamA?.id)
                       ? "border-green-500 bg-green-50 shadow-xs"
                       : "border-gray-200 hover:border-gray-300"
-                  }`}
+                    }`}
                 >
                   <p className="text-sm font-bold text-gray-900">{primaryA}</p>
                   {secondaryA && <p className="text-xs text-gray-500">{secondaryA}</p>}
@@ -681,11 +674,10 @@ function ScoringPanel({ match, onRefresh }: { match: Match; onRefresh: () => voi
 
                 <button
                   onClick={() => setRetiredWinnerId(match.participantB?.id || match.teamB?.id || "")}
-                  className={`p-3.5 border-2 rounded-xl text-left transition-all ${
-                    retiredWinnerId === (match.participantB?.id || match.teamB?.id)
+                  className={`p-3.5 border-2 rounded-xl text-left transition-all ${retiredWinnerId === (match.participantB?.id || match.teamB?.id)
                       ? "border-green-500 bg-green-50 shadow-xs"
                       : "border-gray-200 hover:border-gray-300"
-                  }`}
+                    }`}
                 >
                   <p className="text-sm font-bold text-gray-900">{primaryB}</p>
                   {secondaryB && <p className="text-xs text-gray-500">{secondaryB}</p>}
@@ -801,16 +793,14 @@ export function MatchAktifSection() {
                 <button
                   key={m.id}
                   onClick={() => setSelectedId(m.id)}
-                  className={`w-full text-left p-2.5 rounded-xl border transition-all shrink-0 md:shrink ${
-                    selectedId === m.id
+                  className={`w-full text-left p-2.5 rounded-xl border transition-all shrink-0 md:shrink ${selectedId === m.id
                       ? "border-[#8352D9] bg-purple-50/60 shadow-xs"
                       : "border-gray-200 bg-white hover:bg-gray-50"
-                  }`}
+                    }`}
                 >
                   <p
-                    className={`text-xs font-bold truncate ${
-                      selectedId === m.id ? "text-[#5B21B6]" : "text-gray-900"
-                    }`}
+                    className={`text-xs font-bold truncate ${selectedId === m.id ? "text-[#5B21B6]" : "text-gray-900"
+                      }`}
                   >
                     {labelFor(m).split(" — ")[0]}
                   </p>
