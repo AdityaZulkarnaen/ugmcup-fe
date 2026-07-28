@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { RefreshCw, ChevronDown, CheckCircle, Wifi, WifiOff, Zap, RotateCcw, RotateCw, Play, Pause, Timer, Plus } from "lucide-react";
+import { RefreshCw, ChevronDown, CheckCircle, Wifi, WifiOff, Zap, RotateCcw, RotateCw, Play, Pause, Timer, Plus, Square } from "lucide-react";
 
 import { getMatches, getMatch, updateScore, finishMatch, undoScore, redoScore, updateSetTimer } from "@/lib/api/matches";
 import { useMatchRoom, useGlobalPanitiaRoom } from "@/lib/hooks/useSocket";
@@ -68,28 +68,31 @@ function SetTimerControl({ matchId, setNumber, initialDuration = 0, initialStatu
           <button
             onClick={() => handleTimerAction("PAUSE")}
             disabled={loading}
-            className="flex items-center gap-1 text-xs px-3 py-1.5 font-bold rounded-lg text-white transition shadow-sm hover:opacity-90"
+            className="flex items-center justify-center h-8 w-8 rounded-lg text-white transition shadow-sm hover:opacity-90"
             style={{ background: "#F59E0B" }}
+            title="Pause"
           >
-            <Pause size={12} /> Pause (Istirahat)
+            <Pause size={14} fill="currentColor" />
           </button>
         ) : (
           <button
             onClick={() => handleTimerAction("START")}
             disabled={loading}
-            className="flex items-center gap-1 text-xs px-3 py-1.5 font-bold rounded-lg text-white transition shadow-sm hover:opacity-90"
+            className="flex items-center justify-center h-8 w-8 rounded-lg text-white transition shadow-sm hover:opacity-90"
             style={{ background: "#10B981" }}
+            title="Start"
           >
-            <Play size={12} /> Mulai Waktu
+            <Play size={14} fill="currentColor" />
           </button>
         )}
         <button
           onClick={() => handleTimerAction("RESET")}
           disabled={loading}
-          className="text-xs px-2.5 py-1.5 font-semibold rounded-lg border transition hover:bg-purple-100"
-          style={{ borderColor: "#C4B5FD", color: "#6D28D9", background: "#fff" }}
+          className="flex items-center justify-center h-8 w-8 rounded-lg text-white transition shadow-sm hover:opacity-90"
+          style={{ background: "#EF4444" }}
+          title="Stop / Reset"
         >
-          Reset
+          <Square size={14} fill="currentColor" />
         </button>
       </div>
     </div>
@@ -205,11 +208,16 @@ function ScoringPanel({ match, onRefresh }: { match: Match; onRefresh: () => voi
     } finally { setFinishing(false); }
   }
 
-  const nameA = match.participantA?.institution?.name ?? match.teamA?.institution?.name ?? "Tim A";
-  const nameB = match.participantB?.institution?.name ?? match.teamB?.institution?.name ?? "Tim B";
+  const getParticipantName = (p: any) => p?.athletes?.length > 0 ? p.athletes.map((a: any) => a.athlete?.name).join(" & ") : null;
+  
+  const instA = match.participantA?.institution?.name ?? match.teamA?.institution?.name ?? "Tim A";
+  const nameA = getParticipantName(match.participantA) ? `${getParticipantName(match.participantA)} (${instA})` : instA;
+  
+  const instB = match.participantB?.institution?.name ?? match.teamB?.institution?.name ?? "Tim B";
+  const nameB = getParticipantName(match.participantB) ? `${getParticipantName(match.participantB)} (${instB})` : instB;
 
   return (
-    <div className="mx-auto max-w-xl">
+    <div className="w-full">
       {/* Match info bar */}
       <div className="mb-4 flex items-center justify-between rounded-lg border bg-white px-4 py-3" style={{ borderColor: "#E5E7EB" }}>
         <div>
@@ -416,13 +424,18 @@ export function MatchAktifSection() {
   const selected = matches.find((m) => m.id === selectedId);
 
   const labelFor = (m: Match) => {
-    const a = m.participantA?.institution?.name ?? m.teamA?.institution?.name ?? "Tim A";
-    const b = m.participantB?.institution?.name ?? m.teamB?.institution?.name ?? "Tim B";
-    return `${a} vs ${b} — Lap. ${m.courtNumber ?? "?"}`;
+    const getPName = (p: any) => p?.athletes?.length > 0 ? p.athletes.map((a: any) => a.athlete?.name).join(" & ") : null;
+    const instA = m.participantA?.institution?.name ?? m.teamA?.institution?.name ?? "Tim A";
+    const nameA = getPName(m.participantA) ? `${getPName(m.participantA)} (${instA})` : instA;
+    
+    const instB = m.participantB?.institution?.name ?? m.teamB?.institution?.name ?? "Tim B";
+    const nameB = getPName(m.participantB) ? `${getPName(m.participantB)} (${instB})` : instB;
+    
+    return `${nameA} vs ${nameB} — Lap. ${m.courtNumber ?? "?"}`;
   };
 
   return (
-    <div>
+    <div className="flex flex-col h-[calc(100vh-8rem)] overflow-hidden">
       {/* Header */}
       <div className="mb-6 flex items-center justify-between">
         <div>
@@ -453,80 +466,91 @@ export function MatchAktifSection() {
         </div>
       ) : (
         <>
-          {/* Match selector dropdown */}
-          {matches.length > 1 && (
-            <div className="mb-6">
-              <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider" style={{ color: "#374151" }}>
-                Pilih Match yang Anda Awasi
-              </label>
-              <div className="relative max-w-sm">
-                <select
-                  value={selectedId ?? ""}
-                  onChange={(e) => setSelectedId(e.target.value)}
-                  className="w-full appearance-none rounded-lg border bg-white px-4 py-2.5 pr-9 text-sm font-medium outline-none focus:ring-2 focus:ring-purple-200"
-                  style={{ borderColor: "#D1D5DB", color: "#111827" }}
+        <div className="flex flex-1 min-h-0 gap-6">
+          {/* Match selector sidebar */}
+          <div className="w-80 shrink-0 flex flex-col border-r pr-6" style={{ borderColor: "#E5E7EB" }}>
+            <label className="mb-3 block text-xs font-semibold uppercase tracking-wider" style={{ color: "#374151" }}>
+              Pilih Match yang Anda Awasi
+            </label>
+            <div className="flex-1 overflow-y-auto space-y-2 pr-2">
+              {matches.map((m) => (
+                <button
+                  key={m.id}
+                  onClick={() => setSelectedId(m.id)}
+                  className={`w-full text-left p-3 rounded-lg border transition-all ${
+                    selectedId === m.id
+                      ? "border-purple-500 bg-purple-50 shadow-sm"
+                      : "border-gray-200 bg-white hover:bg-gray-50"
+                  }`}
                 >
-                  {matches.map((m) => (
-                    <option key={m.id} value={m.id}>{labelFor(m)}</option>
-                  ))}
-                </select>
-                <ChevronDown size={14} className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2" style={{ color: "#6B7280" }} />
-              </div>
+                  <p className="text-sm font-semibold" style={{ color: selectedId === m.id ? "#5B21B6" : "#111827" }}>
+                    {labelFor(m).split(" — ")[0]}
+                  </p>
+                  <p className="text-xs mt-1" style={{ color: selectedId === m.id ? "#7C3AED" : "#6B7280" }}>
+                    Lap. {m.courtNumber ?? "?"}
+                  </p>
+                </button>
+              ))}
             </div>
-          )}
+          </div>
 
           {/* Scoring panel for selected match */}
-          {selected && (
-            selected.discipline?.isTeamEvent ? (
-              selectedSubMatchId ? (
-                <div>
-                  <button onClick={() => setSelectedSubMatchId(null)} className="mb-4 text-sm font-semibold text-purple-600 hover:underline">&larr; Kembali ke Daftar Pertandingan Beregu</button>
-                  <ScoringPanel key={selectedSubMatchId} match={selected.childMatches?.find((m: Match) => m.id === selectedSubMatchId)!} onRefresh={load} />
-                </div>
-              ) : (
-                <div className="rounded-xl border bg-white p-5" style={{ borderColor: "#E5E7EB" }}>
-                  <h3 className="mb-4 text-lg font-bold" style={{ color: "#111827" }}>Daftar Pertandingan Beregu (Sub-Match)</h3>
-                  <div className="grid gap-3">
-                    {selected.childMatches?.map((child: any) => {
-                      const assignedSlot = child.slotType?.replace(/_[12]$/, "");
-                      const teamAAthletes = selected.teamA?.members?.filter((m: any) => m.assignedSlot === assignedSlot).map((m: any) => m.athlete?.name).join(" & ") || "-";
-                      const teamBAthletes = selected.teamB?.members?.filter((m: any) => m.assignedSlot === assignedSlot).map((m: any) => m.athlete?.name).join(" & ") || "-";
-                      const slotLabel = (child.slotType || "Tunggal/Ganda").replace(/_/g, " ").replace(/ 1$/, "").replace(/\w\S*/g, (w: string) => (w.replace(/^\w/, (c) => c.toUpperCase())));
-                      
-                      return (
-                      <div key={child.id} className="flex items-center justify-between rounded-lg border bg-white px-5 py-4" style={{ borderColor: "#F3F4F6" }}>
-                        <div>
-                          <p className="font-semibold text-sm" style={{ color: "#111827" }}>{slotLabel}</p>
-                          <p className="text-xs mt-1" style={{ color: "#6B7280" }}>
-                            {teamAAthletes} <strong style={{ color: "#374151" }} className="mx-1">vs</strong> {teamBAthletes}
-                          </p>
+          <div className="flex-1 overflow-y-auto px-2">
+            {selected && (
+              selected.discipline?.isTeamEvent ? (
+                selectedSubMatchId ? (
+                  <div className="max-w-xl mx-auto">
+                    <button onClick={() => setSelectedSubMatchId(null)} className="mb-4 text-sm font-semibold text-purple-600 hover:underline">&larr; Kembali ke Daftar Pertandingan Beregu</button>
+                    <ScoringPanel key={selectedSubMatchId} match={selected.childMatches?.find((m: Match) => m.id === selectedSubMatchId)!} onRefresh={load} />
+                  </div>
+                ) : (
+                  <div className="max-w-3xl mx-auto rounded-xl border bg-white p-6" style={{ borderColor: "#E5E7EB" }}>
+                    <h3 className="mb-4 text-lg font-bold" style={{ color: "#111827" }}>Daftar Pertandingan Beregu (Sub-Match)</h3>
+                    <div className="grid gap-4">
+                      {selected.childMatches?.map((child: any) => {
+                        const assignedSlot = child.slotType?.replace(/_[12]$/, "");
+                        const teamAAthletes = selected.teamA?.members?.filter((m: any) => m.assignedSlot === assignedSlot).map((m: any) => m.athlete?.name).join(" & ") || "-";
+                        const teamBAthletes = selected.teamB?.members?.filter((m: any) => m.assignedSlot === assignedSlot).map((m: any) => m.athlete?.name).join(" & ") || "-";
+                        const slotLabel = (child.slotType || "Tunggal/Ganda").replace(/_/g, " ").replace(/ 1$/, "").replace(/\w\S*/g, (w: string) => (w.replace(/^\w/, (c) => c.toUpperCase())));
+                        
+                        return (
+                        <div key={child.id} className="flex items-center justify-between rounded-lg border bg-white px-5 py-4 shadow-sm" style={{ borderColor: "#F3F4F6" }}>
+                          <div>
+                            <p className="font-bold text-sm" style={{ color: "#111827" }}>{slotLabel}</p>
+                            <p className="text-sm mt-1" style={{ color: "#6B7280" }}>
+                              {teamAAthletes} <strong style={{ color: "#374151" }} className="mx-2">vs</strong> {teamBAthletes}
+                            </p>
+                          </div>
+                          {child.status === "FINISHED" ? (
+                            <span className="text-xs font-bold text-green-600 px-3 py-1.5 bg-green-50 rounded-lg">Selesai</span>
+                          ) : (
+                            <button onClick={() => setSelectedSubMatchId(child.id)} className="text-xs px-5 py-2.5 font-bold text-white transition shadow-sm hover:opacity-90 rounded-lg" style={{ background: "#6C47D1" }}>
+                              Buka Skor
+                            </button>
+                          )}
                         </div>
-                        {child.status === "FINISHED" ? (
-                          <span className="text-xs font-bold text-green-600 px-3 py-1 bg-green-50 rounded-lg">Selesai</span>
-                        ) : (
-                          <button onClick={() => setSelectedSubMatchId(child.id)} className="text-xs px-4 py-2 font-semibold text-white transition hover:opacity-90 rounded-lg" style={{ background: "#6C47D1" }}>
-                            Buka Skor
-                          </button>
-                        )}
-                      </div>
-                      );
-                    })}
+                        );
+                      })}
+                    </div>
+                    <div className="mt-8 border-t pt-5" style={{ borderColor: "#F3F4F6" }}>
+                      <button onClick={async () => {
+                        if (!confirm("Selesaikan keseluruhan match beregu ini?\nPastikan semua partai yang perlu dimainkan sudah selesai.")) return;
+                        await finishMatch(selected.id, {});
+                        load();
+                      }} className="flex w-full items-center justify-center gap-2 rounded-lg border-2 py-3 text-sm font-bold transition hover:bg-red-50" style={{ borderColor: "#EF4444", color: "#EF4444" }}>
+                        Selesaikan Match Beregu
+                      </button>
+                    </div>
                   </div>
-                  <div className="mt-6 border-t pt-4" style={{ borderColor: "#F3F4F6" }}>
-                    <button onClick={async () => {
-                      if (!confirm("Selesaikan keseluruhan match beregu ini?\nPastikan semua partai yang perlu dimainkan sudah selesai.")) return;
-                      await finishMatch(selected.id, {});
-                      load();
-                    }} className="flex w-full items-center justify-center gap-2 rounded-lg border-2 py-3 text-sm font-bold transition hover:bg-red-50" style={{ borderColor: "#EF4444", color: "#EF4444" }}>
-                      Selesaikan Match Beregu
-                    </button>
-                  </div>
+                )
+              ) : (
+                <div className="max-w-xl mx-auto">
+                  <ScoringPanel key={selected.id} match={selected} onRefresh={load} />
                 </div>
               )
-            ) : (
-              <ScoringPanel key={selected.id} match={selected} onRefresh={load} />
-            )
-          )}
+            )}
+          </div>
+        </div>
         </>
       )}
     </div>
