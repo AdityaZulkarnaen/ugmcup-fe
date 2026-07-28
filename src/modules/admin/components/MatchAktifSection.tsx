@@ -475,7 +475,7 @@ function ScoringPanel({ match, onRefresh }: { match: Match; onRefresh: () => voi
               {secondaryA && <p className="text-xs font-medium text-gray-500 mt-0.5">{secondaryA}</p>}
             </div>
 
-            <div className="text-7xl md:text-8xl font-black tabular-nums tracking-tighter text-gray-900 my-1">
+            <div className="text-[100px] md:text-[120px] leading-none font-bold tabular-nums tracking-tighter text-gray-900 my-1">
               {currentSet.scoreA}
             </div>
 
@@ -484,7 +484,7 @@ function ScoringPanel({ match, onRefresh }: { match: Match; onRefresh: () => voi
               disabled={saving || !isTimerRunning}
               aria-label={`Tambah 1 poin untuk ${primaryA} (Tekan A)`}
               title={isTimerRunning ? "Tekan A pada keyboard" : "Nyalakan timer dahulu"}
-              className={`w-full max-w-[220px] rounded-full py-3.5 text-xl font-bold transition-all active:scale-95 shadow-[0_4px_14px_0_rgba(102,255,180,0.4)] ${
+              className={`w-full max-w-[240px] rounded-full py-4 text-2xl font-bold transition-all active:scale-95 shadow-[0_4px_14px_0_rgba(102,255,180,0.4)] ${
                 !isTimerRunning
                   ? "bg-gray-200 text-gray-400 cursor-not-allowed shadow-none"
                   : "bg-[#66FFB4] text-[#0F172A] hover:bg-[#50E69D]"
@@ -516,7 +516,7 @@ function ScoringPanel({ match, onRefresh }: { match: Match; onRefresh: () => voi
               {secondaryB && <p className="text-xs font-medium text-gray-500 mt-0.5">{secondaryB}</p>}
             </div>
 
-            <div className="text-7xl md:text-8xl font-black tabular-nums tracking-tighter text-gray-900 my-1">
+            <div className="text-[100px] md:text-[120px] leading-none font-bold tabular-nums tracking-tighter text-gray-900 my-1">
               {currentSet.scoreB}
             </div>
 
@@ -525,7 +525,7 @@ function ScoringPanel({ match, onRefresh }: { match: Match; onRefresh: () => voi
               disabled={saving || !isTimerRunning}
               aria-label={`Tambah 1 poin untuk ${primaryB} (Tekan B)`}
               title={isTimerRunning ? "Tekan B pada keyboard" : "Nyalakan timer dahulu"}
-              className={`w-full max-w-[220px] rounded-full py-3.5 text-xl font-bold transition-all active:scale-95 shadow-[0_4px_14px_0_rgba(102,255,180,0.4)] ${
+              className={`w-full max-w-[240px] rounded-full py-4 text-2xl font-bold transition-all active:scale-95 shadow-[0_4px_14px_0_rgba(102,255,180,0.4)] ${
                 !isTimerRunning
                   ? "bg-gray-200 text-gray-400 cursor-not-allowed shadow-none"
                   : "bg-[#66FFB4] text-[#0F172A] hover:bg-[#50E69D]"
