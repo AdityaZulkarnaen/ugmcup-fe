@@ -44,15 +44,21 @@ export function JadwalSection({ onStartAndSwitch }: { onStartAndSwitch?: (matchI
   async function handleSaveEdit() {
     setIsSaving(true); setError("");
     try {
-      await updateMatchSchedule(editForm.id, {
-        courtNumber: editForm.courtNumber ? parseInt(editForm.courtNumber) : undefined,
-        scheduledTime: editForm.scheduledTime ? new Date(editForm.scheduledTime).toISOString() : undefined,
-      });
+      const courtNumber = editForm.courtNumber ? parseInt(editForm.courtNumber) : undefined;
+      const scheduledTime = editForm.scheduledTime ? new Date(editForm.scheduledTime).toISOString() : undefined;
+      
+      await updateMatchSchedule(editForm.id, { courtNumber, scheduledTime });
+      
+      // OPTIMIZATION: Update local state immediately without triggering a heavy getMatches()
+      setData(prev => prev.map(m => m.id === editForm.id ? { ...m, courtNumber, scheduledTime } : m));
+      
       setEditModalOpen(false);
       setEditForm({ id: "", courtNumber: "", scheduledTime: "" });
-      await load(false);
-    } catch (e) { setError(e instanceof Error ? e.message : "Gagal"); }
-    finally { setIsSaving(false); }
+    } catch (e) { 
+      setError(e instanceof Error ? e.message : "Gagal"); 
+    } finally { 
+      setIsSaving(false); 
+    }
   }
 
   async function handleDelete(id: string) {
