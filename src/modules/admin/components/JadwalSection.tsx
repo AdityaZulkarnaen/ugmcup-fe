@@ -100,10 +100,16 @@ export function JadwalSection({ onStartAndSwitch }: { onStartAndSwitch?: (matchI
       if (disc?.level !== filterLevel) return false;
     }
     if (filterDate && d.scheduledTime) {
-      const matchDate = new Date(d.scheduledTime).toISOString().split('T')[0];
+      const dDate = new Date(d.scheduledTime);
+      const matchDate = new Date(dDate.getTime() - dDate.getTimezoneOffset() * 60000).toISOString().split('T')[0];
       if (matchDate !== filterDate) return false;
     }
     return true;
+  }).sort((a, b) => {
+    if (!a.scheduledTime && !b.scheduledTime) return 0;
+    if (!a.scheduledTime) return 1;
+    if (!b.scheduledTime) return -1;
+    return new Date(a.scheduledTime).getTime() - new Date(b.scheduledTime).getTime();
   });
 
   return (
@@ -167,21 +173,35 @@ export function JadwalSection({ onStartAndSwitch }: { onStartAndSwitch?: (matchI
           { key: "groupName", header: "Grup", render: (row) => row.groupName ?? "-" },
           { key: "courtNumber", header: "Lapangan", render: (row) => row.courtNumber ? `Lap. ${row.courtNumber}` : "-" },
           { key: "scheduledTime", header: "Jadwal", render: (row) => row.scheduledTime ? new Date(row.scheduledTime).toLocaleString("id-ID") : "-" },
-          { key: "discipline", header: "Kategori", render: (row: any) => row.discipline?.name ?? "—" },
-          { key: "participantA", header: "Peserta A", render: (row: any) => {
-            const isIndividu = row.participantA;
-            const athletes = isIndividu ? row.participantA?.athletes?.map((a:any) => a.athlete.name).join(" & ") : null;
-            const instName = row.participantA?.institution?.name ?? row.teamA?.institution?.name ?? "—";
-            if (isIndividu && athletes) return <div className="flex flex-col"><span className="font-semibold">{athletes}</span><span className="text-xs text-gray-500">{instName}</span></div>;
-            return instName;
-          }},
-          { key: "participantB", header: "Peserta B", render: (row: any) => {
-            const isIndividu = row.participantB;
-            const athletes = isIndividu ? row.participantB?.athletes?.map((a:any) => a.athlete.name).join(" & ") : null;
-            const instName = row.participantB?.institution?.name ?? row.teamB?.institution?.name ?? "—";
-            if (isIndividu && athletes) return <div className="flex flex-col"><span className="font-semibold">{athletes}</span><span className="text-xs text-gray-500">{instName}</span></div>;
-            return instName;
-          }},
+          { key: "discipline", header: "Kategori", getSearchValue: (row: any) => row.discipline?.name ?? "", render: (row: any) => row.discipline?.name ?? "—" },
+          { key: "participantA", header: "Peserta A", 
+            getSearchValue: (row: any) => {
+              const athletes = row.participantA?.athletes?.map((a:any) => a.athlete.name).join(" ") || "";
+              const instName = row.participantA?.institution?.name ?? row.teamA?.institution?.name ?? "";
+              return `${athletes} ${instName}`;
+            },
+            render: (row: any) => {
+              const isIndividu = row.participantA;
+              const athletes = isIndividu ? row.participantA?.athletes?.map((a:any) => a.athlete.name).join(" & ") : null;
+              const instName = row.participantA?.institution?.name ?? row.teamA?.institution?.name ?? "—";
+              if (isIndividu && athletes) return <div className="flex flex-col"><span className="font-semibold">{athletes}</span><span className="text-xs text-gray-500">{instName}</span></div>;
+              return instName;
+            }
+          },
+          { key: "participantB", header: "Peserta B", 
+            getSearchValue: (row: any) => {
+              const athletes = row.participantB?.athletes?.map((a:any) => a.athlete.name).join(" ") || "";
+              const instName = row.participantB?.institution?.name ?? row.teamB?.institution?.name ?? "";
+              return `${athletes} ${instName}`;
+            },
+            render: (row: any) => {
+              const isIndividu = row.participantB;
+              const athletes = isIndividu ? row.participantB?.athletes?.map((a:any) => a.athlete.name).join(" & ") : null;
+              const instName = row.participantB?.institution?.name ?? row.teamB?.institution?.name ?? "—";
+              if (isIndividu && athletes) return <div className="flex flex-col"><span className="font-semibold">{athletes}</span><span className="text-xs text-gray-500">{instName}</span></div>;
+              return instName;
+            }
+          },
         ]}
         actions={(row) => (
           <div className="flex gap-2">
