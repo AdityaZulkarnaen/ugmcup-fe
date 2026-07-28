@@ -196,6 +196,11 @@ export const setupGroupStandings = (data: {
     body: JSON.stringify(data),
   });
 
+export const resetGroupStandings = (disciplineId: string) =>
+  apiRequest<{ message: string; count: number }>(`/admin/standings/reset?disciplineId=${disciplineId}`, {
+    method: "DELETE",
+  });
+
 // ================== AUDIT LOGS ==================
 
 export const getAuditLogs = (filters?: {

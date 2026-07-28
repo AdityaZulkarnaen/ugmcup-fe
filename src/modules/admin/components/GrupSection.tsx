@@ -1,16 +1,19 @@
 "use client";
 
 import { useEffect, useState, useCallback, useMemo } from "react";
-import { PageHeader, FormField, DashSelect, DashInput, AddButton } from "@/components/dashboard/PageHeader";
+import { PageHeader, FormField, DashInput, AddButton } from "@/components/dashboard/PageHeader";
 import { Modal, ModalCancelButton, ModalSubmitButton } from "@/components/dashboard/Modal";
-import { getStandings, getTeams, setupGroupStandings } from "@/lib/api/admin";
+import { getStandings, getTeams, setupGroupStandings, resetGroupStandings } from "@/lib/api/admin";
 import { getMatches, generateGroupMatches } from "@/lib/api/matches";
 import { DISCIPLINES } from "@/lib/constants";
 import type { Standing, Team, Match } from "@/lib/types";
-import { BarChart2, Play } from "lucide-react";
+import { BarChart2, Play, Trash2 } from "lucide-react";
 
 export function GrupSection() {
-  const [selectedDisc, setSelectedDisc] = useState("");
+  const teamDisciplines = useMemo(() => DISCIPLINES.filter(d => d.isTeamEvent), []);
+  const initialDisc = teamDisciplines.length > 0 ? teamDisciplines[0].id : "";
+  const [selectedDisc, setSelectedDisc] = useState(initialDisc);
+  
   const [standings, setStandings] = useState<Standing[]>([]);
   const [teams, setTeams] = useState<Team[]>([]);
   const [matches, setMatches] = useState<Match[]>([]);
@@ -24,7 +27,10 @@ export function GrupSection() {
   const [selectedTeamIds, setSelectedTeamIds] = useState<string[]>([]);
   const [generatingGroup, setGeneratingGroup] = useState<string | null>(null);
 
-  const teamDisciplines = useMemo(() => DISCIPLINES.filter(d => d.isTeamEvent), []);
+  // Reset Modal
+  const [resetModalOpen, setResetModalOpen] = useState(false);
+  const [isResetting, setIsResetting] = useState(false);
+  const [resetError, setResetError] = useState("");
 
   const groupedStandings = useMemo(() => {
     return standings.reduce((acc, curr) => {
@@ -62,15 +68,21 @@ export function GrupSection() {
   useEffect(() => { load(); }, [load]);
 
   async function handleCreateGroup() {
-    if (!formGroupName.trim() || selectedTeamIds.length === 0) {
+    const trimmedGroupName = formGroupName.trim().toUpperCase();
+    if (!trimmedGroupName || selectedTeamIds.length === 0) {
       setError("Nama grup dan minimal 1 tim harus dipilih.");
       return;
     }
+    if (sortedGroupNames.includes(trimmedGroupName)) {
+      setError(`Grup ${trimmedGroupName} sudah ada. Silakan pilih nama grup lain.`);
+      return;
+    }
+
     setIsSaving(true); setError("");
     try {
       await setupGroupStandings({
         disciplineId: selectedDisc,
-        groupName: formGroupName.toUpperCase(),
+        groupName: trimmedGroupName,
         teamIds: selectedTeamIds
       });
       setModalOpen(false);
@@ -98,27 +110,45 @@ export function GrupSection() {
     }
   }
 
+  async function handleResetGroup() {
+    setIsResetting(true); setResetError("");
+    try {
+      await resetGroupStandings(selectedDisc);
+      setResetModalOpen(false);
+      await load();
+      alert("Seluruh grup berhasil direset!");
+    } catch (e) {
+      setResetError(e instanceof Error ? e.message : "Gagal mereset grup");
+    } finally {
+      setIsResetting(false);
+    }
+  }
+
   // Cari tim yang belum ada di grup mana pun
   const availableTeams = teams.filter(t => !standings.some(s => s.teamId === t.id));
+
+  // Tombol reset nonaktif jika sudah ada pertandingan sama sekali
+  const isResetDisabled = matches.length > 0;
 
   return (
     <div>
       <PageHeader 
         title="Grup & Klasemen" 
-        subtitle="Kelola grup dan klasemen untuk kategori beregu" 
-        action={selectedDisc ? <AddButton onClick={() => setModalOpen(true)} label="Buat Grup Baru" /> : undefined}
+        subtitle={`Kategori: ${teamDisciplines.find(d => d.id === selectedDisc)?.name || "Beregu Universitas"}`} 
+        action={
+          <div className="flex gap-2">
+            <button
+              onClick={() => setResetModalOpen(true)}
+              disabled={isResetDisabled || standings.length === 0}
+              className="flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-semibold border transition disabled:opacity-50 disabled:cursor-not-allowed text-red-600 border-red-200 bg-red-50 hover:bg-red-100"
+            >
+              <Trash2 size={16} />
+              Reset Grup
+            </button>
+            <AddButton onClick={() => setModalOpen(true)} label="Buat Grup Baru" />
+          </div>
+        }
       />
-
-      <div className="mb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-        <FormField label="Kategori Beregu">
-          <DashSelect 
-            value={selectedDisc} 
-            onChange={setSelectedDisc}
-            placeholder="Pilih kategori beregu..."
-            options={teamDisciplines.map(d => ({ value: d.id, label: d.name }))} 
-          />
-        </FormField>
-      </div>
 
       {isLoading ? (
         <div className="flex justify-center py-16"><div className="h-7 w-7 animate-spin rounded-full border-2 border-transparent" style={{ borderTopColor: "#6C47D1" }} /></div>
@@ -134,7 +164,7 @@ export function GrupSection() {
           <p className="text-sm mt-1" style={{ color: "#6B7280" }}>Klik Buat Grup Baru untuk memulai.</p>
         </div>
       ) : (
-        <div className="space-y-8">
+        <div className="space-y-8 mt-6">
           {sortedGroupNames.map(gName => {
             const hasMatches = matches.some(m => m.groupName === gName);
             const isGenerating = generatingGroup === gName;
@@ -173,15 +203,15 @@ export function GrupSection() {
                               {s.rank || i + 1}
                             </span>
                           </td>
-                          <td className="px-4 py-3 font-semibold" style={{ color: "#111827" }}>
+                          <td className="px-4 py-3 font-semibold text-gray-900">
                             {s.team?.institution?.name ?? s.participant?.institution?.name ?? "—"}
                           </td>
-                          <td className="px-4 py-3" style={{ color: "#374151" }}>{s.played}</td>
-                          <td className="px-4 py-3 font-semibold" style={{ color: "#059669" }}>{s.won}</td>
-                          <td className="px-4 py-3" style={{ color: "#DC2626" }}>{s.lost}</td>
-                          <td className="px-4 py-3" style={{ color: "#374151" }}>{s.gameWon - s.gameLost >= 0 ? "+" : ""}{s.gameWon - s.gameLost}</td>
-                          <td className="px-4 py-3" style={{ color: "#374151" }}>{s.setWon - s.setLost >= 0 ? "+" : ""}{s.setWon - s.setLost}</td>
-                          <td className="px-4 py-3" style={{ color: "#374151" }}>{s.pointWon - s.pointLost >= 0 ? "+" : ""}{s.pointWon - s.pointLost}</td>
+                          <td className="px-4 py-3 text-gray-700">{s.played}</td>
+                          <td className="px-4 py-3 font-semibold text-emerald-600">{s.won}</td>
+                          <td className="px-4 py-3 text-red-600">{s.lost}</td>
+                          <td className="px-4 py-3 text-gray-700">{s.gameWon - s.gameLost >= 0 ? "+" : ""}{s.gameWon - s.gameLost}</td>
+                          <td className="px-4 py-3 text-gray-700">{s.setWon - s.setLost >= 0 ? "+" : ""}{s.setWon - s.setLost}</td>
+                          <td className="px-4 py-3 text-gray-700">{s.pointWon - s.pointLost >= 0 ? "+" : ""}{s.pointWon - s.pointLost}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -196,7 +226,7 @@ export function GrupSection() {
       {/* Modal Buat Grup */}
       <Modal isOpen={modalOpen} onClose={() => { setModalOpen(false); setError(""); }} title="Buat Grup Baru" size="md"
         footer={<><ModalCancelButton onClick={() => { setModalOpen(false); setError(""); }} /><ModalSubmitButton onClick={handleCreateGroup} isLoading={isSaving} /></>}>
-        {error && <p className="mb-4 rounded-xl p-3 text-sm" style={{ background: "rgba(239,68,68,0.15)", color: "#f87171" }}>{error}</p>}
+        {error && <p className="mb-4 rounded-xl p-3 text-sm bg-red-50 text-red-600 border border-red-200">{error}</p>}
         
         <div className="space-y-4">
           <FormField label="Nama Grup (Misal: A, B, C)" required>
@@ -208,30 +238,55 @@ export function GrupSection() {
           </FormField>
           
           <div>
-            <label className="block text-sm font-semibold mb-2" style={{ color: "#374151" }}>
+            <label className="block text-sm font-semibold mb-2 text-gray-700">
               Pilih Tim (Belum Masuk Grup)
             </label>
             {availableTeams.length === 0 ? (
               <p className="text-sm text-gray-500 italic">Semua tim sudah dimasukkan ke grup atau tidak ada tim.</p>
             ) : (
-              <div className="max-h-60 overflow-y-auto border rounded-lg p-2 space-y-2">
+              <div className="max-h-60 overflow-y-auto border rounded-lg p-2 space-y-2 bg-white">
                 {availableTeams.map(t => (
-                  <label key={t.id} className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-2 rounded">
+                  <label key={t.id} className="flex items-center gap-3 cursor-pointer hover:bg-gray-100 p-2 rounded transition-colors">
                     <input 
                       type="checkbox" 
-                      className="rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+                      className="rounded border-gray-400 w-4 h-4 text-purple-600 focus:ring-purple-500"
                       checked={selectedTeamIds.includes(t.id)}
                       onChange={(e) => {
                         if (e.target.checked) setSelectedTeamIds(prev => [...prev, t.id]);
                         else setSelectedTeamIds(prev => prev.filter(id => id !== t.id));
                       }}
                     />
-                    <span className="text-sm font-medium">{t.institution?.name || "Tim Tanpa Nama"}</span>
+                    <span className="text-sm font-semibold text-gray-900">{t.institution?.name || "Tim Tanpa Nama"}</span>
                   </label>
                 ))}
               </div>
             )}
           </div>
+        </div>
+      </Modal>
+
+      {/* Modal Reset Grup */}
+      <Modal isOpen={resetModalOpen} onClose={() => { setResetModalOpen(false); setResetError(""); }} title="Konfirmasi Reset Grup" size="sm"
+        footer={
+          <>
+            <ModalCancelButton onClick={() => { setResetModalOpen(false); setResetError(""); }} />
+            <button
+              onClick={handleResetGroup}
+              disabled={isResetting}
+              className="rounded-xl px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed bg-red-600"
+            >
+              {isResetting ? "Mereset..." : "Ya, Reset Semua Grup"}
+            </button>
+          </>
+        }>
+        {resetError && <p className="mb-4 rounded-xl p-3 text-sm bg-red-50 text-red-600 border border-red-200">{resetError}</p>}
+        <div className="space-y-4">
+          <p className="text-sm text-gray-700">
+            Apakah Anda yakin ingin menghapus <strong>seluruh data grup</strong> untuk kategori beregu ini?
+          </p>
+          <p className="text-sm text-red-600 font-semibold bg-red-50 p-3 rounded-lg border border-red-100">
+            Tindakan ini tidak dapat dibatalkan. Data tim akan kembali ke status "Belum masuk grup".
+          </p>
         </div>
       </Modal>
 
