@@ -43,14 +43,14 @@ export function GrupSection() {
 
   const sortedGroupNames = Object.keys(groupedStandings).sort();
 
-  const load = useCallback(async () => {
+  const load = useCallback(async (showSpinner = true) => {
     if (!selectedDisc) {
       setStandings([]);
       setTeams([]);
       setMatches([]);
       return;
     }
-    setIsLoading(true);
+    if (showSpinner) setIsLoading(true);
     try {
       const [sRes, tRes, mRes] = await Promise.all([
         getStandings(selectedDisc),
@@ -62,7 +62,9 @@ export function GrupSection() {
       setMatches(mRes || []);
     } catch (e) {
       console.error(e);
-    } finally { setIsLoading(false); }
+    } finally { 
+      if (showSpinner) setIsLoading(false); 
+    }
   }, [selectedDisc]);
 
   useEffect(() => { load(); }, [load]);
@@ -88,7 +90,7 @@ export function GrupSection() {
       setModalOpen(false);
       setFormGroupName("");
       setSelectedTeamIds([]);
-      await load();
+      await load(false);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Gagal menyimpan grup");
     } finally {
@@ -102,7 +104,7 @@ export function GrupSection() {
     try {
       await generateGroupMatches({ disciplineId: selectedDisc, groupName: gName });
       alert("Pertandingan grup berhasil di-generate!");
-      await load();
+      await load(false);
     } catch (e) {
       alert(e instanceof Error ? e.message : "Gagal generate matches");
     } finally {
@@ -115,7 +117,7 @@ export function GrupSection() {
     try {
       await resetGroupStandings(selectedDisc);
       setResetModalOpen(false);
-      await load();
+      await load(false);
       alert("Seluruh grup berhasil direset!");
     } catch (e) {
       setResetError(e instanceof Error ? e.message : "Gagal mereset grup");

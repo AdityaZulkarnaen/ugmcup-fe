@@ -32,11 +32,11 @@ export function JadwalSection({ onStartAndSwitch }: { onStartAndSwitch?: (matchI
   
   const [editForm, setEditForm] = useState({ id: "", courtNumber: "", scheduledTime: "" });
 
-  const load = useCallback(async () => {
-    setIsLoading(true);
+  const load = useCallback(async (showSpinner = true) => {
+    if (showSpinner) setIsLoading(true);
     const m = await getMatches(filterStatus ? { status: filterStatus as MatchStatus } : undefined);
     setData(m || []);
-    setIsLoading(false);
+    if (showSpinner) setIsLoading(false);
   }, [filterStatus]);
 
   useEffect(() => { load(); }, [load]);
@@ -50,14 +50,14 @@ export function JadwalSection({ onStartAndSwitch }: { onStartAndSwitch?: (matchI
       });
       setEditModalOpen(false);
       setEditForm({ id: "", courtNumber: "", scheduledTime: "" });
-      await load();
+      await load(false);
     } catch (e) { setError(e instanceof Error ? e.message : "Gagal"); }
     finally { setIsSaving(false); }
   }
 
   async function handleDelete(id: string) {
     if (!confirm("Hapus jadwal pertandingan ini?")) return;
-    await deleteMatch(id); await load();
+    await deleteMatch(id); await load(false);
   }
 
   async function handleStart(match: Match) {
@@ -65,7 +65,7 @@ export function JadwalSection({ onStartAndSwitch }: { onStartAndSwitch?: (matchI
     try {
       await startMatch(match.id);
       onStartAndSwitch?.(match.id);
-      await load();
+      await load(false);
     } catch (e) {
       alert(e instanceof Error ? e.message : "Gagal memulai match");
     } finally { setStarting(null); }
