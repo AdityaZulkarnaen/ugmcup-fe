@@ -26,6 +26,15 @@ export function BracketSection() {
   const [slotAId, setSlotAId] = useState<string>("");
   const [slotBId, setSlotBId] = useState<string>("");
 
+<<<<<<< HEAD
+=======
+  const [setupFilter, setSetupFilter] = useState<"ALL" | "UNIVERSITAS" | "SMA">("ALL");
+
+  useEffect(() => {
+    getDisciplines().then(setDisciplines).catch(() => {});
+  }, []);
+
+>>>>>>> 587ae0e06bd18ffad0c54dc20f19e562d88a7ed0
   const loadBracket = useCallback(async () => {
     if (!selectedDisc) return;
     setIsLoading(true); setError("");
@@ -363,15 +372,42 @@ export function BracketSection() {
         title="Setup Bracket Knockout" size="md"
         footer={<div><ModalCancelButton onClick={() => { setSetupModalOpen(false); setError(""); setSelectedIds([]); }} /><ModalSubmitButton onClick={handleSetup} isLoading={isSaving} label="Generate Bracket" /></div>}>
         {error && <p className="mb-4 rounded-lg p-3 text-sm bg-red-50 text-red-600 border border-red-200">{error}</p>}
+<<<<<<< HEAD
         <p className="mb-4 text-sm" style={{ color: "#6B7280" }}>Pilih {DISCIPLINES.find(d => d.id === selectedDisc)?.isTeamEvent ? "tim" : "peserta"} yang masuk bracket. Urutan atau slot BYE bisa disesuaikan kembali nanti.</p>
+=======
+        <p className="mb-4 text-sm" style={{ color: "#6B7280" }}>Pilih {disciplines.find(d => d.id === selectedDisc)?.isTeamEvent ? "tim" : "peserta"} yang masuk bracket. Urutan atau slot BYE bisa disesuaikan kembali nanti.</p>
+        
+        <div className="mb-4">
+          <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider" style={{ color: "#374151" }}>Filter Institusi</label>
+          <DashSelect 
+            value={setupFilter} 
+            onChange={(v) => setSetupFilter(v as "ALL" | "UNIVERSITAS" | "SMA")} 
+            options={[
+              { value: "ALL", label: "Semua (Universitas & SMA/SMK)" },
+              { value: "UNIVERSITAS", label: "Universitas Saja" },
+              { value: "SMA", label: "SMA/SMK Saja" }
+            ]} 
+          />
+        </div>
+
+>>>>>>> 587ae0e06bd18ffad0c54dc20f19e562d88a7ed0
         <div className="space-y-2 max-h-64 overflow-y-auto">
-          {entityList.map(item => (
+          {entityList.filter(item => {
+            if (setupFilter === "ALL") return true;
+            const type = "athletes" in item ? (item as Participant).institution?.type : (item as Team).institution?.type;
+            return type === setupFilter;
+          }).map(item => (
             <label key={item.id} className="flex items-center gap-3 rounded-lg border px-4 py-3 cursor-pointer transition hover:bg-gray-50"
               style={{ borderColor: "#F3F4F6" }}>
               <input type="checkbox" checked={selectedIds.includes(item.id)}
                 onChange={e => setSelectedIds(prev => e.target.checked ? [...prev, item.id] : prev.filter(id => id !== item.id))}
                 className="h-4 w-4 rounded" />
-              <span className="text-sm" style={{ color: "#374151" }}>{getLabel(item)}</span>
+              <span className="text-sm" style={{ color: "#374151" }}>
+                <span className="text-xs font-bold mr-2 text-gray-400">
+                  [{"athletes" in item ? (item as Participant).institution?.type === "UNIVERSITAS" ? "Univ" : "SMA" : (item as Team).institution?.type === "UNIVERSITAS" ? "Univ" : "SMA"}]
+                </span>
+                {getLabel(item)}
+              </span>
             </label>
           ))}
         </div>

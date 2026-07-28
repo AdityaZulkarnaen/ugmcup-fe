@@ -324,9 +324,18 @@ export function PesertaSection() {
             <FormField label="Institusi" required>
               <DashSelect 
                 value={pForm.institutionId} 
+<<<<<<< HEAD
                 onChange={(v) => setPForm((f) => ({ ...f, institutionId: v, athlete1: "", athlete2: "" }))} 
                 placeholder={pFormLevel ? "Pilih institusi" : "Pilih tingkat terlebih dahulu"} 
                 options={institutions.filter(i => !pFormLevel || i.type === (pFormLevel === "univ" ? "UNIVERSITAS" : "SMA")).map((i) => ({ value: i.id, label: i.name }))} 
+=======
+                onChange={(v) => setPForm((f) => ({ ...f, institutionId: v }))} 
+                placeholder="Pilih institusi" 
+                groups={[
+                  { label: "Universitas", options: institutions.filter(i => i.type === "UNIVERSITAS").map(i => ({ value: i.id, label: i.name })) },
+                  { label: "SMA/SMK", options: institutions.filter(i => i.type === "SMA").map(i => ({ value: i.id, label: i.name })) }
+                ]}
+>>>>>>> 587ae0e06bd18ffad0c54dc20f19e562d88a7ed0
               />
             </FormField>
 
@@ -386,9 +395,18 @@ export function PesertaSection() {
             <FormField label="Institusi" required>
               <DashSelect 
                 value={tForm.institutionId} 
+<<<<<<< HEAD
                 onChange={(v) => setTForm((f) => ({ ...f, institutionId: v, slots: {} }))} 
                 placeholder="Pilih institusi" 
                 options={institutions.filter(i => i.type === "UNIVERSITAS").map((i) => ({ value: i.id, label: i.name }))} 
+=======
+                onChange={(v) => setTForm((f) => ({ ...f, institutionId: v }))} 
+                placeholder="Pilih institusi" 
+                groups={[
+                  { label: "Universitas", options: institutions.filter(i => i.type === "UNIVERSITAS").map(i => ({ value: i.id, label: i.name })) },
+                  { label: "SMA/SMK", options: institutions.filter(i => i.type === "SMA").map(i => ({ value: i.id, label: i.name })) }
+                ]}
+>>>>>>> 587ae0e06bd18ffad0c54dc20f19e562d88a7ed0
               />
             </FormField>
             
