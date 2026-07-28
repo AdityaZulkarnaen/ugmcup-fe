@@ -23,7 +23,7 @@ export function AtletSection() {
 
   // Form
   const [formType, setFormType] = useState<string>("");
-  const [form, setForm] = useState({ name: "", gender: "PUTRA" as "PUTRA" | "PUTRI", institutionId: "", studentId: "" });
+  const [form, setForm] = useState({ name: "", gender: "LAKI_LAKI" as "LAKI_LAKI" | "PEREMPUAN", institutionId: "", studentId: "" });
 
   // Info
   const [athleteInfo, setAthleteInfo] = useState<any>(null);
@@ -59,7 +59,7 @@ export function AtletSection() {
 
       setModalOpen(false);
       setEditId(null);
-      setForm({ name: "", gender: "PUTRA", institutionId: "", studentId: "" });
+      setForm({ name: "", gender: "LAKI_LAKI", institutionId: "", studentId: "" });
       setFormType("");
       await load();
     } catch (e) { setError(e instanceof Error ? e.message : "Gagal menyimpan"); }
@@ -104,13 +104,13 @@ export function AtletSection() {
       <PageHeader
         title="Atlet"
         subtitle="Kelola atlet dari setiap institusi peserta"
-        action={<AddButton onClick={() => { setEditId(null); setFormType(""); setForm({ name: "", gender: "PUTRA", institutionId: "", studentId: "" }); setModalOpen(true); }} label="Tambah Atlet" />}
+        action={<AddButton onClick={() => { setEditId(null); setFormType(""); setForm({ name: "", gender: "LAKI_LAKI", institutionId: "", studentId: "" }); setModalOpen(true); }} label="Tambah Atlet" />}
       />
 
       <div className="mb-4 flex items-center justify-between gap-4 flex-wrap">
         <div className="flex gap-2 flex-wrap">
           <span className="text-xs font-bold text-gray-500 flex items-center mr-2">GENDER:</span>
-          {[{ value: "", label: "Semua" }, { value: "PUTRA", label: "Putra" }, { value: "PUTRI", label: "Putri" }].map((opt) => (
+          {[{ value: "", label: "Semua" }, { value: "LAKI_LAKI", label: "Putra" }, { value: "PEREMPUAN", label: "Putri" }].map((opt) => (
             <button key={opt.value} onClick={() => setFilterGender(opt.value)}
               className="rounded-full border px-3 py-1 text-xs font-semibold transition-colors"
               style={filterGender === opt.value 
@@ -144,10 +144,10 @@ export function AtletSection() {
             header: "Gender",
             render: (row) => (
               <span className="font-bold"
-                style={row.gender === "PUTRA"
+                style={row.gender === "LAKI_LAKI"
                   ? { color: "#1E3A8A" } // Dark Blue for L
                   : { color: "#991B1B" }}> 
-                {row.gender === "PUTRA" ? "L" : "P"}
+                {row.gender === "LAKI_LAKI" ? "L" : "P"}
               </span>
             ),
           },
@@ -209,8 +209,8 @@ export function AtletSection() {
         <FormField label="Gender" required>
           <DashSelect
             value={form.gender}
-            onChange={(v) => setForm((f) => ({ ...f, gender: v as "PUTRA" | "PUTRI" }))}
-            options={[{ value: "PUTRA", label: "Putra" }, { value: "PUTRI", label: "Putri" }]}
+            onChange={(v) => setForm((f) => ({ ...f, gender: v as "LAKI_LAKI" | "PEREMPUAN" }))}
+            options={[{ value: "LAKI_LAKI", label: "Putra" }, { value: "PEREMPUAN", label: "Putri" }]}
           />
         </FormField>
         
