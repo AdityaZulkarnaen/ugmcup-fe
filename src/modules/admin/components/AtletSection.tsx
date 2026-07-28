@@ -143,12 +143,11 @@ export function AtletSection() {
             key: "gender",
             header: "Gender",
             render: (row) => (
-              <span className="rounded-full px-2.5 py-0.5 text-xs font-semibold"
+              <span className="font-bold"
                 style={row.gender === "PUTRA"
-                  ? { background: "#D9D3FF", color: "#14183B" } // Lavender bg, Deep Purple text
-                  : { background: "#8352D9", color: "#FFFFFF" }}> 
-                {/* Violet bg, White text */}
-                {row.gender}
+                  ? { color: "#1E3A8A" } // Dark Blue for L
+                  : { color: "#991B1B" }}> 
+                {row.gender === "PUTRA" ? "L" : "P"}
               </span>
             ),
           },
