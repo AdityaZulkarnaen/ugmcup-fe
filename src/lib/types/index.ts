@@ -33,6 +33,13 @@ export interface Discipline {
   category?: Category;
 }
 
+export interface ParticipantAthlete {
+  id: string;
+  participantId: string;
+  athleteId: string;
+  athlete?: Athlete;
+}
+
 export interface Participant {
   id: string;
   disciplineId: string;
@@ -40,7 +47,7 @@ export interface Participant {
   seedNumber?: number;
   discipline?: Discipline;
   institution?: Institution;
-  athletes?: Athlete[];
+  athletes?: ParticipantAthlete[];
 }
 
 export interface TeamMember {

@@ -109,6 +109,15 @@ export const createParticipant = (data: {
     body: JSON.stringify(data),
   });
 
+export const updateParticipant = (
+  id: string,
+  data: { disciplineId: string; institutionId: string; athleteIds: string[] }
+) =>
+  apiRequest<Participant>(`/admin/participants/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(data),
+  });
+
 export const deleteParticipant = (id: string) =>
   apiRequest<void>(`/admin/participants/${id}`, { method: "DELETE" });
 
@@ -122,11 +131,23 @@ export const getTeams = (disciplineId?: string) =>
 export const createTeam = (data: {
   disciplineId: string;
   institutionId: string;
-  seedNumber?: number;
-  members: { athleteId: string; assignedSlot: string }[];
+  members: { assignedSlot: string; athleteId: string }[];
 }) =>
   apiRequest<Team>("/admin/teams", {
     method: "POST",
+    body: JSON.stringify(data),
+  });
+
+export const updateTeam = (
+  id: string,
+  data: {
+    disciplineId: string;
+    institutionId: string;
+    members: { assignedSlot: string; athleteId: string }[];
+  }
+) =>
+  apiRequest<Team>(`/admin/teams/${id}`, {
+    method: "PATCH",
     body: JSON.stringify(data),
   });
 
