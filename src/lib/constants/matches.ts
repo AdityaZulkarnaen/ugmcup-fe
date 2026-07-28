@@ -485,6 +485,17 @@ export function sideName(players: string[]): string {
   return players.join(" - ");
 }
 
+/**
+ * Why a match ended before it was played out. The opponent advances either way;
+ * the bracket marks the side that could not finish.
+ */
+export type RetirementReason = "cedera" | "wo";
+
+export const retirementLabels: Record<RetirementReason, string> = {
+  cedera: "Mundur karena cedera",
+  wo: "Walkover — tidak hadir",
+};
+
 /** One competitor slot inside a bracket match. */
 export interface BracketSide {
   /** Registry id; omitted while the slot is still undecided (shows "TBD"). */
@@ -493,6 +504,8 @@ export interface BracketSide {
   score: number | null;
   /** True for the side that advances. */
   winner?: boolean;
+  /** Set on the losing side when the match ended early. */
+  retired?: RetirementReason;
 }
 
 export interface BracketMatch {
@@ -522,10 +535,16 @@ export interface CategoryBracket {
 }
 
 /**
- * Outcome of one match: winning side, then games won by winner and loser.
+ * Outcome of one match: winning side, then games won by winner and loser, and
+ * optionally why the loser could not finish.
  * `null` means the match has not been played, so the next slot stays TBD.
  */
-type MatchOutcome = [winner: 0 | 1, winnerScore: number, loserScore: number];
+type MatchOutcome = [
+  winner: 0 | 1,
+  winnerScore: number,
+  loserScore: number,
+  retired?: RetirementReason,
+];
 
 /** Round names counting back from the final; index 0 is the last round. */
 const roundLabels = [
@@ -561,6 +580,8 @@ function buildRounds(
       const awayId = slots[2 * i + 1];
       const outcome = outcomes[r]?.[i] ?? null;
       const homeWon = outcome?.[0] === 0;
+      /** Only ever set on the side that lost the match. */
+      const retired = outcome?.[3];
 
       matches.push({
         id: `${categoryId}-r${r + 1}-m${i + 1}`,
@@ -568,11 +589,13 @@ function buildRounds(
           participantId: homeId,
           score: outcome ? (homeWon ? outcome[1] : outcome[2]) : null,
           winner: homeWon || undefined,
+          retired: homeWon ? undefined : retired,
         },
         away: {
           participantId: awayId,
           score: outcome ? (homeWon ? outcome[2] : outcome[1]) : null,
           winner: outcome && !homeWon ? true : undefined,
+          retired: homeWon ? retired : undefined,
         },
       });
       winners.push(outcome ? (homeWon ? homeId : awayId) : undefined);
@@ -670,7 +693,8 @@ const bracketInputs: BracketInput[] = [
         [0, 2, 1],
         [1, 2, 0],
         [0, 2, 1],
-        [0, 2, 0],
+        // Lawan mundur di tengah laga.
+        [0, 2, 0, "cedera"],
       ],
       // 16 Besar
       [
@@ -686,7 +710,8 @@ const bracketInputs: BracketInput[] = [
       // Perempat Final
       [
         [0, 2, 1],
-        [1, 2, 0],
+        // Lawan tidak hadir.
+        [1, 2, 0, "wo"],
         [0, 2, 1],
         [0, 2, 0],
       ],
@@ -760,7 +785,7 @@ const bracketInputs: BracketInput[] = [
       "gpi-hana-indah",
     ],
     outcomes: [
-      [[0, 2, 0], [1, 2, 1], null, null],
+      [[0, 2, 0], [1, 2, 1, "wo"], null, null],
       [null, null],
       [null],
     ],
@@ -1001,6 +1026,16 @@ export interface SetHistory {
   entries: RallyEntry[];
 }
 
+/**
+ * Who is ahead after a rally and by how much. `chased` marks the rallies where
+ * the trailing side scored, so the lead shrank instead of growing.
+ */
+export interface RallyLead {
+  side: MatchSideKey;
+  margin: number;
+  chased: boolean;
+}
+
 /** A history row ready to render: derived score and serve holder included. */
 export interface RallyRow {
   scorer: MatchSideKey;
@@ -1010,6 +1045,8 @@ export interface RallyRow {
   /** Running score after this entry. */
   home: number;
   away: number;
+  /** Point lead after this rally; `null` while the score is level. */
+  lead: RallyLead | null;
 }
 
 /**
@@ -1025,6 +1062,9 @@ export function buildRallyRows(history: SetHistory): RallyRow[] {
     if (entry.scorer === "home") home += gained;
     else away += gained;
 
+    const margin = Math.abs(home - away);
+    const leader: MatchSideKey = home > away ? "home" : "away";
+
     return {
       scorer: entry.scorer,
       gained,
@@ -1032,6 +1072,10 @@ export function buildRallyRows(history: SetHistory): RallyRow[] {
         index === 0 ? history.firstServer : history.entries[index - 1].scorer,
       home,
       away,
+      lead:
+        margin === 0
+          ? null
+          : { side: leader, margin, chased: leader !== entry.scorer },
     };
   });
 }

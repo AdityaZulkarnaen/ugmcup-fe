@@ -8,7 +8,10 @@ import { CheckIcon } from "@/components/ui/icons";
 import { SideEmblem } from "./SideEmblem";
 
 const headCell =
-  "px-2 py-2.5 text-[10px] font-bold uppercase tracking-wider text-[#7A7A83]";
+  "px-1.5 py-2.5 text-[10px] font-bold uppercase tracking-wider text-[#7A7A83] sm:px-2";
+
+/** Narrow enough that two sides and three sets fit a 360px screen unscrolled. */
+const numberColumn = "w-10 sm:w-14";
 
 /** One competitor row: name, sets won, then the score of each set. */
 function ScoreRow({
@@ -32,15 +35,18 @@ function ScoreRow({
     <tr
       className={`border-t border-white/[0.04] ${won ? "bg-[#34E5A6]/[0.07]" : ""}`}
     >
-      <td className="relative px-4 py-3">
+      <td className="relative px-3 py-3 sm:px-4">
         {/* Green accent + tint marks the winning side */}
         {won && (
           <span className="absolute inset-y-0 left-0 w-0.5 bg-[#34E5A6]" />
         )}
-        <div className="flex items-center gap-2.5">
-          <SideEmblem players={side.players} />
+        <div className="flex items-center gap-2 sm:gap-2.5">
+          {/* Dropped on phones so the name keeps the width it needs */}
+          <span className="hidden shrink-0 sm:block">
+            <SideEmblem players={side.players} />
+          </span>
           <span
-            className={`truncate text-sm font-medium ${
+            className={`min-w-0 truncate text-xs font-medium sm:text-sm ${
               won ? "font-bold text-[#34E5A6]" : "text-white"
             }`}
           >
@@ -52,7 +58,7 @@ function ScoreRow({
         </div>
       </td>
       <td
-        className={`px-2 py-3 text-center text-sm font-bold tabular-nums ${
+        className={`px-1.5 py-3 text-center text-sm font-bold tabular-nums sm:px-2 ${
           won ? "text-[#34E5A6]" : "text-[#6B6B73]"
         }`}
       >
@@ -61,7 +67,7 @@ function ScoreRow({
       {scores.map((score, i) => (
         <td
           key={i}
-          className={`px-2 py-3 text-center text-sm tabular-nums ${
+          className={`px-1.5 py-3 text-center text-sm tabular-nums sm:px-2 ${
             score > opponentScores[i] ? "text-white" : "text-[#5A5A63]"
           }`}
         >
@@ -90,16 +96,24 @@ export function ScoreTable({ match }: { match: MatchDetail }) {
           Pertandingan belum dimulai, skor belum tersedia.
         </p>
       ) : (
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-md">
+        <div className="scrollbar-thumb-only overflow-x-auto">
+          {/* Fixed layout so the name column absorbs the leftover width and
+              truncates rather than pushing the set columns out of view; the
+              scroll wrapper only kicks in once a long match adds set columns */}
+          <table className="w-full table-fixed">
             <thead>
               <tr>
                 <th className={`${headCell} text-center`}>Tim / Atlet</th>
-                <th className={`${headCell} w-14 text-center text-[#E3B24D]`}>
+                <th
+                  className={`${headCell} ${numberColumn} text-center text-[#E3B24D]`}
+                >
                   Total
                 </th>
                 {match.sets.map((set, i) => (
-                  <th key={i} className={`${headCell} w-14 text-center`}>
+                  <th
+                    key={i}
+                    className={`${headCell} ${numberColumn} text-center`}
+                  >
                     Set {i + 1}
                   </th>
                 ))}

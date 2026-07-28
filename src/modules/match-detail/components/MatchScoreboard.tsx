@@ -33,15 +33,19 @@ function SideColumn({
     <div className="flex flex-col items-center gap-2.5 text-center">
       <SideEmblem players={side.players} size="lg" />
       <div className="min-w-0">
+        {/* Wrapping beats truncating here: the column is narrow on a phone and a
+            half-cut name tells the reader nothing. */}
         <p
-          className={`flex items-center justify-center gap-1.5 truncate text-[15px] font-bold ${
+          className={`flex flex-wrap items-center justify-center gap-x-1.5 wrap-break-word text-sm font-bold sm:text-[15px] ${
             won ? "text-[#34E5A6]" : "text-white"
           }`}
         >
           {sideName(side.players)}
           {won && <CheckIcon className="shrink-0" />}
         </p>
-        <p className="mt-0.5 truncate text-[13px] text-[#8A8A93]">{category}</p>
+        <p className="mt-0.5 text-xs text-[#8A8A93] sm:text-[13px]">
+          {category}
+        </p>
       </div>
     </div>
   );
@@ -54,12 +58,12 @@ export function MatchScoreboard({ match }: { match: MatchDetail }) {
   const level = home === away;
 
   return (
-    <section className="rounded-2xl border border-white/[0.06] bg-white/[0.02] px-6 py-7">
+    <section className="rounded-2xl border border-white/[0.06] bg-white/[0.02] px-4 py-6 sm:px-6 sm:py-7">
       <p className="text-center text-[13px] font-bold text-white">
         {match.startsAt}
       </p>
 
-      <div className="mt-5 grid grid-cols-[1fr_auto_1fr] items-start gap-4 sm:gap-8">
+      <div className="mt-5 grid grid-cols-[1fr_auto_1fr] items-start gap-3 sm:gap-8">
         <SideColumn
           side={match.home}
           category={match.category}
@@ -67,24 +71,28 @@ export function MatchScoreboard({ match }: { match: MatchDetail }) {
         />
 
         <div className="flex flex-col items-center pt-3">
-          <p className="flex items-baseline gap-2.5">
+          <p className="flex items-baseline gap-2 sm:gap-2.5">
             <span
-              className={`text-4xl font-black tabular-nums ${
+              className={`text-3xl font-black tabular-nums sm:text-4xl ${
                 !level && home > away ? "text-[#34E5A6]" : "text-white"
               }`}
             >
               {home}
             </span>
-            <span className="text-2xl font-black text-[#5A5A63]">:</span>
+            <span className="text-xl font-black text-[#5A5A63] sm:text-2xl">
+              :
+            </span>
             <span
-              className={`text-4xl font-black tabular-nums ${
+              className={`text-3xl font-black tabular-nums sm:text-4xl ${
                 !level && away > home ? "text-[#34E5A6]" : "text-white"
               }`}
             >
               {away}
             </span>
           </p>
-          <p className="mt-2 text-center text-[11px] font-bold uppercase tracking-wide text-[#E3B24D]">
+          {/* Squeezed into the middle column this wraps one word per line, so on
+              mobile it moves under the whole board instead. */}
+          <p className="mt-2 hidden text-center text-[11px] font-bold uppercase tracking-wide text-[#E3B24D] sm:block">
             {statusLine(match)}
           </p>
         </div>
@@ -95,6 +103,10 @@ export function MatchScoreboard({ match }: { match: MatchDetail }) {
           won={match.winner === "away"}
         />
       </div>
+
+      <p className="mt-5 text-center text-[11px] font-bold uppercase tracking-wide text-[#E3B24D] sm:hidden">
+        {statusLine(match)}
+      </p>
     </section>
   );
 }

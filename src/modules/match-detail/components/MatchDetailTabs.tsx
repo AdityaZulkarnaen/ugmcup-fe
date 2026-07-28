@@ -52,7 +52,7 @@ export function MatchDetailTabs({ match }: { match: MatchDetail }) {
   return (
     <div className="flex flex-col gap-4">
       <header className="text-center">
-        <h1 className="text-5xl font-black italic text-white sm:text-7xl">
+        <h1 className="text-4xl font-black italic text-white sm:text-6xl lg:text-7xl">
           Statistik Pertandingan
         </h1>
         <p className="mt-3 text-sm text-[#8A8A93] sm:text-base">
