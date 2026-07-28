@@ -93,11 +93,11 @@ export function Navbar({ variant = "auto" }: NavbarProps) {
         </nav>
 
         <Button
-          href="#"
+          href="/pertandingan"
           variant="outline"
           className={`hidden md:inline-flex ${inverted ? "border-black/30! text-black!" : ""}`}
         >
-          Dokumentasi
+          Lihat Live Score
           <ArrowIcon />
         </Button>
 
@@ -153,14 +153,14 @@ export function Navbar({ variant = "auto" }: NavbarProps) {
             })}
 
             <Button
-              href="#"
+              href="/pertandingan"
               variant="outline"
               className={`mt-1 justify-center ${
                 inverted ? "font-semibold text-black hover:bg-black/5 hover:text-black" : "font-semibold text-white hover:bg-white/[0.04] hover:text-white"
               }`}
               onClick={() => setMenuOpen(false)}
             >
-              Dokumentasi
+              Lihat Live Score
               <ArrowIcon />
             </Button>
           </nav>

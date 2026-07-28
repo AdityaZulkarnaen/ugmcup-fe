@@ -10,7 +10,7 @@ export function LiveScoreCta() {
         </h2>
 
         <Button
-          href="#"
+          href="/pertandingan"
           variant="solid"
           className="mt-10 px-6 py-3 text-base font-black italic"
         >
