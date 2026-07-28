@@ -25,16 +25,8 @@ export function BracketSection() {
 
   const [slotAId, setSlotAId] = useState<string>("");
   const [slotBId, setSlotBId] = useState<string>("");
+  const [setupFilter, setSetupFilter] = useState<string>("ALL");
 
-<<<<<<< HEAD
-=======
-  const [setupFilter, setSetupFilter] = useState<"ALL" | "UNIVERSITAS" | "SMA">("ALL");
-
-  useEffect(() => {
-    getDisciplines().then(setDisciplines).catch(() => {});
-  }, []);
-
->>>>>>> 587ae0e06bd18ffad0c54dc20f19e562d88a7ed0
   const loadBracket = useCallback(async () => {
     if (!selectedDisc) return;
     setIsLoading(true); setError("");
@@ -146,39 +138,39 @@ export function BracketSection() {
       const newNodes = JSON.parse(JSON.stringify(prevNodes)) as BracketNode[];
       const sourceNode = newNodes.find(n => n.id === draggedItem.nodeId);
       const targetNode = newNodes.find(n => n.id === targetNodeId);
-      
+
       if (!sourceNode || !targetNode || !sourceNode.match || !targetNode.match) return prevNodes;
-      
+
       if (draggedItem.slotType === "A") (sourceNode.match as any)[aKey] = targetEntityId;
       else (sourceNode.match as any)[bKey] = targetEntityId;
-      
+
       if (targetSlotType === "A") (targetNode.match as any)[aKey] = draggedItem.entityId;
       else (targetNode.match as any)[bKey] = draggedItem.entityId;
-      
+
       const sourceNested = draggedItem.slotType === "A" ? (sourceNode.match as any)[aObj] : (sourceNode.match as any)[bObj];
       const targetNested = targetSlotType === "A" ? (targetNode.match as any)[aObj] : (targetNode.match as any)[bObj];
-      
+
       if (draggedItem.slotType === "A") (sourceNode.match as any)[aObj] = targetNested;
       else (sourceNode.match as any)[bObj] = targetNested;
-      
+
       if (targetSlotType === "A") (targetNode.match as any)[aObj] = sourceNested;
       else (targetNode.match as any)[bObj] = sourceNested;
-      
+
       setPendingChanges(prev => {
-         const next = { ...prev };
-         next[sourceNode.id] = {
-            ...(next[sourceNode.id] || {}),
-            [aKey]: (sourceNode.match as any)[aKey],
-            [bKey]: (sourceNode.match as any)[bKey],
-         };
-         next[targetNode.id] = {
-            ...(next[targetNode.id] || {}),
-            [aKey]: (targetNode.match as any)[aKey],
-            [bKey]: (targetNode.match as any)[bKey],
-         };
-         return next;
+        const next = { ...prev };
+        next[sourceNode.id] = {
+          ...(next[sourceNode.id] || {}),
+          [aKey]: (sourceNode.match as any)[aKey],
+          [bKey]: (sourceNode.match as any)[bKey],
+        };
+        next[targetNode.id] = {
+          ...(next[targetNode.id] || {}),
+          [aKey]: (targetNode.match as any)[aKey],
+          [bKey]: (targetNode.match as any)[bKey],
+        };
+        return next;
       });
-      
+
       return newNodes;
     });
 
@@ -188,13 +180,13 @@ export function BracketSection() {
   async function savePendingChanges() {
     setIsSaving(true);
     try {
-      const promises = Object.entries(pendingChanges).map(([nodeId, payload]) => 
+      const promises = Object.entries(pendingChanges).map(([nodeId, payload]) =>
         reassignBracketNode(nodeId, payload as any)
       );
       await Promise.all(promises);
       setPendingChanges({});
       await loadBracket();
-    } catch(e) {
+    } catch (e) {
       setError(e instanceof Error ? e.message : "Gagal menyimpan perubahan bracket");
     } finally {
       setIsSaving(false);
@@ -226,7 +218,7 @@ export function BracketSection() {
     if (!groupedByRound[round]) groupedByRound[round] = [];
     groupedByRound[round].push(node);
   });
-  
+
   const roundsArray = Object.entries(groupedByRound).sort((a, b) => b[1].length - a[1].length);
 
   return (
@@ -253,11 +245,10 @@ export function BracketSection() {
             <button
               key={lvl.value}
               onClick={() => { setFilterLevel(lvl.value); setSelectedDisc(""); }}
-              className={`px-4 py-1.5 text-sm font-semibold rounded-md transition-all ${
-                filterLevel === lvl.value
+              className={`px-4 py-1.5 text-sm font-semibold rounded-md transition-all ${filterLevel === lvl.value
                   ? "bg-white text-[#6C47D1] shadow-sm"
                   : "text-gray-500 hover:text-gray-700"
-              }`}
+                }`}
             >
               {lvl.label}
             </button>
@@ -307,11 +298,11 @@ export function BracketSection() {
                     const entityBId = node.match?.participantBId ?? node.match?.teamBId ?? null;
                     const nameA = getMatchEntityLabel(node.match?.participantA, node.match?.teamA, isFirstRound);
                     const nameB = getMatchEntityLabel(node.match?.participantB, node.match?.teamB, isFirstRound);
-                    
+
                     return (
                       <div key={node.id} className="relative bg-white border rounded-lg shadow-sm overflow-hidden text-sm flex flex-col group" style={{ borderColor: "#CBD5E1" }}>
-                        
-                        <div 
+
+                        <div
                           draggable={isFirstRound}
                           onDragStart={(e) => isFirstRound && handleDragStart(e, node.id, "A", entityAId)}
                           onDragOver={isFirstRound ? handleDragOver : undefined}
@@ -322,8 +313,8 @@ export function BracketSection() {
                           <span className={!entityAId ? (isFirstRound ? "text-amber-500 italic" : "text-slate-400 italic font-medium") : "font-semibold text-slate-800"}>{nameA}</span>
                           <span className="font-bold text-slate-500">{node.match?.sets?.[0]?.scoreA ?? 0}</span>
                         </div>
-                        
-                        <div 
+
+                        <div
                           draggable={isFirstRound}
                           onDragStart={(e) => isFirstRound && handleDragStart(e, node.id, "B", entityBId)}
                           onDragOver={isFirstRound ? handleDragOver : undefined}
@@ -333,13 +324,13 @@ export function BracketSection() {
                           <span className={!entityBId ? (isFirstRound ? "text-amber-500 italic" : "text-slate-400 italic font-medium") : "font-semibold text-slate-800"}>{nameB}</span>
                           <span className="font-bold text-slate-500">{node.match?.sets?.[0]?.scoreB ?? 0}</span>
                         </div>
-                        
+
                         <div className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-[calc(100%+8px)] text-[10px] font-mono text-slate-400 bg-slate-100 px-1 rounded">
                           #{node.position}
                         </div>
-                        
-                        <button 
-                          onClick={() => openEditModal(node)} 
+
+                        <button
+                          onClick={() => openEditModal(node)}
                           className="absolute right-2 top-1/2 -translate-y-1/2 bg-white border shadow-sm p-1.5 rounded-md text-slate-500 hover:text-slate-800 opacity-0 group-hover:opacity-100 transition-opacity"
                           title="Edit Slot"
                         >
@@ -357,7 +348,7 @@ export function BracketSection() {
 
       {Object.keys(pendingChanges).length > 0 && (
         <div className="fixed bottom-8 right-8 z-50">
-          <button 
+          <button
             onClick={savePendingChanges}
             disabled={isSaving}
             className="flex items-center gap-2 bg-[#6C47D1] hover:bg-[#5b3cae] text-white px-6 py-3 rounded-full shadow-lg font-bold transition-all"
@@ -372,25 +363,20 @@ export function BracketSection() {
         title="Setup Bracket Knockout" size="md"
         footer={<div><ModalCancelButton onClick={() => { setSetupModalOpen(false); setError(""); setSelectedIds([]); }} /><ModalSubmitButton onClick={handleSetup} isLoading={isSaving} label="Generate Bracket" /></div>}>
         {error && <p className="mb-4 rounded-lg p-3 text-sm bg-red-50 text-red-600 border border-red-200">{error}</p>}
-<<<<<<< HEAD
         <p className="mb-4 text-sm" style={{ color: "#6B7280" }}>Pilih {DISCIPLINES.find(d => d.id === selectedDisc)?.isTeamEvent ? "tim" : "peserta"} yang masuk bracket. Urutan atau slot BYE bisa disesuaikan kembali nanti.</p>
-=======
-        <p className="mb-4 text-sm" style={{ color: "#6B7280" }}>Pilih {disciplines.find(d => d.id === selectedDisc)?.isTeamEvent ? "tim" : "peserta"} yang masuk bracket. Urutan atau slot BYE bisa disesuaikan kembali nanti.</p>
         
-        <div className="mb-4">
-          <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider" style={{ color: "#374151" }}>Filter Institusi</label>
-          <DashSelect 
-            value={setupFilter} 
-            onChange={(v) => setSetupFilter(v as "ALL" | "UNIVERSITAS" | "SMA")} 
-            options={[
-              { value: "ALL", label: "Semua (Universitas & SMA/SMK)" },
-              { value: "UNIVERSITAS", label: "Universitas Saja" },
-              { value: "SMA", label: "SMA/SMK Saja" }
-            ]} 
-          />
+        <div className="mb-4 flex gap-2">
+          {["ALL", "UNIVERSITAS", "SMA"].map(f => (
+            <button key={f} onClick={() => setSetupFilter(f)}
+              className="rounded-full border px-3 py-1 text-xs font-semibold transition-colors"
+              style={setupFilter === f 
+                ? { background: "#6C47D1", borderColor: "#6C47D1", color: "#fff" } 
+                : { background: "#fff", borderColor: "#E5E7EB", color: "#374151" }}>
+              {f === "ALL" ? "Semua Tingkat" : f === "UNIVERSITAS" ? "Universitas" : "SMA/SMK"}
+            </button>
+          ))}
         </div>
 
->>>>>>> 587ae0e06bd18ffad0c54dc20f19e562d88a7ed0
         <div className="space-y-2 max-h-64 overflow-y-auto">
           {entityList.filter(item => {
             if (setupFilter === "ALL") return true;

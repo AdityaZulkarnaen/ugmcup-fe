@@ -20,12 +20,12 @@ export function PesertaSection() {
   const [teams, setTeams] = useState<Team[]>([]);
   const [institutions, setInstitutions] = useState<Institution[]>([]);
   const [athletes, setAthletes] = useState<Athlete[]>([]);
-  
+
   const [isLoading, setIsLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");
-  
+
   // Filters
   const [filterLevel, setFilterLevel] = useState<string>("");
   const [filterDiscipline, setFilterDiscipline] = useState<string>("");
@@ -36,7 +36,7 @@ export function PesertaSection() {
   // Form Peserta Individu
   const [pFormLevel, setPFormLevel] = useState("");
   const [pForm, setPForm] = useState({ disciplineId: "", institutionId: "", athlete1: "", athlete2: "" });
-  
+
   // Form Tim Beregu
   const [tForm, setTForm] = useState({ institutionId: "", slots: {} as Record<string, string> });
 
@@ -96,11 +96,11 @@ export function PesertaSection() {
     const disc = DISCIPLINES.find(d => d.id === p.disciplineId);
     setPFormLevel(disc?.level || "");
     const athleteIds = p.athletes?.map(a => a.athleteId) || [];
-    setPForm({ 
-      disciplineId: p.disciplineId, 
-      institutionId: p.institutionId, 
-      athlete1: athleteIds[0] || "", 
-      athlete2: athleteIds[1] || "" 
+    setPForm({
+      disciplineId: p.disciplineId,
+      institutionId: p.institutionId,
+      athlete1: athleteIds[0] || "",
+      athlete2: athleteIds[1] || ""
     });
     setModalOpen(true);
   }
@@ -115,9 +115,9 @@ export function PesertaSection() {
         // Kita perlu mencari next available slot string yang belum dipakai
         let key = m.assignedSlot;
         if (key.startsWith("GANDA") || key.startsWith("TRIPLE")) {
-           let i = 1;
-           while (slots[`${key}_${i}`]) i++;
-           key = `${key}_${i}`;
+          let i = 1;
+          while (slots[`${key}_${i}`]) i++;
+          key = `${key}_${i}`;
         }
         slots[key] = m.athleteId;
       });
@@ -131,7 +131,7 @@ export function PesertaSection() {
     try {
       const athleteIds = [pForm.athlete1, pForm.athlete2].filter(Boolean);
       if (athleteIds.length === 0) throw new Error("Pilih setidaknya 1 atlet");
-      
+
       const payload = { disciplineId: pForm.disciplineId, institutionId: pForm.institutionId, athleteIds };
       if (editId) {
         await updateParticipant(editId, payload);
@@ -148,14 +148,14 @@ export function PesertaSection() {
     setIsSaving(true); setError("");
     try {
       if (!univBereguDiscipline) throw new Error("Kategori beregu universitas tidak ditemukan di konfigurasi");
-      
+
       const members = Object.entries(tForm.slots)
         .filter(([, athleteId]) => athleteId)
-        .map(([key, athleteId]) => ({ 
-          assignedSlot: key.replace(/_[123]$/, ""), 
-          athleteId 
+        .map(([key, athleteId]) => ({
+          assignedSlot: key.replace(/_[123]$/, ""),
+          athleteId
         }));
-      
+
       const payload = { disciplineId: univBereguDiscipline.id, institutionId: tForm.institutionId, members };
       if (editId) {
         await updateTeam(editId, payload);
@@ -181,9 +181,9 @@ export function PesertaSection() {
   // Options filtering helpers
   const getAthleteOptions = (instId: string, allowedGender: "LAKI_LAKI" | "PEREMPUAN" | "ANY", excludeId?: string) => {
     return athletes
-      .filter(a => (!instId || a.institutionId === instId) && 
-                   (allowedGender === "ANY" || a.gender === allowedGender) &&
-                   a.id !== excludeId)
+      .filter(a => (!instId || a.institutionId === instId) &&
+        (allowedGender === "ANY" || a.gender === allowedGender) &&
+        a.id !== excludeId)
       .map(a => ({ value: a.id, label: a.name }));
   };
 
@@ -217,18 +217,18 @@ export function PesertaSection() {
           {[{ value: "", label: "Semua" }, ...LEVELS].map((opt) => (
             <button key={opt.value} onClick={() => setFilterLevel(opt.value)}
               className="rounded-full border px-3 py-1 text-xs font-semibold transition-colors"
-              style={filterLevel === opt.value 
-                ? { background: "#6C47D1", borderColor: "#6C47D1", color: "#fff" } 
+              style={filterLevel === opt.value
+                ? { background: "#6C47D1", borderColor: "#6C47D1", color: "#fff" }
                 : { background: "#fff", borderColor: "#E5E7EB", color: "#374151" }}>
               {opt.label}
             </button>
           ))}
-          
+
           <div className="w-px h-6 bg-gray-300 mx-2"></div>
-          
+
           <span className="text-xs font-bold text-gray-500 mr-2">CABOR:</span>
-          <select 
-            value={filterDiscipline} 
+          <select
+            value={filterDiscipline}
             onChange={e => setFilterDiscipline(e.target.value)}
             className="rounded-lg border px-3 py-1 text-xs font-medium outline-none"
             style={{ borderColor: "#E5E7EB", color: "#374151" }}
@@ -256,8 +256,8 @@ export function PesertaSection() {
               searchable: true,
               render: (row) => (
                 <span className="font-semibold text-gray-900">
-                  {row.athletes && row.athletes.length > 0 
-                    ? row.athletes.map(a => a.athlete?.name).join(" & ") 
+                  {row.athletes && row.athletes.length > 0
+                    ? row.athletes.map(a => a.athlete?.name).join(" & ")
                     : "—"}
                 </span>
               ),
@@ -309,70 +309,61 @@ export function PesertaSection() {
       <Modal isOpen={modalOpen} onClose={() => { setModalOpen(false); setError(""); }} title={editId ? `Edit ${tab === "individu" ? "Peserta" : "Tim"}` : `Tambah ${tab === "individu" ? "Peserta" : "Tim"}`} size="lg"
         footer={<><ModalCancelButton onClick={() => { setModalOpen(false); setError(""); }} /><ModalSubmitButton onClick={tab === "individu" ? handleSaveParticipant : handleSaveTeam} isLoading={isSaving} /></>}>
         {error && <p className="mb-4 rounded-lg p-3 text-sm bg-red-50 text-red-600 border border-red-200">{error}</p>}
-        
+
         {tab === "individu" ? (
           <>
             <FormField label="Tingkat" required>
-              <DashSelect 
-                value={pFormLevel} 
-                onChange={(v) => { setPFormLevel(v); setPForm((f) => ({ ...f, disciplineId: "", institutionId: "", athlete1: "", athlete2: "" })); }} 
-                placeholder="Pilih tingkat" 
-                options={LEVELS} 
+              <DashSelect
+                value={pFormLevel}
+                onChange={(v) => { setPFormLevel(v); setPForm((f) => ({ ...f, disciplineId: "", institutionId: "", athlete1: "", athlete2: "" })); }}
+                placeholder="Pilih tingkat"
+                options={LEVELS}
               />
             </FormField>
-            
+
             <FormField label="Institusi" required>
-              <DashSelect 
-                value={pForm.institutionId} 
-<<<<<<< HEAD
-                onChange={(v) => setPForm((f) => ({ ...f, institutionId: v, athlete1: "", athlete2: "" }))} 
-                placeholder={pFormLevel ? "Pilih institusi" : "Pilih tingkat terlebih dahulu"} 
-                options={institutions.filter(i => !pFormLevel || i.type === (pFormLevel === "univ" ? "UNIVERSITAS" : "SMA")).map((i) => ({ value: i.id, label: i.name }))} 
-=======
-                onChange={(v) => setPForm((f) => ({ ...f, institutionId: v }))} 
-                placeholder="Pilih institusi" 
-                groups={[
-                  { label: "Universitas", options: institutions.filter(i => i.type === "UNIVERSITAS").map(i => ({ value: i.id, label: i.name })) },
-                  { label: "SMA/SMK", options: institutions.filter(i => i.type === "SMA").map(i => ({ value: i.id, label: i.name })) }
-                ]}
->>>>>>> 587ae0e06bd18ffad0c54dc20f19e562d88a7ed0
+              <DashSelect
+                value={pForm.institutionId}
+                onChange={(v) => setPForm((f) => ({ ...f, institutionId: v, athlete1: "", athlete2: "" }))}
+                placeholder={pFormLevel ? "Pilih institusi" : "Pilih tingkat terlebih dahulu"}
+                options={institutions.filter(i => !pFormLevel || i.type === (pFormLevel === "univ" ? "UNIVERSITAS" : "SMA")).map((i) => ({ value: i.id, label: i.name }))}
               />
             </FormField>
 
             <FormField label="Cabang Kategori" required>
-              <DashSelect 
-                value={pForm.disciplineId} 
-                onChange={(v) => setPForm((f) => ({ ...f, disciplineId: v, athlete1: "", athlete2: "" }))} 
-                placeholder={pFormLevel ? "Pilih kategori" : "Pilih tingkat terlebih dahulu"} 
+              <DashSelect
+                value={pForm.disciplineId}
+                onChange={(v) => setPForm((f) => ({ ...f, disciplineId: v, athlete1: "", athlete2: "" }))}
+                placeholder={pFormLevel ? "Pilih kategori" : "Pilih tingkat terlebih dahulu"}
                 options={(pFormLevel ? individualDisciplines.filter(d => d.level === pFormLevel) : individualDisciplines).map(d => ({ value: d.id, label: d.label }))}
               />
             </FormField>
-            
+
             {pForm.disciplineId && (
               <>
                 <FormField label="Atlet 1" required>
-                  <DashSelect 
-                    value={pForm.athlete1} 
-                    onChange={(v) => setPForm((f) => ({ ...f, athlete1: v }))} 
-                    placeholder="Pilih atlet" 
-                    options={getAthleteOptions(pForm.institutionId, 
+                  <DashSelect
+                    value={pForm.athlete1}
+                    onChange={(v) => setPForm((f) => ({ ...f, athlete1: v }))}
+                    placeholder="Pilih atlet"
+                    options={getAthleteOptions(pForm.institutionId,
                       selectedPDiscipline?.type === "TUNGGAL_PUTRI" || selectedPDiscipline?.type === "GANDA_PUTRI" ? "PEREMPUAN" : "LAKI_LAKI"
-                    )} 
+                    )}
                   />
                 </FormField>
-                
+
                 {(selectedPDiscipline?.type.startsWith("GANDA") || selectedPDiscipline?.type === "TRIPLE_MIX") && (
                   <FormField label="Atlet 2" required>
-                    <DashSelect 
-                      value={pForm.athlete2} 
-                      onChange={(v) => setPForm((f) => ({ ...f, athlete2: v }))} 
-                      placeholder="Pilih atlet 2" 
-                      options={getAthleteOptions(pForm.institutionId, 
-                        selectedPDiscipline?.type === "GANDA_PUTRI" ? "PEREMPUAN" : 
-                        selectedPDiscipline?.type === "GANDA_PUTRA" ? "LAKI_LAKI" : 
-                        selectedPDiscipline?.type === "GANDA_CAMPURAN" ? "PEREMPUAN" : "ANY", 
+                    <DashSelect
+                      value={pForm.athlete2}
+                      onChange={(v) => setPForm((f) => ({ ...f, athlete2: v }))}
+                      placeholder="Pilih atlet 2"
+                      options={getAthleteOptions(pForm.institutionId,
+                        selectedPDiscipline?.type === "GANDA_PUTRI" ? "PEREMPUAN" :
+                          selectedPDiscipline?.type === "GANDA_PUTRA" ? "LAKI_LAKI" :
+                            selectedPDiscipline?.type === "GANDA_CAMPURAN" ? "PEREMPUAN" : "ANY",
                         pForm.athlete1
-                      )} 
+                      )}
                     />
                   </FormField>
                 )}
@@ -382,39 +373,30 @@ export function PesertaSection() {
         ) : (
           <>
             <FormField label="Tingkat" required>
-              <input 
-                type="text" 
-                value="Universitas" 
-                disabled 
-                className="w-full rounded-lg border px-3 py-2 text-sm bg-gray-100 text-gray-500 outline-none" 
+              <input
+                type="text"
+                value="Universitas"
+                disabled
+                className="w-full rounded-lg border px-3 py-2 text-sm bg-gray-100 text-gray-500 outline-none"
                 style={{ borderColor: "#E5E7EB" }}
               />
               <p className="text-xs text-gray-400 mt-1">Beregu khusus untuk tingkat Universitas</p>
             </FormField>
-            
+
             <FormField label="Institusi" required>
-              <DashSelect 
-                value={tForm.institutionId} 
-<<<<<<< HEAD
-                onChange={(v) => setTForm((f) => ({ ...f, institutionId: v, slots: {} }))} 
-                placeholder="Pilih institusi" 
-                options={institutions.filter(i => i.type === "UNIVERSITAS").map((i) => ({ value: i.id, label: i.name }))} 
-=======
-                onChange={(v) => setTForm((f) => ({ ...f, institutionId: v }))} 
-                placeholder="Pilih institusi" 
-                groups={[
-                  { label: "Universitas", options: institutions.filter(i => i.type === "UNIVERSITAS").map(i => ({ value: i.id, label: i.name })) },
-                  { label: "SMA/SMK", options: institutions.filter(i => i.type === "SMA").map(i => ({ value: i.id, label: i.name })) }
-                ]}
->>>>>>> 587ae0e06bd18ffad0c54dc20f19e562d88a7ed0
+              <DashSelect
+                value={tForm.institutionId}
+                onChange={(v) => setTForm((f) => ({ ...f, institutionId: v, slots: {} }))}
+                placeholder="Pilih institusi"
+                options={institutions.filter(i => i.type === "UNIVERSITAS").map((i) => ({ value: i.id, label: i.name }))}
               />
             </FormField>
-            
+
             {tForm.institutionId && TEAM_SLOTS.map((slot) => {
               const isGanda = slot.startsWith("GANDA");
               const isTriple = slot.startsWith("TRIPLE");
               const allowedGender = slot.includes("PUTRI") ? "PEREMPUAN" : slot.includes("PUTRA") ? "LAKI_LAKI" : "ANY";
-              
+
               if (isGanda) {
                 return (
                   <FormField key={slot} label={slot.replace(/_/g, " ")}>
@@ -437,7 +419,7 @@ export function PesertaSection() {
                   </FormField>
                 );
               }
-              
+
               return (
                 <FormField key={slot} label={slot.replace(/_/g, " ")}>
                   <DashSelect value={tForm.slots[slot] ?? ""} onChange={(v) => setTForm((f) => ({ ...f, slots: { ...f.slots, [slot]: v } }))} placeholder="Pilih atlet" options={getAthleteOptions(tForm.institutionId, allowedGender)} />
