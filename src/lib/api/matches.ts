@@ -60,6 +60,15 @@ export const createTeamMatch = (data: {
 export const deleteMatch = (id: string) =>
   apiRequest<void>(`/admin/matches/${id}`, { method: "DELETE" });
 
+export const generateGroupMatches = (data: {
+  disciplineId: string;
+  groupName: string;
+}) =>
+  apiRequest<{ message: string; matches: Match[] }>("/admin/matches/generate-group", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+
 export const updateMatchSchedule = (
   id: string,
   data: { courtNumber?: number; scheduledTime?: string }

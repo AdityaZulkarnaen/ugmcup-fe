@@ -186,6 +186,16 @@ export const getStandings = (disciplineId: string, groupName?: string) =>
     `/standings?disciplineId=${disciplineId}${groupName ? `&groupName=${groupName}` : ""}`
   );
 
+export const setupGroupStandings = (data: {
+  disciplineId: string;
+  groupName: string;
+  teamIds: string[];
+}) =>
+  apiRequest<Standing[]>("/admin/standings/group", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+
 // ================== AUDIT LOGS ==================
 
 export const getAuditLogs = (filters?: {
