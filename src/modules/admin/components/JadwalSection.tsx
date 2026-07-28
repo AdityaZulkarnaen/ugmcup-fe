@@ -2,67 +2,54 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { DataTable } from "@/components/dashboard/DataTable";
-import { PageHeader, AddButton, FormField, DashInput, DashSelect } from "@/components/dashboard/PageHeader";
+import { PageHeader, FormField, DashInput, DashSelect } from "@/components/dashboard/PageHeader";
 import { Modal, ModalCancelButton, ModalSubmitButton } from "@/components/dashboard/Modal";
-import { getParticipants } from "@/lib/api/admin";
 import { LEVELS, getDisciplinesByLevel, DISCIPLINES } from "@/lib/constants";
 import { Play } from "lucide-react";
-import { getMatches, createMatch, deleteMatch, updateMatchSchedule, startMatch } from "@/lib/api/matches";
-import type { Match, Discipline, Participant, MatchStatus } from "@/lib/types";
+import { getMatches, deleteMatch, updateMatchSchedule, startMatch } from "@/lib/api/matches";
+import type { Match, MatchStatus } from "@/lib/types";
 
 const STATUS_STYLE: Record<MatchStatus, { bg: string; color: string }> = {
   SCHEDULED: { bg: "#FEF3C7", color: "#92400E" },
   ONGOING:   { bg: "#DBEAFE", color: "#1E40AF" },
   FINISHED:  { bg: "#DCFCE7", color: "#166534" },
-  WALKOVER:  { bg: "#FEE2E2", color: "#991B1B" },
+  RETIRED:   { bg: "#FEE2E2", color: "#991B1B" },
 };
 
 export function JadwalSection({ onStartAndSwitch }: { onStartAndSwitch?: (matchId: string) => void } = {}) {
   const [data, setData] = useState<Match[]>([]);
-  const [participants, setParticipants] = useState<Participant[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [modalOpen, setModalOpen] = useState(false);
+  
+  const [editModalOpen, setEditModalOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");
   const [starting, setStarting] = useState<string | null>(null);
+  
   const [filterStatus, setFilterStatus] = useState("");
   const [filterLevel, setFilterLevel] = useState("");
   const [filterDiscipline, setFilterDiscipline] = useState("");
+  const [filterDate, setFilterDate] = useState(""); // Format YYYY-MM-DD
   
-  const [formLevel, setFormLevel] = useState("");
-  const [form, setForm] = useState({
-    disciplineId: "", matchType: "INDIVIDUAL" as "INDIVIDUAL" | "TEAM",
-    stage: "GROUP" as "GROUP" | "KNOCKOUT", roundName: "", groupName: "",
-    participantAId: "", participantBId: "", courtNumber: "", scheduledTime: "",
-  });
+  const [editForm, setEditForm] = useState({ id: "", courtNumber: "", scheduledTime: "" });
 
   const load = useCallback(async () => {
     setIsLoading(true);
-    const [m, p] = await Promise.allSettled([
-      getMatches(filterStatus ? { status: filterStatus as MatchStatus } : undefined),
-      getParticipants(),
-    ]);
-    setData(m.status === "fulfilled" ? m.value : []);
-    setParticipants(p.status === "fulfilled" ? p.value : []);
+    const m = await getMatches(filterStatus ? { status: filterStatus as MatchStatus } : undefined);
+    setData(m || []);
     setIsLoading(false);
   }, [filterStatus]);
 
   useEffect(() => { load(); }, [load]);
 
-  async function handleSave() {
+  async function handleSaveEdit() {
     setIsSaving(true); setError("");
     try {
-      await createMatch({
-        ...form,
-        courtNumber: form.courtNumber ? parseInt(form.courtNumber) : undefined,
-        scheduledTime: form.scheduledTime || undefined,
-        groupName: form.groupName || undefined,
-        participantAId: form.participantAId || undefined,
-        participantBId: form.participantBId || undefined,
+      await updateMatchSchedule(editForm.id, {
+        courtNumber: editForm.courtNumber ? parseInt(editForm.courtNumber) : undefined,
+        scheduledTime: editForm.scheduledTime || undefined,
       });
-      setModalOpen(false);
-      setFormLevel("");
-      setForm({ disciplineId: "", matchType: "INDIVIDUAL", stage: "GROUP", roundName: "", groupName: "", participantAId: "", participantBId: "", courtNumber: "", scheduledTime: "" });
+      setEditModalOpen(false);
+      setEditForm({ id: "", courtNumber: "", scheduledTime: "" });
       await load();
     } catch (e) { setError(e instanceof Error ? e.message : "Gagal"); }
     finally { setIsSaving(false); }
@@ -84,28 +71,57 @@ export function JadwalSection({ onStartAndSwitch }: { onStartAndSwitch?: (matchI
     } finally { setStarting(null); }
   }
 
+  function openEditModal(match: Match) {
+    setEditForm({
+      id: match.id,
+      courtNumber: match.courtNumber ? String(match.courtNumber) : "",
+      scheduledTime: match.scheduledTime ? new Date(match.scheduledTime).toISOString().slice(0, 16) : "",
+    });
+    setEditModalOpen(true);
+  }
+
+  const filteredData = data.filter(d => {
+    if (filterDiscipline && d.disciplineId !== filterDiscipline) return false;
+    if (filterLevel && !filterDiscipline) {
+      const disc = DISCIPLINES.find(x => x.id === d.disciplineId);
+      if (disc?.level !== filterLevel) return false;
+    }
+    if (filterDate && d.scheduledTime) {
+      const matchDate = new Date(d.scheduledTime).toISOString().split('T')[0];
+      if (matchDate !== filterDate) return false;
+    }
+    return true;
+  });
+
   return (
     <div>
       <PageHeader
         title="Jadwal Pertandingan"
-        subtitle="Buat dan kelola jadwal semua match"
-        action={<AddButton onClick={() => setModalOpen(true)} label="Buat Match" />}
+        subtitle="Kelola jadwal lapangan dan waktu pertandingan"
       />
 
       {/* Filter */}
       <div className="mb-4 flex items-center justify-between gap-4 flex-wrap">
         <div className="flex gap-2 flex-wrap">
-          {["", "SCHEDULED", "ONGOING", "FINISHED", "WALKOVER"].map((s) => (
+          {["", "SCHEDULED", "ONGOING", "FINISHED", "RETIRED"].map((s) => (
             <button key={s} onClick={() => setFilterStatus(s)}
               className="rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors"
               style={filterStatus === s 
                 ? { background: "#6C47D1", borderColor: "#6C47D1", color: "#fff" } 
                 : { background: "#fff", borderColor: "#E5E7EB", color: "#374151" }}>
-              {s || "Semua"}
+              {s || "Semua Status"}
             </button>
           ))}
         </div>
         <div className="flex gap-2 shrink-0">
+          <div className="w-40">
+            <DashInput
+              type="date"
+              value={filterDate}
+              onChange={setFilterDate}
+              placeholder="Filter Tanggal"
+            />
+          </div>
           <div className="w-40">
             <DashSelect
               value={filterLevel}
@@ -127,7 +143,7 @@ export function JadwalSection({ onStartAndSwitch }: { onStartAndSwitch?: (matchI
 
       <DataTable
         isLoading={isLoading}
-        data={data.filter(d => filterDiscipline ? d.disciplineId === filterDiscipline : (filterLevel ? DISCIPLINES.find(disc => disc.id === d.disciplineId)?.level === filterLevel : true))}
+        data={filteredData}
         emptyText="Tidak ada match ditemukan"
         columns={[
           { key: "status", header: "Status", render: (row) => {
@@ -168,6 +184,12 @@ export function JadwalSection({ onStartAndSwitch }: { onStartAndSwitch?: (matchI
               </button>
             )}
             <button
+              onClick={() => openEditModal(row)}
+              className="rounded-lg px-3 py-1 text-xs font-semibold text-blue-600 border border-blue-200 bg-blue-50 hover:bg-blue-100 transition"
+            >
+              Edit
+            </button>
+            <button
               onClick={() => handleDelete(row.id)}
               className="rounded-lg px-3 py-1 text-xs font-semibold text-red-600 border border-red-200 bg-red-50 hover:bg-red-100 transition"
             >
@@ -177,41 +199,17 @@ export function JadwalSection({ onStartAndSwitch }: { onStartAndSwitch?: (matchI
         )}
       />
 
-      <Modal isOpen={modalOpen} onClose={() => { setModalOpen(false); setError(""); }} title="Buat Match Baru" size="lg"
-        footer={<><ModalCancelButton onClick={() => { setModalOpen(false); setError(""); }} /><ModalSubmitButton onClick={handleSave} isLoading={isSaving} /></>}>
+      <Modal isOpen={editModalOpen} onClose={() => { setEditModalOpen(false); setError(""); }} title="Edit Jadwal & Lapangan" size="md"
+        footer={<><ModalCancelButton onClick={() => { setEditModalOpen(false); setError(""); }} /><ModalSubmitButton onClick={handleSaveEdit} isLoading={isSaving} /></>}>
         {error && <p className="mb-4 rounded-xl p-3 text-sm" style={{ background: "rgba(239,68,68,0.15)", color: "#f87171" }}>{error}</p>}
-        <div className="grid grid-cols-2 gap-4">
-          <FormField label="Tingkat" required>
-            <DashSelect value={formLevel} onChange={(v) => { setFormLevel(v); setForm(f => ({ ...f, disciplineId: "" })); }} placeholder="Pilih tingkat" options={LEVELS} />
-          </FormField>
-          <FormField label="Cabang Kategori" required>
-            <DashSelect value={form.disciplineId} onChange={(v) => setForm(f => ({ ...f, disciplineId: v }))} placeholder="Pilih kategori" options={(formLevel ? getDisciplinesByLevel(formLevel) : DISCIPLINES).map(d => ({ value: d.id, label: d.label }))} />
-          </FormField>
-          <FormField label="Tipe Match">
-            <DashSelect value={form.matchType} onChange={(v) => setForm(f => ({ ...f, matchType: v as "INDIVIDUAL" | "TEAM" }))} options={[{ value: "INDIVIDUAL", label: "Individual" }, { value: "TEAM", label: "Beregu" }]} />
-          </FormField>
-          <FormField label="Stage">
-            <DashSelect value={form.stage} onChange={(v) => setForm(f => ({ ...f, stage: v as "GROUP" | "KNOCKOUT" }))} options={[{ value: "GROUP", label: "Fase Grup" }, { value: "KNOCKOUT", label: "Fase Gugur" }]} />
-          </FormField>
-          <FormField label="Nama Ronde" required>
-            <DashInput value={form.roundName} onChange={(v) => setForm(f => ({ ...f, roundName: v }))} placeholder="cth. Grup A / Semifinal" />
-          </FormField>
-          <FormField label="Nama Grup">
-            <DashInput value={form.groupName} onChange={(v) => setForm(f => ({ ...f, groupName: v }))} placeholder="cth. Grup A" />
-          </FormField>
+        <div className="grid grid-cols-1 gap-4">
           <FormField label="No. Lapangan">
-            <DashInput value={form.courtNumber} onChange={(v) => setForm(f => ({ ...f, courtNumber: v }))} placeholder="1" type="number" />
+            <DashInput value={editForm.courtNumber} onChange={(v) => setEditForm(f => ({ ...f, courtNumber: v }))} placeholder="1" type="number" />
           </FormField>
-          <FormField label="Peserta A">
-            <DashSelect value={form.participantAId} onChange={(v) => setForm(f => ({ ...f, participantAId: v }))} placeholder="Pilih peserta A" options={participants.map(p => ({ value: p.id, label: `${p.institution?.name ?? "?"} — ${p.discipline?.name ?? "?"}` }))} />
-          </FormField>
-          <FormField label="Peserta B">
-            <DashSelect value={form.participantBId} onChange={(v) => setForm(f => ({ ...f, participantBId: v }))} placeholder="Pilih peserta B" options={participants.filter(p => p.id !== form.participantAId).map(p => ({ value: p.id, label: `${p.institution?.name ?? "?"} — ${p.discipline?.name ?? "?"}` }))} />
+          <FormField label="Jadwal (tanggal & waktu)">
+            <DashInput value={editForm.scheduledTime} onChange={(v) => setEditForm(f => ({ ...f, scheduledTime: v }))} type="datetime-local" />
           </FormField>
         </div>
-        <FormField label="Jadwal (tanggal & waktu)">
-          <DashInput value={form.scheduledTime} onChange={(v) => setForm(f => ({ ...f, scheduledTime: v }))} type="datetime-local" />
-        </FormField>
       </Modal>
     </div>
   );

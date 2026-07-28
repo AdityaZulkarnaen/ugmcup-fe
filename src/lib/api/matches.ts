@@ -74,7 +74,7 @@ export const startMatch = (id: string) =>
 
 export const finishMatch = (
   id: string,
-  data: { walkover?: boolean; winnerParticipantId?: string; winnerTeamId?: string }
+  data: { retired?: boolean; winnerParticipantId?: string; winnerTeamId?: string }
 ) =>
   apiRequest<Match>(`/admin/matches/${id}/finish`, {
     method: "PATCH",
