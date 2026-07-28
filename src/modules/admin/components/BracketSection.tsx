@@ -1,4 +1,4 @@
-﻿import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { PageHeader, FormField, DashSelect } from "@/components/dashboard/PageHeader";
 import { Modal, ModalCancelButton, ModalSubmitButton } from "@/components/dashboard/Modal";
 import { getBracket, setupBracket, getParticipants, getTeams, reassignBracketNode } from "@/lib/api/admin";
@@ -7,7 +7,7 @@ import type { BracketNode, Participant, Team } from "@/lib/types";
 import { GitMerge, Edit } from "lucide-react";
 
 export function BracketSection() {
-  const [filterLevel, setFilterLevel] = useState("");
+  const [filterLevel, setFilterLevel] = useState(LEVELS[0].value);
   const [selectedDisc, setSelectedDisc] = useState("");
   const [bracketNodes, setBracketNodes] = useState<BracketNode[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -232,14 +232,21 @@ export function BracketSection() {
         }
       />
 
-      <div className="mb-6 flex gap-2">
-        <div className="w-40">
-          <DashSelect
-            value={filterLevel}
-            onChange={(v) => { setFilterLevel(v); setSelectedDisc(""); }}
-            placeholder="Pilih tingkat"
-            options={LEVELS}
-          />
+      <div className="mb-6 flex gap-4 items-center">
+        <div className="flex bg-gray-100 p-1 rounded-lg border border-gray-200">
+          {LEVELS.map((lvl) => (
+            <button
+              key={lvl.value}
+              onClick={() => { setFilterLevel(lvl.value); setSelectedDisc(""); }}
+              className={`px-4 py-1.5 text-sm font-semibold rounded-md transition-all ${
+                filterLevel === lvl.value
+                  ? "bg-white text-[#6C47D1] shadow-sm"
+                  : "text-gray-500 hover:text-gray-700"
+              }`}
+            >
+              {lvl.label}
+            </button>
+          ))}
         </div>
         <div className="w-64 shrink-0">
           <DashSelect
