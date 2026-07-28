@@ -1,18 +1,53 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { RefreshCw, ChevronDown, CheckCircle, Wifi, WifiOff, Zap, RotateCcw, RotateCw, Play, Pause, Timer, Plus, Square } from "lucide-react";
+import {
+  RefreshCw,
+  CheckCircle,
+  Wifi,
+  WifiOff,
+  Zap,
+  RotateCcw,
+  RotateCw,
+  Timer,
+  Plus,
+  Square,
+  ChevronRight,
+  AlertTriangle,
+  Award,
+  Pause,
+  Play
+} from "lucide-react";
 
-import { getMatches, getMatch, updateScore, finishMatch, undoScore, redoScore, updateSetTimer } from "@/lib/api/matches";
+import {
+  getMatches,
+  getMatch,
+  updateScore,
+  finishMatch,
+  undoScore,
+  redoScore,
+  updateSetTimer
+} from "@/lib/api/matches";
 import { useMatchRoom, useGlobalPanitiaRoom } from "@/lib/hooks/useSocket";
 import type { Match, MatchSet } from "@/lib/types";
 
-function SetTimerControl({ matchId, setNumber, initialDuration = 0, initialStatus = "STOPPED", initialStartedAt }: {
+// ─────────────────────────────────────────────
+// Timer Control Component
+// ─────────────────────────────────────────────
+function SetTimerControl({
+  matchId,
+  setNumber,
+  initialDuration = 0,
+  initialStatus = "STOPPED",
+  initialStartedAt,
+  onStatusChange
+}: {
   matchId: string;
   setNumber: number;
   initialDuration?: number;
   initialStatus?: "STOPPED" | "RUNNING" | "LOCKED";
   initialStartedAt?: string | null;
+  onStatusChange?: (status: "STOPPED" | "RUNNING" | "LOCKED") => void;
 }) {
   const [status, setStatus] = useState(initialStatus);
   const [duration, setDuration] = useState(initialDuration);
@@ -23,7 +58,8 @@ function SetTimerControl({ matchId, setNumber, initialDuration = 0, initialStatu
     setStatus(initialStatus);
     setDuration(initialDuration);
     setStartedAt(initialStartedAt ?? null);
-  }, [initialDuration, initialStatus, initialStartedAt]);
+    onStatusChange?.(initialStatus);
+  }, [initialDuration, initialStatus, initialStartedAt, onStatusChange]);
 
   const [elapsedSeconds, setElapsedSeconds] = useState(duration);
 
@@ -38,7 +74,9 @@ function SetTimerControl({ matchId, setNumber, initialDuration = 0, initialStatu
     } else {
       setElapsedSeconds(duration);
     }
-    return () => { if (interval) clearInterval(interval); };
+    return () => {
+      if (interval) clearInterval(interval);
+    };
   }, [status, startedAt, duration]);
 
   async function handleTimerAction(action: "START" | "PAUSE" | "RESET" | "STOP") {
@@ -48,47 +86,61 @@ function SetTimerControl({ matchId, setNumber, initialDuration = 0, initialStatu
       setDuration(res.durationSeconds);
       setStatus(res.timerStatus as any);
       setStartedAt(res.timerStartedAt ?? null);
-    } catch (e) { }
-    finally { setLoading(false); }
+      onStatusChange?.(res.timerStatus as any);
+    } catch (e) {
+    } finally {
+      setLoading(false);
+    }
   }
 
   const mins = String(Math.floor(elapsedSeconds / 60)).padStart(2, "0");
   const secs = String(elapsedSeconds % 60).padStart(2, "0");
 
   return (
-    <div className="flex flex-col items-center gap-2 py-3 px-4 rounded-xl border mb-6" style={{ background: "#F5F3FF", borderColor: "#DDD6FE" }}>
-      <div className="flex items-center gap-2">
-        <Timer size={14} className="text-purple-600" />
-        <span className="text-xs font-medium uppercase tracking-wider" style={{ color: "#5B21B6" }}> Set {setNumber}</span>
-        {status === "RUNNING" && <span className="h-2 w-2 rounded-full bg-green-500 animate-ping" />}
+    <div className="flex flex-col items-center justify-center p-3 rounded-2xl border bg-[#F8F7FF] border-[#E9D5FF] shadow-xs">
+      <div className="flex items-center gap-1.5 mb-1">
+        <Timer size={14} className="text-[#8352D9]" />
+        <span className="text-[11px] font-semibold uppercase tracking-wider text-[#5B21B6]">
+          Timer Set {setNumber}
+        </span>
+        {status === "RUNNING" && (
+          <span className="h-2 w-2 rounded-full bg-[#10B981] animate-ping" />
+        )}
       </div>
-      <span className="text-4xl font-bold tabular-nums tracking-tight" style={{ color: "#2E1065" }}>{mins}:{secs}</span>
-      <div className="flex gap-2 mt-1">
+
+      <div className="text-4xl font-bold tabular-nums tracking-tight text-[#2E1065] my-0.5">
+        {mins}:{secs}
+      </div>
+
+      <div className="flex items-center gap-2 mt-1">
         {status === "LOCKED" ? (
-          <span className="text-[10px] uppercase font-medium text-gray-400 bg-gray-100 px-2 py-1 rounded-md border">Locked</span>
+          <span className="text-[10px] uppercase font-bold text-gray-400 bg-gray-100 px-3 py-1 rounded-md border border-gray-200">
+            Locked
+          </span>
         ) : (
           <>
             {status === "RUNNING" ? (
               <button
                 onClick={() => handleTimerAction("PAUSE")}
                 disabled={loading}
-                className="flex items-center justify-center h-8 w-8 rounded-lg text-white transition shadow-xs hover:opacity-90"
-                style={{ background: "#F59E0B" }}
-                title="Pause"
+                aria-label="Jeda Timer"
+                title="Jeda Timer"
+                className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold text-white transition bg-[#F59E0B] hover:opacity-90 active:scale-95 shadow-xs"
               >
-                <Pause size={14} fill="currentColor" />
+                <Pause size={12} fill="currentColor" /> Jeda
               </button>
             ) : (
               <button
                 onClick={() => handleTimerAction("START")}
                 disabled={loading}
-                className="flex items-center justify-center h-8 w-8 rounded-lg text-white transition shadow-xs hover:opacity-90"
-                style={{ background: "#10B981" }}
-                title="Start"
+                aria-label="Mulai Timer"
+                title="Mulai Timer"
+                className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold text-[#0F172A] transition bg-[#66FFB4] hover:bg-[#50E69D] active:scale-95 shadow-[0_2px_8px_rgba(102,255,180,0.4)]"
               >
-                <Play size={14} fill="currentColor" />
+                <Play size={12} fill="currentColor" /> Mulai
               </button>
             )}
+
             <button
               onClick={() => {
                 if (confirm("Kunci timer untuk set ini? Waktu tidak bisa dilanjutkan lagi.")) {
@@ -96,11 +148,11 @@ function SetTimerControl({ matchId, setNumber, initialDuration = 0, initialStatu
                 }
               }}
               disabled={loading}
-              className="flex items-center justify-center h-8 w-8 rounded-lg text-white transition shadow-xs hover:opacity-90"
-              style={{ background: "#EF4444" }}
-              title="Stop & Lock"
+              aria-label="Berhenti & Kunci Timer"
+              title="Berhenti & Kunci Timer"
+              className="flex items-center justify-center p-1.5 rounded-lg text-white transition bg-[#EF4444] hover:opacity-90 active:scale-95 shadow-xs"
             >
-              <Square size={14} fill="currentColor" />
+              <Square size={12} fill="currentColor" />
             </button>
           </>
         )}
@@ -110,7 +162,7 @@ function SetTimerControl({ matchId, setNumber, initialDuration = 0, initialStatu
 }
 
 // ─────────────────────────────────────────────
-// Scoring Panel — 1 match sekaligus, fokus
+// Scoring Panel (1 Match Focused)
 // ─────────────────────────────────────────────
 function ScoringPanel({ match, onRefresh }: { match: Match; onRefresh: () => void }) {
   const { isConnected, lastScore, isFinished: socketFinished } = useMatchRoom(match.id);
@@ -124,11 +176,12 @@ function ScoringPanel({ match, onRefresh }: { match: Match; onRefresh: () => voi
   const [finishing, setFinishing] = useState(false);
   const [error, setError] = useState("");
 
-  // Modal Retired
+  // Modals
+  const [showFinishModal, setShowFinishModal] = useState(false);
   const [showRetiredModal, setShowRetiredModal] = useState(false);
   const [retiredWinnerId, setRetiredWinnerId] = useState("");
 
-  // WebSocket realtime
+  // Realtime updates via WebSocket
   useEffect(() => {
     if (!lastScore) return;
     setSets((prev) => {
@@ -142,34 +195,63 @@ function ScoringPanel({ match, onRefresh }: { match: Match; onRefresh: () => voi
       }
       return [
         ...prev,
-        { id: `ws-${lastScore.setNumber}`, matchId: match.id, setNumber: lastScore.setNumber, scoreA: lastScore.scoreA, scoreB: lastScore.scoreB, isFinished: false },
+        {
+          id: `ws-${lastScore.setNumber}`,
+          matchId: match.id,
+          setNumber: lastScore.setNumber,
+          scoreA: lastScore.scoreA,
+          scoreB: lastScore.scoreB,
+          isFinished: false
+        }
       ];
     });
   }, [lastScore, match.id]);
 
-  useEffect(() => { if (socketFinished) onRefresh(); }, [socketFinished, onRefresh]);
+  useEffect(() => {
+    if (socketFinished) onRefresh();
+  }, [socketFinished, onRefresh]);
 
   const currentSet = sets.find((s) => s.setNumber === activeSet) ?? {
-    id: `new-${activeSet}`, matchId: match.id, setNumber: activeSet, scoreA: 0, scoreB: 0, isFinished: false, timerStatus: "STOPPED", durationSeconds: 0
+    id: `new-${activeSet}`,
+    matchId: match.id,
+    setNumber: activeSet,
+    scoreA: 0,
+    scoreB: 0,
+    isFinished: false,
+    timerStatus: "STOPPED",
+    durationSeconds: 0
   };
 
+  const isTimerRunning = currentSet.timerStatus === "RUNNING";
+
   async function handleAddScore(field: "scoreA" | "scoreB") {
-    if (currentSet.timerStatus !== "RUNNING") {
+    if (!isTimerRunning) {
       alert("Nyalakan timer terlebih dahulu untuk set ini sebelum menambahkan skor!");
       return;
     }
     const newScoreA = field === "scoreA" ? currentSet.scoreA + 1 : currentSet.scoreA;
     const newScoreB = field === "scoreB" ? currentSet.scoreB + 1 : currentSet.scoreB;
 
+    // Optimistic Update
     setSets((prev) => {
       const exists = prev.find((s) => s.setNumber === activeSet);
-      if (exists) return prev.map((s) => s.setNumber === activeSet ? { ...s, scoreA: newScoreA, scoreB: newScoreB } : s);
+      if (exists) {
+        return prev.map((s) =>
+          s.setNumber === activeSet ? { ...s, scoreA: newScoreA, scoreB: newScoreB } : s
+        );
+      }
       return [...prev, { ...currentSet, scoreA: newScoreA, scoreB: newScoreB }];
     });
 
-    setSaving(true); setError("");
+    setSaving(true);
+    setError("");
     try {
-      const updated = await updateScore(match.id, { setNumber: activeSet, scoreA: newScoreA, scoreB: newScoreB, version });
+      const updated = await updateScore(match.id, {
+        setNumber: activeSet,
+        scoreA: newScoreA,
+        scoreB: newScoreB,
+        version
+      });
       setVersion(updated.version);
       if (updated.sets) setSets(updated.sets);
     } catch (e: any) {
@@ -181,47 +263,64 @@ function ScoringPanel({ match, onRefresh }: { match: Match; onRefresh: () => voi
       } else {
         setError(e instanceof Error ? e.message : "Gagal update skor");
       }
-    } finally { setSaving(false); }
+    } finally {
+      setSaving(false);
+    }
   }
 
   async function handleUndo() {
-    setSaving(true); setError("");
+    setSaving(true);
+    setError("");
     try {
       const updated = await undoScore(match.id);
       setVersion(updated.version);
       if (updated.sets) setSets(updated.sets);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Tidak ada skor untuk di-undo");
-    } finally { setSaving(false); }
+    } finally {
+      setSaving(false);
+    }
   }
 
   async function handleRedo() {
-    setSaving(true); setError("");
+    setSaving(true);
+    setError("");
     try {
       const updated = await redoScore(match.id);
       setVersion(updated.version);
       if (updated.sets) setSets(updated.sets);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Tidak ada skor untuk di-redo");
-    } finally { setSaving(false); }
+    } finally {
+      setSaving(false);
+    }
   }
 
   function addSet() {
     const next = sets.length > 0 ? Math.max(...sets.map((s) => s.setNumber)) + 1 : 1;
-    const newSet = { id: `new-${next}`, matchId: match.id, setNumber: next, scoreA: 0, scoreB: 0, isFinished: false };
+    const newSet = {
+      id: `new-${next}`,
+      matchId: match.id,
+      setNumber: next,
+      scoreA: 0,
+      scoreB: 0,
+      isFinished: false
+    };
     setSets((prev) => [...prev, newSet]);
     setActiveSet(next);
   }
 
-  async function handleFinish() {
-    if (!confirm(`Selesaikan match ini?\nPemenang ditentukan dari skor set.`)) return;
+  async function handleFinishConfirm() {
     setFinishing(true);
     try {
       await finishMatch(match.id, {});
+      setShowFinishModal(false);
       onRefresh();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Gagal menyelesaikan match");
-    } finally { setFinishing(false); }
+    } finally {
+      setFinishing(false);
+    }
   }
 
   async function handleRetiredSubmit() {
@@ -236,10 +335,38 @@ function ScoringPanel({ match, onRefresh }: { match: Match; onRefresh: () => voi
       onRefresh();
     } catch (e) {
       alert(e instanceof Error ? e.message : "Gagal menyimpan status retired");
-    } finally { setFinishing(false); }
+    } finally {
+      setFinishing(false);
+    }
   }
 
-  const getParticipantName = (p: any) => p?.athletes?.length > 0 ? p.athletes.map((a: any) => a.athlete?.name).join(" & ") : null;
+  // Keyboard Shortcuts (A for Team A, B for Team B, Z for Undo)
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if (showFinishModal || showRetiredModal) return;
+      const target = e.target as HTMLElement;
+      if (target && ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName)) return;
+
+      if ((e.key === "a" || e.key === "A") && isTimerRunning && !saving) {
+        e.preventDefault();
+        handleAddScore("scoreA");
+      } else if ((e.key === "b" || e.key === "B") && isTimerRunning && !saving) {
+        e.preventDefault();
+        handleAddScore("scoreB");
+      } else if ((e.key === "z" || e.key === "Z") && (e.ctrlKey || e.metaKey) && !saving) {
+        e.preventDefault();
+        handleUndo();
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isTimerRunning, saving, showFinishModal, showRetiredModal, currentSet]);
+
+  const getParticipantName = (p: any) =>
+    p?.athletes?.length > 0
+      ? p.athletes.map((a: any) => a.athlete?.name).join(" & ")
+      : null;
   const instA = match.participantA?.institution?.name ?? match.teamA?.institution?.name ?? "Tim A";
   const nameA = getParticipantName(match.participantA) || "Tim A";
 
@@ -255,72 +382,128 @@ function ScoringPanel({ match, onRefresh }: { match: Match; onRefresh: () => voi
   const totalSecs = String(totalSeconds % 60).padStart(2, "0");
 
   const is00 = currentSet.scoreA === 0 && currentSet.scoreB === 0;
-  const isTimerRunning = currentSet.timerStatus === "RUNNING";
 
   return (
-    <div className="w-full relative flex flex-col gap-6">
-      {/* Match info bar */}
-      <div className="flex items-center justify-between rounded-xl border bg-white px-5 py-4 shadow-sm" style={{ borderColor: "#E5E7EB" }}>
-        <div>
-          <p className="text-xs font-bold uppercase tracking-wider" style={{ color: "#374151" }}>
+    <div className="w-full flex flex-col gap-2 max-h-[calc(100vh-6.5rem)] justify-between">
+      {/* 1. Breadcrumb */}
+      <div className="flex items-center gap-1.5 text-xs text-[#9D9DB6]">
+        <span>Admin</span>
+        <ChevronRight size={12} />
+        <span>Match Aktif</span>
+        <ChevronRight size={12} />
+        <span className="font-semibold text-gray-700">{match.discipline?.name ?? "Badminton"}</span>
+      </div>
+
+      {/* 2. Match Context Bar (1 Line Horizontal) */}
+      <div className="flex items-center justify-between rounded-xl border bg-white px-4 py-2.5 shadow-xs border-gray-200">
+        <div className="flex items-center gap-3">
+          <span className="text-xs font-bold text-gray-900">
             {match.roundName}{match.groupName ? ` — ${match.groupName}` : ""}
-          </p>
+          </span>
           {match.courtNumber && (
-            <p className="text-xs font-semibold mt-1" style={{ color: "#6B7280" }}>Lapangan {match.courtNumber}</p>
+            <span className="text-[11px] font-semibold px-2 py-0.5 rounded-md bg-gray-100 text-gray-600 border border-gray-200">
+              Lapangan {match.courtNumber}
+            </span>
           )}
         </div>
-        <div className="flex items-center gap-3 bg-gray-50 px-3 py-1.5 rounded-md border">
-          {isConnected
-            ? <span className="flex items-center gap-1.5 text-xs font-bold text-green-600"><Wifi size={14} /> Stream Aktif</span>
-            : <span className="flex items-center gap-1.5 text-xs font-bold" style={{ color: "#9CA3AF" }}><WifiOff size={14} /> Offline</span>
-          }
-          <div className="h-4 w-px bg-gray-300 mx-1" />
-          <span className="flex h-2.5 w-2.5 animate-pulse rounded-full bg-red-500" />
-          <span className="text-xs font-bold tracking-widest text-red-600 uppercase">Live</span>
+
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-gray-50 border border-gray-200">
+            {isConnected ? (
+              <span className="flex items-center gap-1 text-xs font-bold text-[#10B981]">
+                <Wifi size={13} /> Terhubung
+              </span>
+            ) : (
+              <span className="flex items-center gap-1 text-xs font-semibold text-gray-400">
+                <WifiOff size={13} /> Offline
+              </span>
+            )}
+            <div className="h-3 w-px bg-gray-200 mx-0.5" />
+            <span className="flex h-2.5 w-2.5 animate-pulse rounded-full bg-[#EF4444]" />
+            <span className="text-xs font-black tracking-wider text-[#EF4444] uppercase">Live</span>
+          </div>
+
+          <button
+            onClick={onRefresh}
+            aria-label="Refresh Data"
+            title="Refresh Data"
+            className="p-1.5 rounded-lg border border-gray-200 hover:bg-gray-50 text-gray-600 transition"
+          >
+            <RefreshCw size={14} />
+          </button>
         </div>
       </div>
 
-      <div className="flex flex-col">
-        {/* Set Tabs Container */}
-        <div className="flex items-center gap-1 mb-1 relative z-10">
-          {sets.length === 0 && (
-            <button
-              onClick={() => setActiveSet(1)}
-              className="rounded-t-xl border border-b-0 px-6 py-3 text-sm font-bold transition-colors shadow-sm"
-              style={{ background: "#6C47D1", color: "#fff", borderColor: "#6C47D1" }}
-            >
-              Set 1
-            </button>
-          )}
-          {sets.map((s) => (
-            <button
-              key={s.setNumber}
-              onClick={() => setActiveSet(s.setNumber)}
-              className="rounded-t-xl border border-b-0 px-6 py-3 text-sm font-bold transition-colors shadow-sm"
-              style={
-                activeSet === s.setNumber
-                  ? { background: "#6C47D1", color: "#fff", borderColor: "#6C47D1" }
-                  : { background: "#fff", color: "#6B7280", borderColor: "#E5E7EB" }
-              }
-            >
-              Set {s.setNumber}
-            </button>
-          ))}
+      {/* 3. Set Navigator Tabs (Always Present) */}
+      <div className="flex items-center gap-1.5 mt-1">
+        {sets.length === 0 && (
           <button
-            onClick={addSet}
-            className="ml-auto flex items-center gap-1.5 rounded-xl border px-4 py-2.5 text-xs font-bold transition hover:bg-gray-50 text-gray-700 shadow-sm bg-white"
+            onClick={() => setActiveSet(1)}
+            className="rounded-t-xl border border-b-0 px-5 py-2 text-xs font-semibold transition-colors shadow-xs bg-[#8352D9] text-white border-[#8352D9]"
           >
-            <Plus size={16} /> Tambah Set
+            Set 1
           </button>
-        </div>
+        )}
+        {sets.map((s) => (
+          <button
+            key={s.setNumber}
+            onClick={() => setActiveSet(s.setNumber)}
+            className={`rounded-t-xl border border-b-0 px-5 py-2 text-xs font-semibold transition-colors shadow-xs ${
+              activeSet === s.setNumber
+                ? "bg-[#8352D9] text-white border-[#8352D9]"
+                : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"
+            }`}
+          >
+            Set {s.setNumber}
+          </button>
+        ))}
+        <button
+          onClick={addSet}
+          aria-label="Tambah Set Pertandingan"
+          title="Tambah Set Pertandingan"
+          className="ml-auto flex items-center gap-1 px-3 py-1.5 rounded-lg border border-gray-200 text-xs font-semibold text-gray-700 bg-white hover:bg-gray-50 shadow-xs"
+        >
+          <Plus size={14} /> Tambah Set
+        </button>
+      </div>
 
-        {/* 2-Column Split Layout */}
-        <div className="flex flex-col md:flex-row gap-6">
-          
-          {/* Left Column (Timer & Info, NO white box wrapper) */}
-          <div className="md:w-[280px] shrink-0 flex flex-col gap-4">
-            
-            {/* Timer */}
+      {/* 4. Score & Timer Card (Main 1 Card, 3 Sections: Team A | Center Timer | Team B) */}
+      <div className="bg-white border border-gray-200 rounded-b-2xl rounded-tr-2xl p-5 shadow-xs flex flex-col justify-between gap-3">
+        {error && (
+          <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-semibold text-red-600">
+            {error}
+          </div>
+        )}
+
+        <div className="grid grid-cols-[1fr_220px_1fr] items-center gap-4">
+          {/* Team A Section */}
+          <div className="flex flex-col items-center gap-2">
+            <div className="text-center min-h-[40px] flex flex-col justify-end">
+              <p className="text-base font-bold text-gray-900 leading-tight">{labelA}</p>
+              {!isTeam && <p className="text-xs font-medium text-gray-500">{instA}</p>}
+            </div>
+
+            <div className="text-6xl md:text-7xl font-bold tabular-nums tracking-tighter text-gray-900 my-1">
+              {currentSet.scoreA}
+            </div>
+
+            <button
+              onClick={() => handleAddScore("scoreA")}
+              disabled={saving || !isTimerRunning}
+              aria-label={`Tambah 1 poin untuk ${labelA} (Tekan A)`}
+              title={isTimerRunning ? "Tekan A pada keyboard" : "Nyalakan timer dahulu"}
+              className={`w-full max-w-[200px] rounded-full py-3 text-lg font-bold transition-all active:scale-95 shadow-[0_4px_14px_0_rgba(102,255,180,0.4)] ${
+                !isTimerRunning
+                  ? "bg-gray-200 text-gray-400 cursor-not-allowed shadow-none"
+                  : "bg-[#66FFB4] text-[#0F172A] hover:bg-[#50E69D]"
+              }`}
+            >
+              +1 Point
+            </button>
+          </div>
+
+          {/* Center Section: Timer Control & Match Time */}
+          <div className="flex flex-col gap-2">
             <SetTimerControl
               matchId={match.id}
               setNumber={activeSet}
@@ -328,180 +511,191 @@ function ScoringPanel({ match, onRefresh }: { match: Match; onRefresh: () => voi
               initialStatus={currentSet.timerStatus as any}
               initialStartedAt={currentSet.timerStartedAt}
             />
-            
-            {/* Match Time */}
-            <div className="bg-white border rounded-2xl p-6 shadow-sm text-center flex flex-col justify-center gap-1.5">
-              <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">Match Time</p>
-              <p className="text-3xl font-bold text-gray-900 tabular-nums leading-none tracking-tight">{totalMins}:{totalSecs}</p>
-            </div>
 
-            {/* Riwayat Skor Set */}
-            {sets.length > 0 && (
-              <div className="mt-2">
-                <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-3">Riwayat Skor Set</p>
-                <div className="flex flex-col gap-2.5">
-                  {sets.map((s) => (
-                    <div key={s.setNumber} className="flex items-center justify-between bg-white px-4 py-3.5 border rounded-xl shadow-sm transition hover:shadow-md">
-                      <span className="text-sm font-semibold text-gray-500">Set {s.setNumber}</span>
-                      <span className="text-base font-bold tracking-tight" style={{ color: s.setNumber === activeSet ? "#6C47D1" : "#1F2937" }}>
-                        {s.scoreA} <span className="mx-1 text-gray-300 font-medium">–</span> {s.scoreB}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
+            <div className="text-center bg-gray-50 border border-gray-200 rounded-xl p-2">
+              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Total Match Time</p>
+              <p className="text-lg font-bold text-gray-800 tabular-nums">{totalMins}:{totalSecs}</p>
+            </div>
           </div>
 
-          {/* Right Column (Scoring Panel, wrapped in Big White Box) */}
-          <div className="flex-1 flex flex-col bg-white border rounded-b-2xl rounded-tr-2xl p-8 shadow-sm justify-center min-h-[460px] relative -mt-[1px]" style={{ borderColor: "#E5E7EB" }}>
-            {error && (
-              <div className="mb-6 rounded-xl border border-red-200 bg-red-50 px-5 py-4 text-sm font-semibold text-red-600 shadow-sm">
-                {error}
-              </div>
-            )}
-
-            <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-10">
-              {/* Team A */}
-              <div className="flex flex-col items-center gap-6">
-                <div className="text-center min-h-[64px] flex flex-col justify-end">
-                  <p className="text-xl font-bold leading-tight text-gray-900">{labelA}</p>
-                  {!isTeam && <p className="text-sm font-medium text-gray-500 mt-1">{instA}</p>}
-                </div>
-                <span className="text-[140px] leading-none font-bold tabular-nums text-gray-900 tracking-tighter" style={{ textShadow: "0 4px 12px rgba(0,0,0,0.05)" }}>
-                  {currentSet.scoreA}
-                </span>
-                <button
-                  onClick={() => handleAddScore("scoreA")}
-                  disabled={saving || !isTimerRunning}
-                  className={`w-full rounded-2xl py-5 text-2xl font-bold text-white transition active:scale-95 shadow-[0_4px_14px_0_rgba(108,71,209,0.39)] hover:shadow-[0_6px_20px_rgba(108,71,209,0.23)] ${!isTimerRunning ? 'opacity-40 cursor-not-allowed' : 'hover:opacity-90'}`}
-                  style={{ background: "#C4B5FD", color: "#fff", backgroundImage: "linear-gradient(to right, #A78BFA, #8B5CF6)" }}
-                >
-                  +1 Point
-                </button>
-              </div>
-
-              {/* VS */}
-              <div className="flex flex-col items-center gap-4 px-4">
-                <span className="text-4xl font-bold text-gray-200 italic">VS</span>
-                {saving && (
-                  <div className="h-8 w-8 animate-spin rounded-full border-4 border-transparent" style={{ borderTopColor: "#8B5CF6" }} />
-                )}
-              </div>
-
-              {/* Team B */}
-              <div className="flex flex-col items-center gap-6">
-                <div className="text-center min-h-[64px] flex flex-col justify-end">
-                  <p className="text-xl font-bold leading-tight text-gray-900">{labelB}</p>
-                  {!isTeam && <p className="text-sm font-medium text-gray-500 mt-1">{instB}</p>}
-                </div>
-                <span className="text-[140px] leading-none font-bold tabular-nums text-gray-900 tracking-tighter" style={{ textShadow: "0 4px 12px rgba(0,0,0,0.05)" }}>
-                  {currentSet.scoreB}
-                </span>
-                <button
-                  onClick={() => handleAddScore("scoreB")}
-                  disabled={saving || !isTimerRunning}
-                  className={`w-full rounded-2xl py-5 text-2xl font-bold text-white transition active:scale-95 shadow-[0_4px_14px_0_rgba(108,71,209,0.39)] hover:shadow-[0_6px_20px_rgba(108,71,209,0.23)] ${!isTimerRunning ? 'opacity-40 cursor-not-allowed' : 'hover:opacity-90'}`}
-                  style={{ background: "#C4B5FD", color: "#fff", backgroundImage: "linear-gradient(to right, #A78BFA, #8B5CF6)" }}
-                >
-                  +1 Point
-                </button>
-              </div>
+          {/* Team B Section */}
+          <div className="flex flex-col items-center gap-2">
+            <div className="text-center min-h-[40px] flex flex-col justify-end">
+              <p className="text-base font-bold text-gray-900 leading-tight">{labelB}</p>
+              {!isTeam && <p className="text-xs font-medium text-gray-500">{instB}</p>}
             </div>
 
-            {/* Undo / Redo Control Bar */}
-            <div className="mt-14 flex justify-center gap-4">
-              <button
-                onClick={handleUndo}
-                disabled={saving || is00}
-                className="flex items-center gap-2 rounded-xl border-2 px-8 py-4 text-sm font-bold transition hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed bg-white text-gray-400 hover:text-gray-700 shadow-sm"
-                style={{ borderColor: "#E5E7EB" }}
-              >
-                <RotateCcw size={18} /> Undo Skor
-              </button>
-              <button
-                onClick={handleRedo}
-                disabled={saving}
-                className="flex items-center gap-2 rounded-xl border-2 px-8 py-4 text-sm font-bold transition hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed bg-white text-gray-400 hover:text-gray-700 shadow-sm"
-                style={{ borderColor: "#E5E7EB" }}
-              >
-                <RotateCw size={18} /> Redo Skor
-              </button>
+            <div className="text-6xl md:text-7xl font-bold tabular-nums tracking-tighter text-gray-900 my-1">
+              {currentSet.scoreB}
             </div>
-            
+
+            <button
+              onClick={() => handleAddScore("scoreB")}
+              disabled={saving || !isTimerRunning}
+              aria-label={`Tambah 1 poin untuk ${labelB} (Tekan B)`}
+              title={isTimerRunning ? "Tekan B pada keyboard" : "Nyalakan timer dahulu"}
+              className={`w-full max-w-[200px] rounded-full py-3 text-lg font-bold transition-all active:scale-95 shadow-[0_4px_14px_0_rgba(102,255,180,0.4)] ${
+                !isTimerRunning
+                  ? "bg-gray-200 text-gray-400 cursor-not-allowed shadow-none"
+                  : "bg-[#66FFB4] text-[#0F172A] hover:bg-[#50E69D]"
+              }`}
+            >
+              +1 Point
+            </button>
           </div>
+        </div>
+
+        {/* 5. Set Summary Row (1 Line Horizontal Chips) */}
+        {sets.length > 0 && (
+          <div className="flex items-center gap-2 border-t pt-2.5 border-gray-100">
+            <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Ringkasan Set:</span>
+            <div className="flex items-center gap-2 flex-wrap">
+              {sets.map((s) => (
+                <span
+                  key={s.setNumber}
+                  className={`text-xs font-semibold px-2.5 py-1 rounded-md border ${
+                    s.setNumber === activeSet
+                      ? "bg-purple-50 text-[#8352D9] border-purple-200"
+                      : "bg-gray-50 text-gray-700 border-gray-200"
+                  }`}
+                >
+                  Set {s.setNumber}: <strong className="font-bold">{s.scoreA}–{s.scoreB}</strong>
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* 6. Action Footer (Undo/Redo on left, Retired & Finish on right) */}
+      <div className="flex items-center justify-between gap-4 mt-1">
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handleUndo}
+            disabled={saving || is00}
+            aria-label="Undo Skor (Ctrl+Z)"
+            title="Undo Skor (Ctrl+Z)"
+            className="flex items-center gap-1.5 px-4 py-2 rounded-lg border border-gray-200 text-xs font-semibold text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed shadow-xs"
+          >
+            <RotateCcw size={14} /> Undo
+          </button>
+          <button
+            onClick={handleRedo}
+            disabled={saving}
+            aria-label="Redo Skor"
+            title="Redo Skor"
+            className="flex items-center gap-1.5 px-4 py-2 rounded-lg border border-gray-200 text-xs font-semibold text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed shadow-xs"
+          >
+            <RotateCw size={14} /> Redo
+          </button>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setShowRetiredModal(true)}
+            disabled={finishing}
+            aria-label="Mark Match as Retired"
+            title="Mark Match as Retired"
+            className="px-4 py-2 rounded-lg border border-[#EF4444] text-xs font-semibold text-[#EF4444] hover:bg-red-50 disabled:opacity-50 transition"
+          >
+            Retired
+          </button>
+
+          <button
+            onClick={() => setShowFinishModal(true)}
+            disabled={finishing}
+            aria-label="Selesaikan Pertandingan"
+            title="Selesaikan Pertandingan"
+            className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-xs font-bold text-white transition bg-[#2E1065] hover:bg-[#1E0A45] disabled:opacity-50 shadow-md"
+          >
+            <CheckCircle size={15} /> Selesaikan Pertandingan
+          </button>
         </div>
       </div>
 
-      {/* Footer Actions */}
-      <div className="flex gap-4 mt-2">
-        <button
-          onClick={() => setShowRetiredModal(true)}
-          disabled={finishing}
-          className="flex items-center justify-center gap-2 rounded-xl border-2 py-4 px-10 text-base font-bold transition hover:bg-red-50 disabled:opacity-50 bg-white shadow-sm"
-          style={{ borderColor: "#EF4444", color: "#EF4444" }}
-        >
-          Retired
-        </button>
-        
-        <button
-          onClick={handleFinish}
-          disabled={finishing}
-          className="flex flex-1 items-center justify-center gap-3 rounded-xl py-4 px-8 text-base font-bold text-white transition hover:opacity-90 shadow-[0_4px_14px_0_rgba(16,185,129,0.39)] disabled:opacity-50"
-          style={{ background: "#10B981" }}
-        >
-          <CheckCircle size={22} />
-          {finishing ? "Menyelesaikan..." : "Selesaikan Match"}
-        </button>
-      </div>
+      {/* MODAL 1: Finish Confirmation */}
+      {showFinishModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden border border-gray-100">
+            <div className="p-6 text-center">
+              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-purple-100 text-[#8352D9] mb-4">
+                <Award size={24} />
+              </div>
+              <h3 className="text-lg font-bold text-gray-900">Selesaikan Pertandingan?</h3>
+              <p className="text-xs text-gray-500 mt-2">
+                Skor akhir akan dikunci dan pemenang akan otomatis dicatat di sistem. Tindakan ini tidak dapat dibatalkan.
+              </p>
+            </div>
+            <div className="border-t px-6 py-4 bg-gray-50 flex justify-end gap-3">
+              <button
+                onClick={() => setShowFinishModal(false)}
+                className="px-4 py-2 rounded-lg text-xs font-semibold text-gray-600 hover:bg-gray-200 transition"
+              >
+                Batal
+              </button>
+              <button
+                onClick={handleFinishConfirm}
+                disabled={finishing}
+                className="px-5 py-2 rounded-lg text-xs font-bold text-white bg-[#2E1065] hover:bg-[#1E0A45] transition disabled:opacity-50"
+              >
+                {finishing ? "Menyelesaikan..." : "Ya, Selesaikan"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
-      {/* Retired Modal */}
+      {/* MODAL 2: Retired Confirmation */}
       {showRetiredModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden">
-            <div className="border-b px-6 py-5 bg-red-50">
-              <h3 className="text-xl font-bold text-red-600">Match Retired</h3>
-              <p className="text-sm font-medium text-red-800 mt-1">Selesaikan match karena walkout atau cedera.</p>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden border border-gray-100">
+            <div className="border-b px-6 py-4 bg-red-50">
+              <h3 className="text-base font-bold text-red-600 flex items-center gap-2">
+                <AlertTriangle size={18} /> Pertandingan Retired
+              </h3>
+              <p className="text-xs text-red-800 mt-1">
+                Pilih tim pemenang (tim lawan mundur/cedera).
+              </p>
             </div>
             <div className="p-6">
-              <p className="text-sm font-bold text-gray-700 mb-4">Pilih siapa yang memenangkan match ini:</p>
-              <div className="flex flex-col gap-3">
+              <p className="text-xs font-semibold text-gray-700 mb-3">Pilih Pemenang Pertandingan:</p>
+              <div className="flex flex-col gap-2.5">
                 <button
                   onClick={() => setRetiredWinnerId(match.participantA?.id || match.teamA?.id || "")}
-                  className={`p-4 border-2 rounded-xl text-left transition-all ${
+                  className={`p-3.5 border-2 rounded-xl text-left transition-all ${
                     retiredWinnerId === (match.participantA?.id || match.teamA?.id)
-                      ? "border-green-500 bg-green-50 shadow-md ring-4 ring-green-500/20"
+                      ? "border-green-500 bg-green-50 shadow-xs"
                       : "border-gray-200 hover:border-gray-300"
                   }`}
                 >
-                  <p className="text-base font-bold text-gray-900">{labelA}</p>
-                  <p className="text-sm font-medium text-gray-500 mt-1">{instA}</p>
+                  <p className="text-sm font-bold text-gray-900">{labelA}</p>
+                  <p className="text-xs text-gray-500">{instA}</p>
                 </button>
+
                 <button
                   onClick={() => setRetiredWinnerId(match.participantB?.id || match.teamB?.id || "")}
-                  className={`p-4 border-2 rounded-xl text-left transition-all ${
+                  className={`p-3.5 border-2 rounded-xl text-left transition-all ${
                     retiredWinnerId === (match.participantB?.id || match.teamB?.id)
-                      ? "border-green-500 bg-green-50 shadow-md ring-4 ring-green-500/20"
+                      ? "border-green-500 bg-green-50 shadow-xs"
                       : "border-gray-200 hover:border-gray-300"
                   }`}
                 >
-                  <p className="text-base font-bold text-gray-900">{labelB}</p>
-                  <p className="text-sm font-medium text-gray-500 mt-1">{instB}</p>
+                  <p className="text-sm font-bold text-gray-900">{labelB}</p>
+                  <p className="text-xs text-gray-500">{instB}</p>
                 </button>
               </div>
             </div>
-            <div className="border-t px-6 py-5 bg-gray-50 flex justify-end gap-3">
+            <div className="border-t px-6 py-4 bg-gray-50 flex justify-end gap-3">
               <button
                 onClick={() => setShowRetiredModal(false)}
-                className="px-6 py-3 rounded-xl text-sm font-bold text-gray-600 hover:bg-gray-200 transition"
+                className="px-4 py-2 rounded-lg text-xs font-semibold text-gray-600 hover:bg-gray-200 transition"
               >
                 Batal
               </button>
               <button
                 onClick={handleRetiredSubmit}
                 disabled={!retiredWinnerId || finishing}
-                className="px-6 py-3 rounded-xl text-sm font-bold text-white transition disabled:opacity-50"
-                style={{ background: "#EF4444" }}
+                className="px-5 py-2 rounded-lg text-xs font-bold text-white bg-[#EF4444] hover:bg-red-600 transition disabled:opacity-50"
               >
                 Konfirmasi Retired
               </button>
@@ -513,9 +707,8 @@ function ScoringPanel({ match, onRefresh }: { match: Match; onRefresh: () => voi
   );
 }
 
-
 // ─────────────────────────────────────────────
-// MatchAktifSection — pilih 1 match, fokus
+// MatchAktifSection Main Layout
 // ─────────────────────────────────────────────
 export function MatchAktifSection() {
   const [matches, setMatches] = useState<Match[]>([]);
@@ -538,10 +731,10 @@ export function MatchAktifSection() {
     }
   }, []);
 
-  // Initial load
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    load();
+  }, [load]);
 
-  // Realtime updates
   useEffect(() => {
     if (lastUpdate > 0) load(true);
   }, [lastUpdate, load]);
@@ -553,7 +746,8 @@ export function MatchAktifSection() {
   const selected = matches.find((m) => m.id === selectedId);
 
   const labelFor = (m: Match) => {
-    const getPName = (p: any) => p?.athletes?.length > 0 ? p.athletes.map((a: any) => a.athlete?.name).join(" & ") : null;
+    const getPName = (p: any) =>
+      p?.athletes?.length > 0 ? p.athletes.map((a: any) => a.athlete?.name).join(" & ") : null;
     const instA = m.participantA?.institution?.name ?? m.teamA?.institution?.name ?? "Tim A";
     const nameA = getPName(m.participantA) ? `${getPName(m.participantA)} (${instA})` : instA;
 
@@ -564,122 +758,164 @@ export function MatchAktifSection() {
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-8rem)] overflow-hidden">
-      {/* Header */}
-      <div className="mb-6 flex items-center justify-between">
-        <div>
-          <h1 className="text-md font-medium" style={{ color: "#111827" }}>Match Aktif</h1>
-          <p className="mt-0.5 text-xs" style={{ color: "#6B7280" }}>
-            {matches.length} pertandingan berlangsung
-          </p>
-        </div>
-        <button
-          onClick={() => load()}
-          className="flex items-center gap-2 rounded-lg border px-3 py-2 text-xs font-medium transition hover:bg-gray-50"
-          style={{ borderColor: "#E5E7EB", color: "#374151" }}
-        >
-          <RefreshCw size={14} />
-          Refresh
-        </button>
-      </div>
-
+    <div className="flex flex-col h-[calc(100vh-5rem)] overflow-hidden">
       {isLoading ? (
         <div className="flex justify-center py-20">
-          <div className="h-7 w-7 animate-spin rounded-full border-2 border-transparent" style={{ borderTopColor: "#6C47D1" }} />
+          <div
+            className="h-7 w-7 animate-spin rounded-full border-2 border-transparent"
+            style={{ borderTopColor: "#8352D9" }}
+          />
         </div>
       ) : matches.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-xl border bg-white py-24" style={{ borderColor: "#E5E7EB" }}>
-          <Zap size={40} style={{ color: "#D1D5DB" }} className="mb-4" />
-          <p className="font-semibold" style={{ color: "#374151" }}>Belum ada match yang berlangsung</p>
-          <p className="mt-1 text-xs" style={{ color: "#9CA3AF" }}>Mulai match dari tab Jadwal terlebih dahulu.</p>
+        <div className="flex flex-col items-center justify-center rounded-xl border bg-white py-24 border-gray-200">
+          <Zap size={40} className="mb-4 text-gray-300" />
+          <p className="font-semibold text-gray-700">Belum ada match yang berlangsung</p>
+          <p className="mt-1 text-xs text-gray-400">Mulai match dari tab Jadwal terlebih dahulu.</p>
         </div>
       ) : (
-        <>
-          <div className="flex flex-1 min-h-0 gap-6">
-            {/* Match selector sidebar */}
-            <div className="w-80 shrink-0 flex flex-col border-r pr-6" style={{ borderColor: "#E5E7EB" }}>
-              <label className="mb-3 block text-xs font-semibold uppercase tracking-wider" style={{ color: "#374151" }}>
-                Pilih Match yang Anda Awasi
+        <div className="flex flex-col md:flex-row flex-1 min-h-0 gap-5 overflow-hidden">
+          {/* Sidebar Match Selector (~240px) */}
+          <div className="w-full md:w-[240px] shrink-0 flex flex-col border-b md:border-b-0 md:border-r border-gray-200 pr-0 md:pr-4">
+            <div className="flex items-center justify-between mb-2">
+              <label className="text-[11px] font-bold uppercase tracking-wider text-gray-500">
+                Match Diawasi ({matches.length})
               </label>
-              <div className="flex-1 overflow-y-auto space-y-2 pr-2">
-                {matches.map((m) => (
-                  <button
-                    key={m.id}
-                    onClick={() => setSelectedId(m.id)}
-                    className={`w-full text-left p-3 rounded-lg border transition-all ${selectedId === m.id
-                      ? "border-purple-500 bg-purple-50 shadow-xs"
-                      : "border-gray-200 bg-white hover:bg-gray-50"
-                      }`}
-                  >
-                    <p className="text-xs font-semibold" style={{ color: selectedId === m.id ? "#5B21B6" : "#111827" }}>
-                      {labelFor(m).split(" — ")[0]}
-                    </p>
-                    <p className="text-xs mt-1" style={{ color: selectedId === m.id ? "#7C3AED" : "#6B7280" }}>
-                      Lap. {m.courtNumber ?? "?"}
-                    </p>
-                  </button>
-                ))}
-              </div>
+              <button
+                onClick={() => load()}
+                title="Refresh Daftar Match"
+                className="text-gray-400 hover:text-gray-600 transition p-1"
+              >
+                <RefreshCw size={12} />
+              </button>
             </div>
 
-            {/* Scoring panel for selected match */}
-            <div className="flex-1 overflow-y-auto px-2">
-              {selected && (
-                selected.discipline?.isTeamEvent ? (
-                  selectedSubMatchId ? (
-                    <div className="max-w-xl mx-auto">
-                      <button onClick={() => setSelectedSubMatchId(null)} className="mb-4 text-xs font-semibold text-purple-600 hover:underline">&larr; Kembali ke Daftar Pertandingan Beregu</button>
-                      <ScoringPanel key={selectedSubMatchId} match={selected.childMatches?.find((m: Match) => m.id === selectedSubMatchId)!} onRefresh={load} />
-                    </div>
-                  ) : (
-                    <div className="max-w-3xl mx-auto rounded-xl border bg-white p-6" style={{ borderColor: "#E5E7EB" }}>
-                      <h3 className="mb-4 text-lg font-medium" style={{ color: "#111827" }}>Daftar Pertandingan Beregu (Sub-Match)</h3>
-                      <div className="grid gap-4">
-                        {selected.childMatches?.map((child: any) => {
-                          const assignedSlot = child.slotType?.replace(/_[12]$/, "");
-                          const teamAAthletes = selected.teamA?.members?.filter((m: any) => m.assignedSlot === assignedSlot).map((m: any) => m.athlete?.name).join(" & ") || "-";
-                          const teamBAthletes = selected.teamB?.members?.filter((m: any) => m.assignedSlot === assignedSlot).map((m: any) => m.athlete?.name).join(" & ") || "-";
-                          const slotLabel = (child.slotType || "Tunggal/Ganda").replace(/_/g, " ").replace(/ 1$/, "").replace(/\w\S*/g, (w: string) => (w.replace(/^\w/, (c) => c.toUpperCase())));
-
-                          return (
-                            <div key={child.id} className="flex items-center justify-between rounded-lg border bg-white px-5 py-4 shadow-xs" style={{ borderColor: "#F3F4F6" }}>
-                              <div>
-                                <p className="font-medium text-xs" style={{ color: "#111827" }}>{slotLabel}</p>
-                                <p className="text-xs mt-1" style={{ color: "#6B7280" }}>
-                                  {teamAAthletes} <strong style={{ color: "#374151" }} className="mx-2">vs</strong> {teamBAthletes}
-                                </p>
-                              </div>
-                              {child.status === "FINISHED" ? (
-                                <span className="text-xs font-medium text-green-600 px-3 py-1.5 bg-green-50 rounded-lg">Selesai</span>
-                              ) : (
-                                <button onClick={() => setSelectedSubMatchId(child.id)} className="text-xs px-5 py-2.5 font-medium text-white transition shadow-xs hover:opacity-90 rounded-lg" style={{ background: "#6C47D1" }}>
-                                  Buka Skor
-                                </button>
-                              )}
-                            </div>
-                          );
-                        })}
-                      </div>
-                      <div className="mt-8 border-t pt-5" style={{ borderColor: "#F3F4F6" }}>
-                        <button onClick={async () => {
-                          if (!confirm("Selesaikan keseluruhan match beregu ini?\nPastikan semua partai yang perlu dimainkan sudah selesai.")) return;
-                          await finishMatch(selected.id, {});
-                          load();
-                        }} className="flex w-full items-center justify-center gap-2 rounded-lg border-2 py-3 text-xs font-medium transition hover:bg-red-50" style={{ borderColor: "#EF4444", color: "#EF4444" }}>
-                          Selesaikan Match Beregu
-                        </button>
-                      </div>
-                    </div>
-                  )
-                ) : (
-                  <div className="max-w-xl mx-auto">
-                    <ScoringPanel key={selected.id} match={selected} onRefresh={load} />
+            <div className="flex flex-row md:flex-col overflow-x-auto md:overflow-y-auto space-x-2 md:space-x-0 md:space-y-2 pb-2 md:pb-0 pr-1">
+              {matches.map((m) => (
+                <button
+                  key={m.id}
+                  onClick={() => setSelectedId(m.id)}
+                  className={`w-full text-left p-2.5 rounded-xl border transition-all shrink-0 md:shrink ${
+                    selectedId === m.id
+                      ? "border-[#8352D9] bg-purple-50/60 shadow-xs"
+                      : "border-gray-200 bg-white hover:bg-gray-50"
+                  }`}
+                >
+                  <p
+                    className={`text-xs font-bold truncate ${
+                      selectedId === m.id ? "text-[#5B21B6]" : "text-gray-900"
+                    }`}
+                  >
+                    {labelFor(m).split(" — ")[0]}
+                  </p>
+                  <div className="flex items-center justify-between text-[11px] mt-1">
+                    <span className={selectedId === m.id ? "text-[#8352D9]" : "text-gray-500"}>
+                      Lap. {m.courtNumber ?? "?"}
+                    </span>
+                    <span className="flex h-1.5 w-1.5 rounded-full bg-red-500" />
                   </div>
-                )
-              )}
+                </button>
+              ))}
             </div>
           </div>
-        </>
+
+          {/* Main Content Area */}
+          <div className="flex-1 overflow-y-auto pr-1">
+            {selected &&
+              (selected.discipline?.isTeamEvent ? (
+                selectedSubMatchId ? (
+                  <div className="max-w-3xl mx-auto">
+                    <button
+                      onClick={() => setSelectedSubMatchId(null)}
+                      className="mb-3 text-xs font-semibold text-[#8352D9] hover:underline flex items-center gap-1"
+                    >
+                      &larr; Kembali ke Daftar Pertandingan Beregu
+                    </button>
+                    <ScoringPanel
+                      key={selectedSubMatchId}
+                      match={selected.childMatches?.find((m: Match) => m.id === selectedSubMatchId)!}
+                      onRefresh={load}
+                    />
+                  </div>
+                ) : (
+                  <div className="max-w-3xl mx-auto rounded-2xl border bg-white p-5 border-gray-200 shadow-xs">
+                    <h3 className="mb-4 text-base font-bold text-gray-900">
+                      Daftar Pertandingan Beregu (Sub-Match)
+                    </h3>
+                    <div className="grid gap-3">
+                      {selected.childMatches?.map((child: any) => {
+                        const assignedSlot = child.slotType?.replace(/_[12]$/, "");
+                        const teamAAthletes =
+                          selected.teamA?.members
+                            ?.filter((m: any) => m.assignedSlot === assignedSlot)
+                            .map((m: any) => m.athlete?.name)
+                            .join(" & ") || "-";
+                        const teamBAthletes =
+                          selected.teamB?.members
+                            ?.filter((m: any) => m.assignedSlot === assignedSlot)
+                            .map((m: any) => m.athlete?.name)
+                            .join(" & ") || "-";
+                        const slotLabel = (child.slotType || "Tunggal/Ganda")
+                          .replace(/_/g, " ")
+                          .replace(/ 1$/, "")
+                          .replace(/\w\S*/g, (w: string) =>
+                            w.replace(/^\w/, (c) => c.toUpperCase())
+                          );
+
+                        return (
+                          <div
+                            key={child.id}
+                            className="flex items-center justify-between rounded-xl border bg-white px-4 py-3 border-gray-100 shadow-xs"
+                          >
+                            <div>
+                              <p className="font-bold text-xs text-gray-900">{slotLabel}</p>
+                              <p className="text-xs text-gray-500 mt-0.5">
+                                {teamAAthletes}{" "}
+                                <strong className="text-gray-700 mx-1">vs</strong>{" "}
+                                {teamBAthletes}
+                              </p>
+                            </div>
+                            {child.status === "FINISHED" ? (
+                              <span className="text-xs font-bold text-green-600 px-3 py-1 bg-green-50 rounded-lg border border-green-200">
+                                Selesai
+                              </span>
+                            ) : (
+                              <button
+                                onClick={() => setSelectedSubMatchId(child.id)}
+                                className="text-xs px-4 py-2 font-bold text-white transition shadow-xs hover:opacity-90 rounded-lg bg-[#8352D9]"
+                              >
+                                Buka Skor
+                              </button>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                    <div className="mt-6 border-t pt-4 border-gray-100">
+                      <button
+                        onClick={async () => {
+                          if (
+                            !confirm(
+                              "Selesaikan keseluruhan match beregu ini?\nPastikan semua partai yang perlu dimainkan sudah selesai."
+                            )
+                          )
+                            return;
+                          await finishMatch(selected.id, {});
+                          load();
+                        }}
+                        className="flex w-full items-center justify-center gap-2 rounded-xl border-2 border-[#EF4444] py-2.5 text-xs font-bold text-[#EF4444] hover:bg-red-50 transition"
+                      >
+                        Selesaikan Match Beregu
+                      </button>
+                    </div>
+                  </div>
+                )
+              ) : (
+                <div className="max-w-4xl mx-auto">
+                  <ScoringPanel key={selected.id} match={selected} onRefresh={load} />
+                </div>
+              ))}
+          </div>
+        </div>
       )}
     </div>
   );
