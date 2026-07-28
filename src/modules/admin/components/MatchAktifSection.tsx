@@ -809,6 +809,8 @@ export function MatchAktifSection() {
   const [isLoading, setIsLoading] = useState(true);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [selectedSubMatchId, setSelectedSubMatchId] = useState<string | null>(null);
+  const [showFinishBereguModal, setShowFinishBereguModal] = useState(false);
+  const [isFinishingBeregu, setIsFinishingBeregu] = useState(false);
   const { lastUpdate } = useGlobalPanitiaRoom();
 
   const load = useCallback(async (isBackground = false) => {
@@ -1062,19 +1064,10 @@ export function MatchAktifSection() {
 
                     <div className="mt-6 border-t pt-4 border-gray-100">
                       <button
-                        onClick={async () => {
-                          if (
-                            !confirm(
-                              "Selesaikan keseluruhan match beregu ini?\nPastikan semua partai yang perlu dimainkan sudah selesai."
-                            )
-                          )
-                            return;
-                          await finishMatch(selected.id, {});
-                          load();
-                        }}
+                        onClick={() => setShowFinishBereguModal(true)}
                         className="flex w-full items-center justify-center gap-2 rounded-xl border-2 border-[#EF4444] py-2.5 text-xs font-bold text-[#EF4444] hover:bg-red-50 transition"
                       >
-                        Selesaikan Match Beregu
+                        <CheckCircle size={15} /> Selesaikan Match Beregu
                       </button>
                     </div>
                   </div>
@@ -1084,6 +1077,103 @@ export function MatchAktifSection() {
                   <ScoringPanel key={selected.id} match={selected} onRefresh={load} />
                 </div>
               ))}
+          </div>
+        </div>
+      )}
+
+      {showFinishBereguModal && selected && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden border border-gray-100">
+            <div className="border-b px-6 py-4 bg-red-50">
+              <h3 className="text-base font-bold text-red-600 flex items-center gap-2">
+                <AlertTriangle size={18} /> Selesaikan Match Beregu?
+              </h3>
+              <p className="text-xs text-red-800 mt-1">
+                Pertandingan beregu keseluruhan akan diselesaikan dan skor dikunci.
+              </p>
+            </div>
+
+            <div className="p-6">
+              <div className="bg-gray-50 rounded-xl p-4 border border-gray-200 mb-4 text-center">
+                <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Skor Akhir Partai Beregu</p>
+                <div className="flex items-center justify-center gap-4">
+                  <div className="flex-1 text-right">
+                    <p className="text-sm font-bold text-gray-900">{selected.teamA?.institution?.name || "Tim A"}</p>
+                    <p className="text-xs text-gray-500">
+                      {(selected.childMatches?.filter((child: any) => {
+                        const childSets = child.sets || [];
+                        const setsA = childSets.filter((s: any) => s.scoreA > s.scoreB).length;
+                        const setsB = childSets.filter((s: any) => s.scoreB > s.scoreA).length;
+                        return child.status === "FINISHED" && setsA > setsB;
+                      }).length ?? 0)} Partai Menang
+                    </p>
+                  </div>
+                  <div className="px-3 py-1 bg-white rounded-lg border border-gray-300 font-black text-lg text-[#8352D9] tabular-nums">
+                    {(selected.childMatches?.filter((child: any) => {
+                      const childSets = child.sets || [];
+                      const setsA = childSets.filter((s: any) => s.scoreA > s.scoreB).length;
+                      const setsB = childSets.filter((s: any) => s.scoreB > s.scoreA).length;
+                      return child.status === "FINISHED" && setsA > setsB;
+                    }).length ?? 0)} - {(selected.childMatches?.filter((child: any) => {
+                      const childSets = child.sets || [];
+                      const setsA = childSets.filter((s: any) => s.scoreA > s.scoreB).length;
+                      const setsB = childSets.filter((s: any) => s.scoreB > s.scoreA).length;
+                      return child.status === "FINISHED" && setsB > setsA;
+                    }).length ?? 0)}
+                  </div>
+                  <div className="flex-1 text-left">
+                    <p className="text-sm font-bold text-gray-900">{selected.teamB?.institution?.name || "Tim B"}</p>
+                    <p className="text-xs text-gray-500">
+                      {(selected.childMatches?.filter((child: any) => {
+                        const childSets = child.sets || [];
+                        const setsA = childSets.filter((s: any) => s.scoreA > s.scoreB).length;
+                        const setsB = childSets.filter((s: any) => s.scoreB > s.scoreA).length;
+                        return child.status === "FINISHED" && setsB > setsA;
+                      }).length ?? 0)} Partai Menang
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <p className="text-xs text-gray-600 text-center">
+                Pastikan seluruh partai yang perlu dimainkan sudah selesai. Skor pertandingan beregu ini akan dikunci dan pemenang akan otomatis dicatat di sistem.
+              </p>
+            </div>
+
+            <div className="border-t px-6 py-4 bg-gray-50 flex justify-end gap-3">
+              <button
+                onClick={() => setShowFinishBereguModal(false)}
+                disabled={isFinishingBeregu}
+                className="px-4 py-2 rounded-lg text-xs font-semibold text-gray-600 hover:bg-gray-200 transition disabled:opacity-50"
+              >
+                Batal
+              </button>
+              <button
+                onClick={async () => {
+                  setIsFinishingBeregu(true);
+                  try {
+                    await finishMatch(selected.id, {});
+                    setShowFinishBereguModal(false);
+                    load();
+                  } catch (e) {
+                    alert(e instanceof Error ? e.message : "Gagal menyelesaikan match beregu");
+                  } finally {
+                    setIsFinishingBeregu(false);
+                  }
+                }}
+                disabled={isFinishingBeregu}
+                className="flex items-center gap-2 px-5 py-2 rounded-lg text-xs font-bold text-white bg-[#EF4444] hover:bg-red-600 transition disabled:opacity-50 shadow-md"
+              >
+                {isFinishingBeregu ? (
+                  <>
+                    <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                    <span>Menyelesaikan...</span>
+                  </>
+                ) : (
+                  "Ya, Selesaikan Match Beregu"
+                )}
+              </button>
+            </div>
           </div>
         </div>
       )}
