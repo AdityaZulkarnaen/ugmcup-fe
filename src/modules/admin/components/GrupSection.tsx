@@ -31,6 +31,13 @@ export function GrupSection() {
   const [resetModalOpen, setResetModalOpen] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
   const [resetError, setResetError] = useState("");
+  const [resetSuccess, setResetSuccess] = useState(false);
+
+  // Generate Match Modal
+  const [generateModalOpen, setGenerateModalOpen] = useState(false);
+  const [groupToGenerate, setGroupToGenerate] = useState("");
+  const [generateError, setGenerateError] = useState("");
+  const [generateSuccess, setGenerateSuccess] = useState(false);
 
   const groupedStandings = useMemo(() => {
     return standings.reduce((acc, curr) => {
@@ -98,27 +105,35 @@ export function GrupSection() {
     }
   }
 
-  async function handleGenerateMatches(gName: string) {
-    if (!confirm(`Generate match round-robin untuk Grup ${gName}?`)) return;
-    setGeneratingGroup(gName);
+  async function confirmGenerateMatches() {
+    setGeneratingGroup(groupToGenerate);
+    setGenerateError("");
+    setGenerateSuccess(false);
     try {
-      await generateGroupMatches({ disciplineId: selectedDisc, groupName: gName });
-      alert("Pertandingan grup berhasil di-generate!");
+      await generateGroupMatches({ disciplineId: selectedDisc, groupName: groupToGenerate });
+      setGenerateSuccess(true);
       await load(false);
+      setTimeout(() => {
+        setGenerateModalOpen(false);
+        setGenerateSuccess(false);
+      }, 1500);
     } catch (e) {
-      alert(e instanceof Error ? e.message : "Gagal generate matches");
+      setGenerateError(e instanceof Error ? e.message : "Gagal generate matches");
     } finally {
       setGeneratingGroup(null);
     }
   }
 
   async function handleResetGroup() {
-    setIsResetting(true); setResetError("");
+    setIsResetting(true); setResetError(""); setResetSuccess(false);
     try {
       await resetGroupStandings(selectedDisc);
-      setResetModalOpen(false);
+      setResetSuccess(true);
       await load(false);
-      alert("Seluruh grup berhasil direset!");
+      setTimeout(() => {
+        setResetModalOpen(false);
+        setResetSuccess(false);
+      }, 1500);
     } catch (e) {
       setResetError(e instanceof Error ? e.message : "Gagal mereset grup");
     } finally {
@@ -177,7 +192,7 @@ export function GrupSection() {
                   <h3 className="font-bold text-gray-800 text-lg">Grup {gName}</h3>
                   <button
                     disabled={hasMatches || isGenerating || groupedStandings[gName].length < 2}
-                    onClick={() => handleGenerateMatches(gName)}
+                    onClick={() => { setGroupToGenerate(gName); setGenerateModalOpen(true); }}
                     className="flex items-center gap-2 rounded-lg px-4 py-1.5 text-sm font-semibold text-white transition disabled:opacity-50 disabled:cursor-not-allowed"
                     style={{ background: hasMatches ? "#10B981" : "#6C47D1" }}
                   >
@@ -268,28 +283,69 @@ export function GrupSection() {
       </Modal>
 
       {/* Modal Reset Grup */}
-      <Modal isOpen={resetModalOpen} onClose={() => { setResetModalOpen(false); setResetError(""); }} title="Konfirmasi Reset Grup" size="sm"
+      <Modal isOpen={resetModalOpen} onClose={() => { setResetModalOpen(false); setResetError(""); setResetSuccess(false); }} title="Konfirmasi Reset Grup" size="sm"
         footer={
-          <>
-            <ModalCancelButton onClick={() => { setResetModalOpen(false); setResetError(""); }} />
-            <button
-              onClick={handleResetGroup}
-              disabled={isResetting}
-              className="rounded-xl px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed bg-red-600"
-            >
-              {isResetting ? "Mereset..." : "Ya, Reset Semua Grup"}
-            </button>
-          </>
+          !resetSuccess ? (
+            <>
+              <ModalCancelButton onClick={() => { setResetModalOpen(false); setResetError(""); }} />
+              <button
+                onClick={handleResetGroup}
+                disabled={isResetting}
+                className="rounded-xl px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed bg-red-600"
+              >
+                {isResetting ? "Mereset..." : "Ya, Reset Semua Grup"}
+              </button>
+            </>
+          ) : <div />
         }>
         {resetError && <p className="mb-4 rounded-xl p-3 text-sm bg-red-50 text-red-600 border border-red-200">{resetError}</p>}
-        <div className="space-y-4">
-          <p className="text-sm text-gray-700">
-            Apakah Anda yakin ingin menghapus <strong>seluruh data grup</strong> untuk kategori beregu ini?
-          </p>
-          <p className="text-sm text-red-600 font-semibold bg-red-50 p-3 rounded-lg border border-red-100">
-            Tindakan ini tidak dapat dibatalkan. Data tim akan kembali ke status "Belum masuk grup".
-          </p>
-        </div>
+        {resetSuccess ? (
+          <div className="flex flex-col items-center justify-center py-6">
+            <div className="h-12 w-12 rounded-full bg-green-100 flex items-center justify-center mb-3">
+              <span className="text-green-600 text-2xl">✓</span>
+            </div>
+            <p className="font-bold text-gray-800">Berhasil Direset!</p>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            <p className="text-sm text-gray-700">
+              Apakah Anda yakin ingin menghapus <strong>seluruh data grup</strong> untuk kategori beregu ini?
+            </p>
+            <p className="text-sm text-red-600 font-semibold bg-red-50 p-3 rounded-lg border border-red-100">
+              Tindakan ini tidak dapat dibatalkan. Data tim akan kembali ke status "Belum masuk grup".
+            </p>
+          </div>
+        )}
+      </Modal>
+
+      {/* Modal Generate Matches */}
+      <Modal isOpen={generateModalOpen} onClose={() => { setGenerateModalOpen(false); setGenerateError(""); setGenerateSuccess(false); }} title={`Generate Match Grup ${groupToGenerate}`} size="sm"
+        footer={
+          !generateSuccess ? (
+            <>
+              <ModalCancelButton onClick={() => { setGenerateModalOpen(false); setGenerateError(""); }} />
+              <ModalSubmitButton onClick={confirmGenerateMatches} isLoading={generatingGroup === groupToGenerate} label="Ya, Generate" />
+            </>
+          ) : <div />
+        }>
+        {generateError && <p className="mb-4 rounded-xl p-3 text-sm bg-red-50 text-red-600 border border-red-200">{generateError}</p>}
+        {generateSuccess ? (
+          <div className="flex flex-col items-center justify-center py-6">
+            <div className="h-12 w-12 rounded-full bg-green-100 flex items-center justify-center mb-3">
+              <span className="text-green-600 text-2xl">✓</span>
+            </div>
+            <p className="font-bold text-gray-800">Pertandingan Berhasil Digenerate!</p>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            <p className="text-sm text-gray-700">
+              Apakah Anda yakin ingin membuat jadwal pertandingan (sistem round-robin) untuk <strong>Grup {groupToGenerate}</strong>?
+            </p>
+            <p className="text-sm text-gray-500">
+              Setiap tim di dalam grup ini akan bertanding melawan semua tim lainnya.
+            </p>
+          </div>
+        )}
       </Modal>
 
     </div>
