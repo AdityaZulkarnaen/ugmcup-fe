@@ -12,7 +12,7 @@ export interface Athlete {
   id: string;
   institutionId: string;
   name: string;
-  gender: "PUTRA" | "PUTRI";
+  gender: "LAKI_LAKI" | "PEREMPUAN";
   studentId?: string;
   photoUrl?: string;
   createdAt: string;

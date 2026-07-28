@@ -28,9 +28,9 @@ export function MediaHome() {
       </div>
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-3">
-        <StatCard label="Total Berita" value={stats.news} icon={<Newspaper size={20} />} />
-        <StatCard label="Foto Galeri" value={stats.media} icon={<ImageIcon size={20} />} accentColor="#0284C7" />
-        <StatCard label="FAQ" value={stats.faqs} icon={<HelpCircle size={20} />} accentColor="#059669" />
+        <StatCard label="Total Berita" value={stats.news} />
+        <StatCard label="Foto Galeri" value={stats.media} accentColor="#0284C7" />
+        <StatCard label="FAQ" value={stats.faqs} accentColor="#059669" />
       </div>
 
       <div className="mt-6 rounded-lg border bg-white p-5" style={{ borderColor: "#E5E7EB" }}>
