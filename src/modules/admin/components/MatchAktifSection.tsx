@@ -62,7 +62,7 @@ function SetTimerControl({ matchId, setNumber, initialDuration = 0, initialStatu
         <span className="text-xs font-medium uppercase tracking-wider" style={{ color: "#5B21B6" }}> Set {setNumber}</span>
         {status === "RUNNING" && <span className="h-2 w-2 rounded-full bg-green-500 animate-ping" />}
       </div>
-      <span className="text-4xl font-mono font-black tracking-tight" style={{ color: "#2E1065" }}>{mins}:{secs}</span>
+      <span className="text-4xl font-bold tabular-nums tracking-tight" style={{ color: "#2E1065" }}>{mins}:{secs}</span>
       <div className="flex gap-2 mt-1">
         {status === "LOCKED" ? (
           <span className="text-[10px] uppercase font-medium text-gray-400 bg-gray-100 px-2 py-1 rounded-md border">Locked</span>
@@ -276,7 +276,7 @@ function ScoringPanel({ match, onRefresh }: { match: Match; onRefresh: () => voi
           }
           <div className="h-4 w-px bg-gray-300 mx-1" />
           <span className="flex h-2.5 w-2.5 animate-pulse rounded-full bg-red-500" />
-          <span className="text-xs font-black tracking-widest text-red-600 uppercase">Live</span>
+          <span className="text-xs font-bold tracking-widest text-red-600 uppercase">Live</span>
         </div>
       </div>
 
@@ -332,7 +332,7 @@ function ScoringPanel({ match, onRefresh }: { match: Match; onRefresh: () => voi
             {/* Match Time */}
             <div className="bg-white border rounded-2xl p-6 shadow-sm text-center flex flex-col justify-center gap-1.5">
               <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">Match Time</p>
-              <p className="text-3xl font-black text-gray-900 tabular-nums leading-none tracking-tight">{totalMins}:{totalSecs}</p>
+              <p className="text-3xl font-bold text-gray-900 tabular-nums leading-none tracking-tight">{totalMins}:{totalSecs}</p>
             </div>
 
             {/* Riwayat Skor Set */}
@@ -343,7 +343,7 @@ function ScoringPanel({ match, onRefresh }: { match: Match; onRefresh: () => voi
                   {sets.map((s) => (
                     <div key={s.setNumber} className="flex items-center justify-between bg-white px-4 py-3.5 border rounded-xl shadow-sm transition hover:shadow-md">
                       <span className="text-sm font-semibold text-gray-500">Set {s.setNumber}</span>
-                      <span className="text-base font-black tracking-tight" style={{ color: s.setNumber === activeSet ? "#6C47D1" : "#1F2937" }}>
+                      <span className="text-base font-bold tracking-tight" style={{ color: s.setNumber === activeSet ? "#6C47D1" : "#1F2937" }}>
                         {s.scoreA} <span className="mx-1 text-gray-300 font-medium">–</span> {s.scoreB}
                       </span>
                     </div>
@@ -365,16 +365,16 @@ function ScoringPanel({ match, onRefresh }: { match: Match; onRefresh: () => voi
               {/* Team A */}
               <div className="flex flex-col items-center gap-6">
                 <div className="text-center min-h-[64px] flex flex-col justify-end">
-                  <p className="text-xl font-black leading-tight text-gray-900">{labelA}</p>
+                  <p className="text-xl font-bold leading-tight text-gray-900">{labelA}</p>
                   {!isTeam && <p className="text-sm font-medium text-gray-500 mt-1">{instA}</p>}
                 </div>
-                <span className="text-[140px] leading-none font-black tabular-nums text-gray-900 tracking-tighter" style={{ textShadow: "0 4px 12px rgba(0,0,0,0.05)" }}>
+                <span className="text-[140px] leading-none font-bold tabular-nums text-gray-900 tracking-tighter" style={{ textShadow: "0 4px 12px rgba(0,0,0,0.05)" }}>
                   {currentSet.scoreA}
                 </span>
                 <button
                   onClick={() => handleAddScore("scoreA")}
                   disabled={saving || !isTimerRunning}
-                  className={`w-full rounded-2xl py-5 text-2xl font-black text-white transition active:scale-95 shadow-[0_4px_14px_0_rgba(108,71,209,0.39)] hover:shadow-[0_6px_20px_rgba(108,71,209,0.23)] ${!isTimerRunning ? 'opacity-40 cursor-not-allowed' : 'hover:opacity-90'}`}
+                  className={`w-full rounded-2xl py-5 text-2xl font-bold text-white transition active:scale-95 shadow-[0_4px_14px_0_rgba(108,71,209,0.39)] hover:shadow-[0_6px_20px_rgba(108,71,209,0.23)] ${!isTimerRunning ? 'opacity-40 cursor-not-allowed' : 'hover:opacity-90'}`}
                   style={{ background: "#C4B5FD", color: "#fff", backgroundImage: "linear-gradient(to right, #A78BFA, #8B5CF6)" }}
                 >
                   +1 Point
@@ -383,7 +383,7 @@ function ScoringPanel({ match, onRefresh }: { match: Match; onRefresh: () => voi
 
               {/* VS */}
               <div className="flex flex-col items-center gap-4 px-4">
-                <span className="text-4xl font-black text-gray-200 italic">VS</span>
+                <span className="text-4xl font-bold text-gray-200 italic">VS</span>
                 {saving && (
                   <div className="h-8 w-8 animate-spin rounded-full border-4 border-transparent" style={{ borderTopColor: "#8B5CF6" }} />
                 )}
@@ -392,16 +392,16 @@ function ScoringPanel({ match, onRefresh }: { match: Match; onRefresh: () => voi
               {/* Team B */}
               <div className="flex flex-col items-center gap-6">
                 <div className="text-center min-h-[64px] flex flex-col justify-end">
-                  <p className="text-xl font-black leading-tight text-gray-900">{labelB}</p>
+                  <p className="text-xl font-bold leading-tight text-gray-900">{labelB}</p>
                   {!isTeam && <p className="text-sm font-medium text-gray-500 mt-1">{instB}</p>}
                 </div>
-                <span className="text-[140px] leading-none font-black tabular-nums text-gray-900 tracking-tighter" style={{ textShadow: "0 4px 12px rgba(0,0,0,0.05)" }}>
+                <span className="text-[140px] leading-none font-bold tabular-nums text-gray-900 tracking-tighter" style={{ textShadow: "0 4px 12px rgba(0,0,0,0.05)" }}>
                   {currentSet.scoreB}
                 </span>
                 <button
                   onClick={() => handleAddScore("scoreB")}
                   disabled={saving || !isTimerRunning}
-                  className={`w-full rounded-2xl py-5 text-2xl font-black text-white transition active:scale-95 shadow-[0_4px_14px_0_rgba(108,71,209,0.39)] hover:shadow-[0_6px_20px_rgba(108,71,209,0.23)] ${!isTimerRunning ? 'opacity-40 cursor-not-allowed' : 'hover:opacity-90'}`}
+                  className={`w-full rounded-2xl py-5 text-2xl font-bold text-white transition active:scale-95 shadow-[0_4px_14px_0_rgba(108,71,209,0.39)] hover:shadow-[0_6px_20px_rgba(108,71,209,0.23)] ${!isTimerRunning ? 'opacity-40 cursor-not-allowed' : 'hover:opacity-90'}`}
                   style={{ background: "#C4B5FD", color: "#fff", backgroundImage: "linear-gradient(to right, #A78BFA, #8B5CF6)" }}
                 >
                   +1 Point
@@ -460,7 +460,7 @@ function ScoringPanel({ match, onRefresh }: { match: Match; onRefresh: () => voi
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
           <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden">
             <div className="border-b px-6 py-5 bg-red-50">
-              <h3 className="text-xl font-black text-red-600">Match Retired</h3>
+              <h3 className="text-xl font-bold text-red-600">Match Retired</h3>
               <p className="text-sm font-medium text-red-800 mt-1">Selesaikan match karena walkout atau cedera.</p>
             </div>
             <div className="p-6">
@@ -474,7 +474,7 @@ function ScoringPanel({ match, onRefresh }: { match: Match; onRefresh: () => voi
                       : "border-gray-200 hover:border-gray-300"
                   }`}
                 >
-                  <p className="text-base font-black text-gray-900">{labelA}</p>
+                  <p className="text-base font-bold text-gray-900">{labelA}</p>
                   <p className="text-sm font-medium text-gray-500 mt-1">{instA}</p>
                 </button>
                 <button
@@ -485,7 +485,7 @@ function ScoringPanel({ match, onRefresh }: { match: Match; onRefresh: () => voi
                       : "border-gray-200 hover:border-gray-300"
                   }`}
                 >
-                  <p className="text-base font-black text-gray-900">{labelB}</p>
+                  <p className="text-base font-bold text-gray-900">{labelB}</p>
                   <p className="text-sm font-medium text-gray-500 mt-1">{instB}</p>
                 </button>
               </div>
