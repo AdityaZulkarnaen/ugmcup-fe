@@ -195,7 +195,13 @@ export function BracketSection() {
   const entityList = participants.length > 0 ? participants : teams;
   const getLabel = (item: Participant | Team) => {
     if ("athletes" in item) {
-      return (item as Participant).institution?.name ?? "Peserta";
+      const p = item as Participant;
+      const instName = p.institution?.name ?? "Instansi Tanpa Nama";
+      if (p.athletes && p.athletes.length > 0) {
+        const names = p.athletes.map(a => a.athlete?.name).filter(Boolean).join(" & ");
+        return `${names} (${instName})`;
+      }
+      return instName;
     }
     return (item as Team).institution?.name ?? "Tim";
   };
@@ -275,10 +281,23 @@ export function BracketSection() {
                 <div key={round} className="flex flex-col justify-around gap-6 w-72 shrink-0 relative">
                   <div className="absolute -top-6 left-0 right-0 text-center text-sm font-bold text-slate-500">{round}</div>
                   {nodes.map((node) => {
+                    const getMatchEntityLabel = (p: any, t: any, isFirst: boolean) => {
+                      if (p) {
+                        const inst = p.institution?.name ?? "Instansi";
+                        if (p.athletes?.length) {
+                          const names = p.athletes.map((a: any) => a.athlete?.name).filter(Boolean).join(" & ");
+                          return `${names} (${inst})`;
+                        }
+                        return inst;
+                      }
+                      if (t) return t.institution?.name ?? "Tim";
+                      return isFirst ? "BYE" : "TBD";
+                    };
+
                     const entityAId = node.match?.participantAId ?? node.match?.teamAId ?? null;
                     const entityBId = node.match?.participantBId ?? node.match?.teamBId ?? null;
-                    const nameA = node.match?.participantA?.institution?.name ?? node.match?.teamA?.institution?.name ?? (isFirstRound ? "BYE" : "TBD");
-                    const nameB = node.match?.participantB?.institution?.name ?? node.match?.teamB?.institution?.name ?? (isFirstRound ? "BYE" : "TBD");
+                    const nameA = getMatchEntityLabel(node.match?.participantA, node.match?.teamA, isFirstRound);
+                    const nameB = getMatchEntityLabel(node.match?.participantB, node.match?.teamB, isFirstRound);
                     
                     return (
                       <div key={node.id} className="relative bg-white border rounded-lg shadow-sm overflow-hidden text-sm flex flex-col group" style={{ borderColor: "#CBD5E1" }}>
