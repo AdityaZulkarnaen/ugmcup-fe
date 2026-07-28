@@ -404,8 +404,8 @@ function ScoringPanel({
     }
   }
 
-  const primaryA = athleteNamesA || (effectiveTeamAInst ? effectiveTeamAInst : "Tim A");
-  const secondaryA = athleteNamesA && effectiveTeamAInst ? effectiveTeamAInst : null;
+  const primaryA = effectiveTeamAInst || "Tim A";
+  const secondaryA = athleteNamesA;
 
   const effectiveTeamBInst =
     match.participantB?.institution?.name ??
@@ -427,8 +427,8 @@ function ScoringPanel({
     }
   }
 
-  const primaryB = athleteNamesB || (effectiveTeamBInst ? effectiveTeamBInst : "Tim B");
-  const secondaryB = athleteNamesB && effectiveTeamBInst ? effectiveTeamBInst : null;
+  const primaryB = effectiveTeamBInst || "Tim B";
+  const secondaryB = athleteNamesB;
 
   const totalSeconds = sets.reduce((sum, s) => sum + (s.durationSeconds || 0), 0);
   const totalMins = String(Math.floor(totalSeconds / 60)).padStart(2, "0");
@@ -581,8 +581,8 @@ function ScoringPanel({
 
         {/* 4. Set Summary Row */}
         {sets.length > 0 && (
-          <div className="flex items-center gap-2 border-t pt-2.5 border-gray-100">
-            <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Set:</span>
+          <div className="flex items-center gap-2 border-t pt-8 border-gray-100">
+            <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">set:</span>
             <div className="flex items-center gap-2 flex-wrap">
               {sets.map((s) => (
                 <span
