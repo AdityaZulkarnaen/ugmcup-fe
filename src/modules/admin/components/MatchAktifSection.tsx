@@ -1019,11 +1019,11 @@ export function MatchAktifSection() {
                               </div>
 
                               <div className="flex items-center gap-2 px-3.5 py-1 bg-white rounded-lg border border-gray-200 shadow-2xs">
-                                <span className={`text-sm font-black tabular-nums ${setsA > setsB ? "text-[#8352D9]" : "text-gray-700"}`}>
+                                <span className={`text-sm font-bold tabular-nums ${setsA > setsB ? "text-gray-900" : "text-gray-700"}`}>
                                   {setsA}
                                 </span>
                                 <span className="text-xs text-gray-300 font-bold">-</span>
-                                <span className={`text-sm font-black tabular-nums ${setsB > setsA ? "text-[#8352D9]" : "text-gray-700"}`}>
+                                <span className={`text-sm font-bold tabular-nums ${setsB > setsA ? "text-gray-900" : "text-gray-700"}`}>
                                   {setsB}
                                 </span>
                               </div>
@@ -1108,7 +1108,7 @@ export function MatchAktifSection() {
                       }).length ?? 0)} Partai Menang
                     </p>
                   </div>
-                  <div className="px-3 py-1 bg-white rounded-lg border border-gray-300 font-black text-lg text-[#8352D9] tabular-nums">
+                  <div className="px-3.5 py-1 bg-white rounded-lg border border-gray-300 font-bold text-base text-gray-900 tabular-nums">
                     {(selected.childMatches?.filter((child: any) => {
                       const childSets = child.sets || [];
                       const setsA = childSets.filter((s: any) => s.scoreA > s.scoreB).length;
