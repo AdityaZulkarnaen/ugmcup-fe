@@ -24,7 +24,7 @@ export interface AboutPillar {
 export const aboutPillars: AboutPillar[] = [
   {
     id: "ugm-cup",
-    logo: "/images/global/Logo icon.svg",
+    logo: "/images/global/logo-icon.svg",
     forceWhite: true,
     title: "UGM CUP 2026",
     caption: "Identitas Resmi Turnamen",
