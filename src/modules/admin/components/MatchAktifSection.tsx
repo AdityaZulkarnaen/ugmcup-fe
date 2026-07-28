@@ -40,7 +40,7 @@ function SetTimerControl({
   initialStatus = "STOPPED",
   initialStartedAt,
   isSetCreated = true,
-  onStatusChange
+  onTimerUpdate
 }: {
   matchId: string;
   setNumber: number;
@@ -48,7 +48,7 @@ function SetTimerControl({
   initialStatus?: "STOPPED" | "RUNNING" | "LOCKED";
   initialStartedAt?: string | null;
   isSetCreated?: boolean;
-  onStatusChange?: (status: "STOPPED" | "RUNNING" | "LOCKED") => void;
+  onTimerUpdate?: (updated: { timerStatus: string; durationSeconds: number; timerStartedAt: string | null }) => void;
 }) {
   const [status, setStatus] = useState(initialStatus);
   const [duration, setDuration] = useState(initialDuration);
@@ -59,21 +59,20 @@ function SetTimerControl({
     setStatus(initialStatus);
     setDuration(initialDuration);
     setStartedAt(initialStartedAt ?? null);
-    onStatusChange?.(initialStatus);
-  }, [initialDuration, initialStatus, initialStartedAt, onStatusChange]);
+  }, [initialDuration, initialStatus, initialStartedAt]);
 
-  const [elapsedSeconds, setElapsedSeconds] = useState(duration);
+  const [elapsedMs, setElapsedMs] = useState(duration * 1000);
 
   useEffect(() => {
     let interval: any = null;
     if (status === "RUNNING" && startedAt) {
       const startTime = new Date(startedAt).getTime();
       interval = setInterval(() => {
-        const diff = Math.floor((Date.now() - startTime) / 1000);
-        setElapsedSeconds(duration + Math.max(0, diff));
-      }, 1000);
+        const diffMs = Date.now() - startTime;
+        setElapsedMs(duration * 1000 + Math.max(0, diffMs));
+      }, 33);
     } else {
-      setElapsedSeconds(duration);
+      setElapsedMs(duration * 1000);
     }
     return () => {
       if (interval) clearInterval(interval);
@@ -81,26 +80,53 @@ function SetTimerControl({
   }, [status, startedAt, duration]);
 
   async function handleTimerAction(action: "START" | "PAUSE" | "RESET" | "STOP") {
+    const nowIso = new Date().toISOString();
+    const currentDurationSec = Math.floor(elapsedMs / 1000);
+
+    let nextStatus: "STOPPED" | "RUNNING" | "LOCKED" = "STOPPED";
+    if (action === "START") nextStatus = "RUNNING";
+    else if (action === "STOP") nextStatus = "LOCKED";
+    else if (action === "PAUSE") nextStatus = "STOPPED";
+
+    // Instant local UI & parent state update (0ms latency)
+    setStatus(nextStatus);
+    if (action === "START") {
+      setStartedAt(nowIso);
+    }
+
+    onTimerUpdate?.({
+      timerStatus: nextStatus,
+      durationSeconds: currentDurationSec,
+      timerStartedAt: action === "START" ? nowIso : null
+    });
+
     setLoading(true);
     try {
       const res = await updateSetTimer(matchId, setNumber, action);
       setDuration(res.durationSeconds);
       setStatus(res.timerStatus as any);
       setStartedAt(res.timerStartedAt ?? null);
-      onStatusChange?.(res.timerStatus as any);
+      onTimerUpdate?.({
+        timerStatus: res.timerStatus,
+        durationSeconds: res.durationSeconds,
+        timerStartedAt: res.timerStartedAt ?? null
+      });
     } catch (e) {
+      console.error("Failed to sync timer action:", e);
     } finally {
       setLoading(false);
     }
   }
 
-  const mins = String(Math.floor(elapsedSeconds / 60)).padStart(2, "0");
-  const secs = String(elapsedSeconds % 60).padStart(2, "0");
+  const totalMs = Math.max(0, elapsedMs);
+  const mins = String(Math.floor(totalMs / 60000)).padStart(2, "0");
+  const secs = String(Math.floor((totalMs % 60000) / 1000)).padStart(2, "0");
+  const cs = String(Math.floor((totalMs % 1000) / 10)).padStart(2, "0");
 
   return (
-    <div className="flex flex-col items-center justify-center p-3 rounded-2xl border bg-[#F8F7FF] border-[#E9D5FF] shadow-xs">
-      <div className="flex items-center gap-1.5 mb-1">
-        <Timer size={14} className="text-[#8352D9]" />
+    <div className="flex flex-col items-center justify-center p-2.5 rounded-2xl border bg-[#F8F7FF] border-[#E9D5FF] shadow-xs">
+      <div className="flex items-center gap-1.5 mb-0.5">
+        <Timer size={13} className="text-[#8352D9]" />
         <span className="text-[11px] font-semibold uppercase tracking-wider text-[#5B21B6]">
           Set {isSetCreated ? setNumber : 0}
         </span>
@@ -109,8 +135,8 @@ function SetTimerControl({
         )}
       </div>
 
-      <div className="text-4xl font-bold tabular-nums tracking-tight text-[#2E1065] my-0.5">
-        {mins}:{secs}
+      <div className="text-2xl font-bold tabular-nums tracking-tight text-[#2E1065] my-0.5">
+        {mins}:{secs}:{cs}
       </div>
 
       <div className="flex items-center gap-2 mt-1">
@@ -123,7 +149,6 @@ function SetTimerControl({
             {status === "RUNNING" ? (
               <button
                 onClick={() => handleTimerAction("PAUSE")}
-                disabled={loading}
                 aria-label="Jeda Timer"
                 title="Jeda Timer"
                 className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold text-white transition bg-[#F59E0B] hover:opacity-90 active:scale-95 shadow-xs"
@@ -139,13 +164,14 @@ function SetTimerControl({
                   }
                   handleTimerAction("START");
                 }}
-                disabled={loading || !isSetCreated}
+                disabled={!isSetCreated}
                 aria-label="Mulai Timer"
                 title={!isSetCreated ? "Buat Set 1 terlebih dahulu" : "Mulai Timer"}
-                className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold transition ${!isSetCreated
-                  ? "bg-gray-200 text-gray-400 cursor-not-allowed shadow-none"
-                  : "bg-[#66FFB4] text-[#0F172A] hover:bg-[#50E69D] active:scale-95 shadow-[0_2px_8px_rgba(102,255,180,0.4)]"
-                  }`}
+                className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold transition ${
+                  !isSetCreated
+                    ? "bg-gray-200 text-gray-400 cursor-not-allowed shadow-none"
+                    : "bg-[#66FFB4] text-[#0F172A] hover:bg-[#50E69D] active:scale-95 shadow-[0_2px_8px_rgba(102,255,180,0.4)]"
+                }`}
               >
                 <Play size={12} fill="currentColor" /> Mulai
               </button>
@@ -158,11 +184,12 @@ function SetTimerControl({
                   handleTimerAction("STOP");
                 }
               }}
-              disabled={loading || !isSetCreated}
+              disabled={!isSetCreated}
               aria-label="Berhenti & Kunci Timer"
               title={!isSetCreated ? "Buat Set 1 terlebih dahulu" : "Berhenti & Kunci Timer"}
-              className={`flex items-center justify-center p-1.5 rounded-lg text-white transition shadow-xs ${!isSetCreated ? "bg-gray-300 cursor-not-allowed" : "bg-[#EF4444] hover:opacity-90 active:scale-95"
-                }`}
+              className={`flex items-center justify-center p-1.5 rounded-lg text-white transition shadow-xs ${
+                !isSetCreated ? "bg-gray-300 cursor-not-allowed" : "bg-[#EF4444] hover:opacity-90 active:scale-95"
+              }`}
             >
               <Square size={12} fill="currentColor" />
             </button>
@@ -360,6 +387,42 @@ function ScoringPanel({
     }
   }
 
+  const handleTimerUpdate = useCallback(
+    (updated: { timerStatus: string; durationSeconds: number; timerStartedAt: string | null }) => {
+      setSets((prev) => {
+        const targetSetNumber = prev.length === 0 ? 1 : activeSet;
+        const exists = prev.find((s) => s.setNumber === targetSetNumber);
+        if (exists) {
+          return prev.map((s) =>
+            s.setNumber === targetSetNumber
+              ? {
+                  ...s,
+                  timerStatus: updated.timerStatus as any,
+                  durationSeconds: updated.durationSeconds,
+                  timerStartedAt: updated.timerStartedAt ?? undefined
+                }
+              : s
+          );
+        }
+        return [
+          ...prev,
+          {
+            id: `new-${targetSetNumber}`,
+            matchId: match.id,
+            setNumber: targetSetNumber,
+            scoreA: 0,
+            scoreB: 0,
+            isFinished: false,
+            timerStatus: updated.timerStatus as any,
+            durationSeconds: updated.durationSeconds,
+            timerStartedAt: updated.timerStartedAt ?? undefined
+          }
+        ];
+      });
+    },
+    [activeSet, match.id]
+  );
+
   // Keyboard Shortcuts
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
@@ -546,6 +609,7 @@ function ScoringPanel({
               initialDuration={currentSet.durationSeconds}
               initialStatus={currentSet.timerStatus as any}
               initialStartedAt={currentSet.timerStartedAt}
+              onTimerUpdate={handleTimerUpdate}
             />
 
             <div className="text-[10px] text-gray-400 text-center font-medium">
