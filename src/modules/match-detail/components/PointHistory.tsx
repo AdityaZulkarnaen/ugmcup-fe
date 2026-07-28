@@ -5,59 +5,70 @@ import {
   buildRallyRows,
   sideName,
   type MatchDetail,
-  type MatchSideKey,
   type RallyRow,
 } from "@/lib/constants/matches";
 import  ShuttleIcon  from "../../../../public/images/match/ShuttleIcon.svg";
 import Image from "next/image";
 
-/** Point badge; the two sides keep their own colour throughout the list. */
-const badgeTheme: Record<MatchSideKey, string> = {
-  home: "border-[#02F5D4]/35 bg-[#02F5D4]/15 text-[#5CFCE7]",
-  away: "border-[#FB2C36]/35 bg-[#FB2C36]/15 text-[#FF8A90]",
-};
-
-function PointBadge({ side, value }: { side: MatchSideKey; value: string }) {
+/**
+ * Lead badge. The colour is about the direction of the lead, not about which
+ * side holds it: teal while it grows, red once the trailing side starts closing
+ * the gap.
+ */
+function LeadBadge({ margin, chased }: { margin: number; chased: boolean }) {
   return (
     <span
-      className={`rounded-md border px-1.5 py-0.5 text-[10px] font-bold leading-none tabular-nums ${badgeTheme[side]}`}
+      className={`rounded-md border px-1.5 py-0.5 text-[10px] font-bold leading-none tabular-nums ${
+        chased
+          ? "border-[#FB2C36]/35 bg-[#FB2C36]/15 text-[#FF8A90]"
+          : "border-[#02F5D4]/35 bg-[#02F5D4]/15 text-[#5CFCE7]"
+      }`}
     >
-      {value}
+      +{margin}
     </span>
   );
 }
 
 /**
- * One recorded rally: the badge sits on the scoring side, the shuttlecock on the
- * side that served it, and the score in the middle with the point just won lit.
+ * One recorded rally: the badge sits on the side that is ahead and shows by how
+ * much, the shuttlecock on the side that served, and the score in the middle
+ * with the point just won lit. A level score leaves both badges off.
  */
 function RallyLine({ row }: { row: RallyRow }) {
   const scoredHome = row.scorer === "home";
+  const lead = row.lead;
 
   return (
-    <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3 px-4 py-2.5 odd:bg-white/[0.015]">
-      <div className="flex items-center justify-end gap-2">
-        {scoredHome && <PointBadge side="home" value={`+${row.gained}`} />}
-        {row.server === "home" && (
-          <Image src={ShuttleIcon} alt="Shuttle Icon" />
-        )}
-      </div>
+    <div className="px-3 py-2.5 odd:bg-white/[0.015] sm:px-4">
+      {/* Capped and centred: the three groups stay together as the panel widens */}
+      <div className="mx-auto grid w-full max-w-xs grid-cols-[1fr_auto_1fr] items-center gap-3">
+        <div className="flex items-center justify-end gap-2">
+          {lead?.side === "home" && (
+            <LeadBadge margin={lead.margin} chased={lead.chased} />
+          )}
+          {row.server === "home" && (
+            <Image src={ShuttleIcon} alt="Shuttle Icon" />
+          )}
+        </div>
 
-      <p className="flex items-baseline gap-1.5 text-sm font-bold tabular-nums">
-        <span className={scoredHome ? "text-[#02F5D4]" : "text-white"}>
-          {row.home}
-        </span>
-        <span className="text-[#5A5A63]">–</span>
-        <span className={!scoredHome ? "text-[#02F5D4]" : "text-white"}>
-          {row.away}
-        </span>
-      </p>
+        <p className="flex items-baseline gap-1.5 text-sm font-bold tabular-nums">
+          <span className={scoredHome ? "text-[#02F5D4]" : "text-white"}>
+            {row.home}
+          </span>
+          <span className="text-[#5A5A63]">–</span>
+          <span className={!scoredHome ? "text-[#02F5D4]" : "text-white"}>
+            {row.away}
+          </span>
+        </p>
 
-      <div className="flex items-center justify-start gap-2">
-        {row.server === "away" && (
-          <Image src={ShuttleIcon} alt="Shuttle Icon" />
-        )}
-        {!scoredHome && <PointBadge side="away" value={`+${row.gained}`} />}
+        <div className="flex items-center justify-start gap-2">
+          {row.server === "away" && (
+            <Image src={ShuttleIcon} alt="Shuttle Icon" />
+          )}
+          {lead?.side === "away" && (
+            <LeadBadge margin={lead.margin} chased={lead.chased} />
+          )}
+        </div>
       </div>
     </div>
   );
@@ -118,6 +129,16 @@ export function PointHistory({ match }: { match: MatchDetail }) {
       </h3>
 
       <div className="overflow-hidden rounded-xl border border-white/[0.06] bg-white/[0.01]">
+        {/* Which side each column belongs to */}
+        <div className="flex items-center justify-between gap-3 border-b border-white/[0.06] bg-white/[0.02] px-3 py-2 text-[11px] font-bold text-white sm:px-4">
+          <span className="min-w-0 truncate">
+            {sideName(match.home.players)}
+          </span>
+          <span className="min-w-0 truncate text-right">
+            {sideName(match.away.players)}
+          </span>
+        </div>
+
         <div className="divide-y divide-white/[0.04]">
           {rows.map((row, index) => (
             <RallyLine key={index} row={row} />
@@ -128,18 +149,23 @@ export function PointHistory({ match }: { match: MatchDetail }) {
       {/* Legend */}
       <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
         <LegendItem>
-          <PointBadge side="home" value="+N" />
-          Poin {sideName(match.home.players)}
+          <LeadBadge margin={2} chased={false} />
+          Keunggulan poin bertambah
         </LegendItem>
         <LegendItem>
-          <PointBadge side="away" value="+N" />
-          Poin {sideName(match.away.players)}
+          <LeadBadge margin={1} chased />
+          Keunggulan mulai dikejar
         </LegendItem>
         <LegendItem>
           <Image src={ShuttleIcon} alt="Shuttle Icon" />
           Pemegang servis
         </LegendItem>
       </div>
+
+      <p className="text-[11px] leading-relaxed text-[#6B6B73]">
+        Badge menempel pada pihak yang unggul dan menunjukkan selisih poin saat
+        itu — kosong di kedua sisi berarti skor sedang imbang.
+      </p>
     </div>
   );
 }

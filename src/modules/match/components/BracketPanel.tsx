@@ -4,29 +4,42 @@ import { useState } from "react";
 import {
   bracketAthletes,
   categoryBrackets,
+  participantTiers,
   type BracketAthlete,
+  type ParticipantTier,
 } from "@/lib/constants/matches";
 import { FilterSelect } from "@/components/ui/FilterSelect";
 import { AthleteSearch } from "./AthleteSearch";
 import { BracketBoard } from "./BracketBoard";
 
 /**
- * The bracket tab: category filter and athlete search on top of the board.
- * The statistics page renders `BracketBoard` on its own instead, fixed to the
- * category of the match being viewed.
+ * The bracket tab: entrant level and category filters plus athlete search on
+ * top of the board. The statistics page renders `BracketBoard` on its own
+ * instead, fixed to the draw of the match being viewed.
  */
 export function BracketPanel() {
+  const [tier, setTier] = useState<ParticipantTier>("universitas");
   const [categoryId, setCategoryId] = useState(categoryBrackets[0].id);
   const [pinned, setPinned] = useState<BracketAthlete>();
 
+  /** Only the categories that exist for the chosen entrant level. */
+  const options = categoryBrackets.filter((item) => item.tier === tier);
   const bracket =
-    categoryBrackets.find((item) => item.id === categoryId) ??
+    options.find((item) => item.id === categoryId) ??
+    options[0] ??
     categoryBrackets[0];
 
-  /** Picking an athlete switches to their category and pins their path. */
+  /** Picking an athlete jumps to their draw and pins their path. */
   function selectAthlete(athlete?: BracketAthlete) {
     setPinned(athlete);
-    if (athlete) setCategoryId(athlete.categoryId);
+    if (!athlete) return;
+
+    const target = categoryBrackets.find(
+      (item) => item.id === athlete.categoryId,
+    );
+    if (!target) return;
+    setTier(target.tier);
+    setCategoryId(target.id);
   }
 
   /** Clicking a name in the bracket pins that athlete; clicking again unpins. */
@@ -46,26 +59,48 @@ export function BracketPanel() {
 
   function changeCategory(id: string) {
     setCategoryId(id);
-    // A pinned athlete only exists in their own bracket.
+    // A pinned athlete only exists in their own draw.
     if (pinned && pinned.categoryId !== id) setPinned(undefined);
+  }
+
+  function changeTier(next: string) {
+    const nextTier = next as ParticipantTier;
+    setTier(nextTier);
+    setPinned(undefined);
+
+    // Keep the same discipline when it also runs at the new level.
+    const sameDiscipline = categoryBrackets.find(
+      (item) =>
+        item.tier === nextTier && item.disciplineId === bracket.disciplineId,
+    );
+    const fallback = categoryBrackets.find((item) => item.tier === nextTier);
+    setCategoryId((sameDiscipline ?? fallback ?? bracket).id);
   }
 
   return (
     <div className="flex flex-col gap-5">
-      {/* Category filter beside the search, which takes three quarters of the row */}
-      <div className="flex items-center gap-2.5">
+      {/* Level + category beside the search; the search gets the widest share */}
+      <div className="flex flex-wrap items-center gap-2.5">
         <FilterSelect
-          options={categoryBrackets.map(({ id, label }) => ({ id, label }))}
+          options={participantTiers}
+          value={tier}
+          onChange={changeTier}
+          label="Filter jenjang bracket"
+          accent="gold"
+          className="min-w-0 flex-1 basis-[45%] md:basis-2/12"
+        />
+        <FilterSelect
+          options={options.map(({ id, label }) => ({ id, label }))}
           value={bracket.id}
           onChange={changeCategory}
           label="Filter kategori bracket"
           accent="violet"
-          className="min-w-0 basis-6/12 md:basis-2/12"
+          className="min-w-0 flex-1 basis-[45%] md:basis-2/12"
         />
         <AthleteSearch
           selected={pinned}
           onSelect={selectAthlete}
-          className="min-w-0 basis-6/12 md:basis-2/12"
+          className="min-w-0 flex-1 basis-full md:basis-4/12"
         />
       </div>
 

@@ -204,22 +204,39 @@ export function BracketBoard({
     onSelect: interactive ? onSelect : undefined,
   };
 
+  /**
+   * Up to four columns share the width evenly. Beyond that they would be too
+   * narrow to read, so the columns take a fixed width and the board scrolls
+   * sideways instead of wrapping onto a second row.
+   */
+  const scrolls = columns.length > 4;
+
   return (
     <>
       {/* Desktop: every round side by side, joined by connector lines */}
-      <div className="hidden grid-cols-4 gap-3 lg:grid">
-        {columns.map(({ round, keys }, i) => (
-          <RoundColumn
-            key={round.id}
-            round={round}
-            keys={keys}
-            feederKeys={i === 0 ? [] : columns[i - 1].keys}
-            nextKeys={i === lastPage ? [] : columns[i + 1].keys}
-            isOnPath={isOnPath}
-            hasPath={hasPath}
-            {...highlight}
-          />
-        ))}
+      <div
+        className={`hidden lg:block ${
+          scrolls ? "scrollbar-thumb-only overflow-x-auto pb-3" : ""
+        }`}
+      >
+        <div
+          className={`grid grid-flow-col gap-3 ${
+            scrolls ? "w-max auto-cols-[15rem]" : "auto-cols-fr"
+          }`}
+        >
+          {columns.map(({ round, keys }, i) => (
+            <RoundColumn
+              key={round.id}
+              round={round}
+              keys={keys}
+              feederKeys={i === 0 ? [] : columns[i - 1].keys}
+              nextKeys={i === lastPage ? [] : columns[i + 1].keys}
+              isOnPath={isOnPath}
+              hasPath={hasPath}
+              {...highlight}
+            />
+          ))}
+        </div>
       </div>
 
       {/* Mobile: one round per page */}

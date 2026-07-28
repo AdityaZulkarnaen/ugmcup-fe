@@ -1,8 +1,26 @@
+"use client";
+
+import { useRef } from "react";
 import { Button } from "@/components/ui/Button";
+import { ChevronIcon } from "@/components/ui/icons";
 import { news } from "@/lib/constants/news";
 import { NewsCard } from "./NewsCard";
 
+const pagerButton =
+  "flex h-11 w-11 items-center justify-center rounded-full transition-colors";
+
 export function News() {
+  const trackRef = useRef<HTMLDivElement>(null);
+
+  /** Nudges the track one card along; swiping it directly still works. */
+  function page(direction: -1 | 1) {
+    const track = trackRef.current;
+    if (!track) return;
+    const card = track.firstElementChild as HTMLElement | null;
+    const step = card ? card.offsetWidth + 8 : track.clientWidth;
+    track.scrollBy({ left: direction * step, behavior: "smooth" });
+  }
+
   return (
     <section className="bg-[#F5F5F5] py-20 text-center text-[#0B0B0F] sm:py-28">
       <div className="mx-auto flex w-[87.5%] flex-col items-center">
@@ -14,10 +32,48 @@ export function News() {
           Berita &amp; Informasi
         </h2>
 
-        <div className="mt-12 grid w-full grid-cols-1 gap-6 sm:grid-cols-3">
+        {/*
+          One card at a time with the next one peeking, on a plain snap scroller
+          so a swipe works and the arrows only have to nudge it. From sm up the
+          very same children fall back into the three-column grid.
+        */}
+        {/* `scrollbar-none` alone only sets scrollbar-width, which older iOS
+            Safari ignores — the webkit rule covers it. */}
+        <div
+          id="news-track"
+          ref={trackRef}
+          className="scrollbar-none mt-12 flex w-full snap-x snap-mandatory gap-2 overflow-x-auto pb-2 sm:grid sm:grid-cols-3 sm:gap-6 sm:overflow-visible sm:pb-0 [&::-webkit-scrollbar]:hidden"
+        >
           {news.map((item) => (
-            <NewsCard key={item.id} item={item} />
+            <div
+              key={item.id}
+              className="w-[86%] shrink-0 snap-start sm:w-auto"
+            >
+              <NewsCard item={item} />
+            </div>
           ))}
+        </div>
+
+        {/* Pager — the desktop grid shows everything at once and needs none */}
+        <div className="mt-6 flex items-center justify-center gap-3 sm:hidden">
+          <button
+            type="button"
+            onClick={() => page(-1)}
+            aria-label="Berita sebelumnya"
+            aria-controls="news-track"
+            className={`${pagerButton} border border-black/10 bg-white text-[#6B6B73] hover:text-black`}
+          >
+            <ChevronIcon className="rotate-180" />
+          </button>
+          <button
+            type="button"
+            onClick={() => page(1)}
+            aria-label="Berita selanjutnya"
+            aria-controls="news-track"
+            className={`${pagerButton} bg-[#0B0B0F] text-white hover:bg-black`}
+          >
+            <ChevronIcon />
+          </button>
         </div>
 
         <Button

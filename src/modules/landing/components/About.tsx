@@ -2,7 +2,9 @@ import { Button } from "@/components/ui/Button";
 
 export function About() {
   return (
-    <section className="flex h-screen items-center justify-center bg-white py-20 text-center text-[#0B0B0F] sm:py-28">
+    // A phone screen is not tall enough to hold this comfortably, so the full
+    // viewport height only kicks in from sm up.
+    <section className="flex items-center justify-center bg-white py-20 text-center text-[#0B0B0F] sm:h-screen sm:py-28">
       <div className="mx-auto flex w-[87.5%] flex-col items-center justify-center mt-[2%]">
         <p className="text-base font-black italic tracking-wide text-black sm:text-xl">
           Sekilas tentang UGM CUP

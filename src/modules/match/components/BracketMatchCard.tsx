@@ -3,9 +3,11 @@
 import Image from "next/image";
 import {
   getParticipant,
+  retirementLabels,
   sideName,
   type BracketMatch,
   type BracketSide,
+  type RetirementReason,
 } from "@/lib/constants/matches";
 
 /** Shared hover/select wiring so a card can drive the path highlight. */
@@ -49,6 +51,21 @@ function ParticipantBadge({
       className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-white/8 text-[10px] font-bold leading-none text-[#8A8A93]"
     >
       ?
+    </span>
+  );
+}
+
+/**
+ * Marks the side that could not finish — injury or a no-show. The reason itself
+ * is a tooltip, so the tag stays short enough for a narrow bracket column.
+ */
+function RetiredBadge({ reason }: { reason: RetirementReason }) {
+  return (
+    <span
+      title={retirementLabels[reason]}
+      className="shrink-0 rounded border border-[#FB2C36]/35 bg-[#FB2C36]/12 px-1 py-px text-[9px] font-bold uppercase tracking-wide text-[#FF8A90]"
+    >
+      Retired
     </span>
   );
 }
@@ -99,6 +116,7 @@ function SideRow({
       >
         {name}
       </span>
+      {side.retired && <RetiredBadge reason={side.retired} />}
       {side.score !== null && (
         <span
           className={`shrink-0 text-[13px] font-bold tabular-nums ${

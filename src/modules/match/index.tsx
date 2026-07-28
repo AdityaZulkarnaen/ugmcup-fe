@@ -26,12 +26,14 @@ export default function MatchPage() {
             {liveCount} match berlangsung
           </span>
 
-          <h1 className="mt-5 text-5xl font-black italic text-white sm:text-7xl">
+          {/* "Pertandingan" is one long word: too large a step and it overflows
+              a 360px screen instead of wrapping. */}
+          <h1 className="mt-5 text-4xl font-black italic text-white sm:text-6xl lg:text-7xl">
             Pertandingan
           </h1>
-          <p className="mt-3 text-sm text-[#8A8A93] sm:text-base">
+          {/* <p className="mt-3 text-sm text-[#8A8A93] sm:text-base">
             Live score, jadwal, bagan knockout, dan klasemen.
-          </p>
+          </p> */}
         </header>
 
         {/* Tabs + live score list */}

@@ -2,9 +2,10 @@
 
 import { useState } from "react";
 import {
-  categoryBrackets,
   disciplineLabel,
   findBracketAthlete,
+  findBracketForMatch,
+  tierLabel,
   type MatchDetail,
 } from "@/lib/constants/matches";
 import { BracketBoard } from "@/modules/match/components/BracketBoard";
@@ -42,14 +43,16 @@ export function MatchDetailTabs({ match }: { match: MatchDetail }) {
   const [tab, setTab] = useState(tabs[0].id);
   const [subTab, setSubTab] = useState(subTabs[0].id);
 
-  /** The bracket of this match's category, with the home side's path lit. */
-  const bracket = categoryBrackets.find((item) => item.id === match.categoryId);
-  const athlete = findBracketAthlete(match.categoryId, match.home.players);
+  /** The draw this match belongs to, with the home side's path lit. */
+  const bracket = findBracketForMatch(match.categoryId, match.tier);
+  const athlete = bracket
+    ? findBracketAthlete(bracket.id, match.home.players)
+    : undefined;
 
   return (
     <div className="flex flex-col gap-4">
       <header className="text-center">
-        <h1 className="text-5xl font-black italic text-white sm:text-7xl">
+        <h1 className="text-4xl font-black italic text-white sm:text-6xl lg:text-7xl">
           Statistik Pertandingan
         </h1>
         <p className="mt-3 text-sm text-[#8A8A93] sm:text-base">
@@ -117,7 +120,8 @@ export function MatchDetailTabs({ match }: { match: MatchDetail }) {
         bracket ? (
           <div className="flex flex-col gap-4">
             <p className="text-[11px] font-bold uppercase tracking-wider text-[#7A7A83]">
-              Bagan {disciplineLabel(match.categoryId)}
+              Bagan {disciplineLabel(match.categoryId)} ·{" "}
+              {tierLabel(match.tier)}
             </p>
             <BracketBoard
               bracket={bracket}

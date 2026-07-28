@@ -55,6 +55,32 @@ body {
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
 }
 
+/* Scrollbar reduced to a floating thumb — no track, no arrows. Used by the
+   dropdown panels and the wide bracket. */
+.scrollbar-thumb-only {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.22) transparent;
+}
+
+.scrollbar-thumb-only::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.scrollbar-thumb-only::-webkit-scrollbar-track,
+.scrollbar-thumb-only::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+.scrollbar-thumb-only::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.22);
+  border-radius: 9999px;
+}
+
+.scrollbar-thumb-only::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.35);
+}
+
 /* --- Sponsor marquee --- */
 @keyframes marquee {
   from {
