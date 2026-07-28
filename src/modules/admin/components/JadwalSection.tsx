@@ -46,7 +46,7 @@ export function JadwalSection({ onStartAndSwitch }: { onStartAndSwitch?: (matchI
     try {
       await updateMatchSchedule(editForm.id, {
         courtNumber: editForm.courtNumber ? parseInt(editForm.courtNumber) : undefined,
-        scheduledTime: editForm.scheduledTime || undefined,
+        scheduledTime: editForm.scheduledTime ? new Date(editForm.scheduledTime).toISOString() : undefined,
       });
       setEditModalOpen(false);
       setEditForm({ id: "", courtNumber: "", scheduledTime: "" });
@@ -72,10 +72,17 @@ export function JadwalSection({ onStartAndSwitch }: { onStartAndSwitch?: (matchI
   }
 
   function openEditModal(match: Match) {
+    let localTime = "";
+    if (match.scheduledTime) {
+      const d = new Date(match.scheduledTime);
+      const offset = d.getTimezoneOffset() * 60000;
+      localTime = new Date(d.getTime() - offset).toISOString().slice(0, 16);
+    }
+    
     setEditForm({
       id: match.id,
       courtNumber: match.courtNumber ? String(match.courtNumber) : "",
-      scheduledTime: match.scheduledTime ? new Date(match.scheduledTime).toISOString().slice(0, 16) : "",
+      scheduledTime: localTime,
     });
     setEditModalOpen(true);
   }
