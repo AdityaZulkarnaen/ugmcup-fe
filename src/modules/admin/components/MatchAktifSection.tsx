@@ -12,7 +12,6 @@ import {
   Timer,
   Plus,
   Square,
-  ChevronRight,
   AlertTriangle,
   Award,
   Pause,
@@ -101,7 +100,7 @@ function SetTimerControl({
       <div className="flex items-center gap-1.5 mb-1">
         <Timer size={14} className="text-[#8352D9]" />
         <span className="text-[11px] font-semibold uppercase tracking-wider text-[#5B21B6]">
-          Timer Set {setNumber}
+          Set {setNumber}
         </span>
         {status === "RUNNING" && (
           <span className="h-2 w-2 rounded-full bg-[#10B981] animate-ping" />
@@ -232,7 +231,7 @@ function ScoringPanel({ match, onRefresh }: { match: Match; onRefresh: () => voi
     const newScoreA = field === "scoreA" ? currentSet.scoreA + 1 : currentSet.scoreA;
     const newScoreB = field === "scoreB" ? currentSet.scoreB + 1 : currentSet.scoreB;
 
-    // Optimistic Update
+    // Ensure set exists in `sets`
     setSets((prev) => {
       const exists = prev.find((s) => s.setNumber === activeSet);
       if (exists) {
@@ -340,7 +339,7 @@ function ScoringPanel({ match, onRefresh }: { match: Match; onRefresh: () => voi
     }
   }
 
-  // Keyboard Shortcuts (A for Team A, B for Team B, Z for Undo)
+  // Keyboard Shortcuts
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
       if (showFinishModal || showRetiredModal) return;
@@ -363,19 +362,28 @@ function ScoringPanel({ match, onRefresh }: { match: Match; onRefresh: () => voi
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isTimerRunning, saving, showFinishModal, showRetiredModal, currentSet]);
 
-  const getParticipantName = (p: any) =>
-    p?.athletes?.length > 0
-      ? p.athletes.map((a: any) => a.athlete?.name).join(" & ")
+  // Clean Participant & Institution Label Logic
+  const athleteNamesA =
+    (match.participantA?.athletes?.length ?? 0) > 0
+      ? match.participantA?.athletes?.map((a: any) => a.athlete?.name).join(" & ")
       : null;
-  const instA = match.participantA?.institution?.name ?? match.teamA?.institution?.name ?? "Tim A";
-  const nameA = getParticipantName(match.participantA) || "Tim A";
+  const instA =
+    match.participantA?.institution?.name ??
+    match.teamA?.institution?.name ??
+    null;
+  const primaryA = athleteNamesA || instA || "Tim A";
+  const secondaryA = athleteNamesA && instA && athleteNamesA !== instA ? instA : null;
 
-  const instB = match.participantB?.institution?.name ?? match.teamB?.institution?.name ?? "Tim B";
-  const nameB = getParticipantName(match.participantB) || "Tim B";
-
-  const isTeam = match.discipline?.isTeamEvent;
-  const labelA = isTeam ? instA : nameA;
-  const labelB = isTeam ? instB : nameB;
+  const athleteNamesB =
+    (match.participantB?.athletes?.length ?? 0) > 0
+      ? match.participantB?.athletes?.map((a: any) => a.athlete?.name).join(" & ")
+      : null;
+  const instB =
+    match.participantB?.institution?.name ??
+    match.teamB?.institution?.name ??
+    null;
+  const primaryB = athleteNamesB || instB || "Tim B";
+  const secondaryB = athleteNamesB && instB && athleteNamesB !== instB ? instB : null;
 
   const totalSeconds = sets.reduce((sum, s) => sum + (s.durationSeconds || 0), 0);
   const totalMins = String(Math.floor(totalSeconds / 60)).padStart(2, "0");
@@ -385,16 +393,7 @@ function ScoringPanel({ match, onRefresh }: { match: Match; onRefresh: () => voi
 
   return (
     <div className="w-full flex flex-col gap-2 max-h-[calc(100vh-6.5rem)] justify-between">
-      {/* 1. Breadcrumb */}
-      <div className="flex items-center gap-1.5 text-xs text-[#9D9DB6]">
-        <span>Admin</span>
-        <ChevronRight size={12} />
-        <span>Match Aktif</span>
-        <ChevronRight size={12} />
-        <span className="font-semibold text-gray-700">{match.discipline?.name ?? "Badminton"}</span>
-      </div>
-
-      {/* 2. Match Context Bar (1 Line Horizontal) */}
+      {/* 1. Match Context Bar */}
       <div className="flex items-center justify-between rounded-xl border bg-white px-4 py-2.5 shadow-xs border-gray-200">
         <div className="flex items-center gap-3">
           <span className="text-xs font-bold text-gray-900">
@@ -434,16 +433,8 @@ function ScoringPanel({ match, onRefresh }: { match: Match; onRefresh: () => voi
         </div>
       </div>
 
-      {/* 3. Set Navigator Tabs (Always Present) */}
-      <div className="flex items-center gap-1.5 mt-1">
-        {sets.length === 0 && (
-          <button
-            onClick={() => setActiveSet(1)}
-            className="rounded-t-xl border border-b-0 px-5 py-2 text-xs font-semibold transition-colors shadow-xs bg-[#8352D9] text-white border-[#8352D9]"
-          >
-            Set 1
-          </button>
-        )}
+      {/* 2. Set Navigator Tabs (Hide tabs if sets.length === 0) */}
+      <div className="flex items-center gap-1.5 mt-1 min-h-[34px]">
         {sets.map((s) => (
           <button
             key={s.setNumber}
@@ -457,17 +448,18 @@ function ScoringPanel({ match, onRefresh }: { match: Match; onRefresh: () => voi
             Set {s.setNumber}
           </button>
         ))}
+
         <button
           onClick={addSet}
-          aria-label="Tambah Set Pertandingan"
-          title="Tambah Set Pertandingan"
-          className="ml-auto flex items-center gap-1 px-3 py-1.5 rounded-lg border border-gray-200 text-xs font-semibold text-gray-700 bg-white hover:bg-gray-50 shadow-xs"
+          aria-label={sets.length === 0 ? "Mulai Set 1" : "Tambah Set Pertandingan"}
+          title={sets.length === 0 ? "Mulai Set 1" : "Tambah Set Pertandingan"}
+          className="ml-auto flex items-center gap-1 px-3.5 py-1.5 rounded-lg border border-gray-200 text-xs font-bold text-gray-700 bg-white hover:bg-gray-50 shadow-xs"
         >
-          <Plus size={14} /> Tambah Set
+          <Plus size={14} /> {sets.length === 0 ? "Mulai Set 1" : "Tambah Set"}
         </button>
       </div>
 
-      {/* 4. Score & Timer Card (Main 1 Card, 3 Sections: Team A | Center Timer | Team B) */}
+      {/* 3. Score & Timer Card */}
       <div className="bg-white border border-gray-200 rounded-b-2xl rounded-tr-2xl p-5 shadow-xs flex flex-col justify-between gap-3">
         {error && (
           <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-semibold text-red-600">
@@ -475,24 +467,24 @@ function ScoringPanel({ match, onRefresh }: { match: Match; onRefresh: () => voi
           </div>
         )}
 
-        <div className="grid grid-cols-[1fr_220px_1fr] items-center gap-4">
+        <div className="grid grid-cols-[1fr_210px_1fr] items-center gap-4">
           {/* Team A Section */}
           <div className="flex flex-col items-center gap-2">
-            <div className="text-center min-h-[40px] flex flex-col justify-end">
-              <p className="text-base font-bold text-gray-900 leading-tight">{labelA}</p>
-              {!isTeam && <p className="text-xs font-medium text-gray-500">{instA}</p>}
+            <div className="text-center min-h-[44px] flex flex-col justify-end">
+              <p className="text-lg font-bold text-gray-900 leading-tight">{primaryA}</p>
+              {secondaryA && <p className="text-xs font-medium text-gray-500 mt-0.5">{secondaryA}</p>}
             </div>
 
-            <div className="text-6xl md:text-7xl font-bold tabular-nums tracking-tighter text-gray-900 my-1">
+            <div className="text-7xl md:text-8xl font-black tabular-nums tracking-tighter text-gray-900 my-1">
               {currentSet.scoreA}
             </div>
 
             <button
               onClick={() => handleAddScore("scoreA")}
               disabled={saving || !isTimerRunning}
-              aria-label={`Tambah 1 poin untuk ${labelA} (Tekan A)`}
+              aria-label={`Tambah 1 poin untuk ${primaryA} (Tekan A)`}
               title={isTimerRunning ? "Tekan A pada keyboard" : "Nyalakan timer dahulu"}
-              className={`w-full max-w-[200px] rounded-full py-3 text-lg font-bold transition-all active:scale-95 shadow-[0_4px_14px_0_rgba(102,255,180,0.4)] ${
+              className={`w-full max-w-[220px] rounded-full py-3.5 text-xl font-bold transition-all active:scale-95 shadow-[0_4px_14px_0_rgba(102,255,180,0.4)] ${
                 !isTimerRunning
                   ? "bg-gray-200 text-gray-400 cursor-not-allowed shadow-none"
                   : "bg-[#66FFB4] text-[#0F172A] hover:bg-[#50E69D]"
@@ -502,7 +494,7 @@ function ScoringPanel({ match, onRefresh }: { match: Match; onRefresh: () => voi
             </button>
           </div>
 
-          {/* Center Section: Timer Control & Match Time */}
+          {/* Center Section: Timer Control & Small Match Time */}
           <div className="flex flex-col gap-2">
             <SetTimerControl
               matchId={match.id}
@@ -512,29 +504,28 @@ function ScoringPanel({ match, onRefresh }: { match: Match; onRefresh: () => voi
               initialStartedAt={currentSet.timerStartedAt}
             />
 
-            <div className="text-center bg-gray-50 border border-gray-200 rounded-xl p-2">
-              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Total Match Time</p>
-              <p className="text-lg font-bold text-gray-800 tabular-nums">{totalMins}:{totalSecs}</p>
+            <div className="text-[10px] text-gray-400 text-center font-medium">
+              Match Time: <span className="font-bold text-gray-600 tabular-nums">{totalMins}:{totalSecs}</span>
             </div>
           </div>
 
           {/* Team B Section */}
           <div className="flex flex-col items-center gap-2">
-            <div className="text-center min-h-[40px] flex flex-col justify-end">
-              <p className="text-base font-bold text-gray-900 leading-tight">{labelB}</p>
-              {!isTeam && <p className="text-xs font-medium text-gray-500">{instB}</p>}
+            <div className="text-center min-h-[44px] flex flex-col justify-end">
+              <p className="text-lg font-bold text-gray-900 leading-tight">{primaryB}</p>
+              {secondaryB && <p className="text-xs font-medium text-gray-500 mt-0.5">{secondaryB}</p>}
             </div>
 
-            <div className="text-6xl md:text-7xl font-bold tabular-nums tracking-tighter text-gray-900 my-1">
+            <div className="text-7xl md:text-8xl font-black tabular-nums tracking-tighter text-gray-900 my-1">
               {currentSet.scoreB}
             </div>
 
             <button
               onClick={() => handleAddScore("scoreB")}
               disabled={saving || !isTimerRunning}
-              aria-label={`Tambah 1 poin untuk ${labelB} (Tekan B)`}
+              aria-label={`Tambah 1 poin untuk ${primaryB} (Tekan B)`}
               title={isTimerRunning ? "Tekan B pada keyboard" : "Nyalakan timer dahulu"}
-              className={`w-full max-w-[200px] rounded-full py-3 text-lg font-bold transition-all active:scale-95 shadow-[0_4px_14px_0_rgba(102,255,180,0.4)] ${
+              className={`w-full max-w-[220px] rounded-full py-3.5 text-xl font-bold transition-all active:scale-95 shadow-[0_4px_14px_0_rgba(102,255,180,0.4)] ${
                 !isTimerRunning
                   ? "bg-gray-200 text-gray-400 cursor-not-allowed shadow-none"
                   : "bg-[#66FFB4] text-[#0F172A] hover:bg-[#50E69D]"
@@ -545,7 +536,7 @@ function ScoringPanel({ match, onRefresh }: { match: Match; onRefresh: () => voi
           </div>
         </div>
 
-        {/* 5. Set Summary Row (1 Line Horizontal Chips) */}
+        {/* 4. Set Summary Row */}
         {sets.length > 0 && (
           <div className="flex items-center gap-2 border-t pt-2.5 border-gray-100">
             <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Ringkasan Set:</span>
@@ -567,7 +558,7 @@ function ScoringPanel({ match, onRefresh }: { match: Match; onRefresh: () => voi
         )}
       </div>
 
-      {/* 6. Action Footer (Undo/Redo on left, Retired & Finish on right) */}
+      {/* 5. Action Footer */}
       <div className="flex items-center justify-between gap-4 mt-1">
         <div className="flex items-center gap-2">
           <button
@@ -668,8 +659,8 @@ function ScoringPanel({ match, onRefresh }: { match: Match; onRefresh: () => voi
                       : "border-gray-200 hover:border-gray-300"
                   }`}
                 >
-                  <p className="text-sm font-bold text-gray-900">{labelA}</p>
-                  <p className="text-xs text-gray-500">{instA}</p>
+                  <p className="text-sm font-bold text-gray-900">{primaryA}</p>
+                  {secondaryA && <p className="text-xs text-gray-500">{secondaryA}</p>}
                 </button>
 
                 <button
@@ -680,8 +671,8 @@ function ScoringPanel({ match, onRefresh }: { match: Match; onRefresh: () => voi
                       : "border-gray-200 hover:border-gray-300"
                   }`}
                 >
-                  <p className="text-sm font-bold text-gray-900">{labelB}</p>
-                  <p className="text-xs text-gray-500">{instB}</p>
+                  <p className="text-sm font-bold text-gray-900">{primaryB}</p>
+                  {secondaryB && <p className="text-xs text-gray-500">{secondaryB}</p>}
                 </button>
               </div>
             </div>
