@@ -1,4 +1,5 @@
 import type { AnchorHTMLAttributes, ButtonHTMLAttributes, ReactNode } from "react"; 
+import { twMerge } from "tailwind-merge";
 
 type ButtonVariant = "solid" | "outline";
 
@@ -27,7 +28,7 @@ const baseClasses =
   "inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm transition-colors";
 
 export function Button({ variant = "solid", icon, children, className, ...props }: ButtonProps) {
-  const classes = [baseClasses, variantClasses[variant], className].filter(Boolean).join(" ");
+  const classes = twMerge(baseClasses, variantClasses[variant], className);
 
   if ("href" in props && props.href) {
     const { href, ...anchorProps } = props as ButtonAsAnchor;

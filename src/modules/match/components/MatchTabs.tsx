@@ -21,6 +21,7 @@ export function MatchTabs() {
         {matchTabs.map((tab) => {
           const isActive = tab.id === active;
           const isLive = tab.id === "livescore" && liveMatches.length > 0;
+          const isKlasemen = tab.id === "klasemen" && liveMatches.length > 0;
           return (
             <button
               key={tab.id}
@@ -45,7 +46,7 @@ export function MatchTabs() {
               </span>
               <span className={`text-xs text-[#6B6B73] ${
                   isActive ? "text-[#FAC775]" : "text-[#8A8A93]"
-                }`}>{tab.caption}</span>
+                } ${isKlasemen ? "flex" : "hidden"}`}>{tab.caption}</span>
             </button>
           );
         })}

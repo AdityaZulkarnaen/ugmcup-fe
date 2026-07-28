@@ -2,24 +2,12 @@
 
 import { useRef } from "react";
 import { Button } from "@/components/ui/Button";
-import { ChevronIcon } from "@/components/ui/icons";
+import { CarouselPager } from "@/components/ui/CarouselPager";
 import { news } from "@/lib/constants/news";
 import { NewsCard } from "./NewsCard";
 
-const pagerButton =
-  "flex h-11 w-11 items-center justify-center rounded-full transition-colors";
-
 export function News() {
   const trackRef = useRef<HTMLDivElement>(null);
-
-  /** Nudges the track one card along; swiping it directly still works. */
-  function page(direction: -1 | 1) {
-    const track = trackRef.current;
-    if (!track) return;
-    const card = track.firstElementChild as HTMLElement | null;
-    const step = card ? card.offsetWidth + 8 : track.clientWidth;
-    track.scrollBy({ left: direction * step, behavior: "smooth" });
-  }
 
   return (
     <section className="bg-[#F5F5F5] py-20 text-center text-[#0B0B0F] sm:py-28">
@@ -55,26 +43,11 @@ export function News() {
         </div>
 
         {/* Pager — the desktop grid shows everything at once and needs none */}
-        <div className="mt-6 flex items-center justify-center gap-3 sm:hidden">
-          <button
-            type="button"
-            onClick={() => page(-1)}
-            aria-label="Berita sebelumnya"
-            aria-controls="news-track"
-            className={`${pagerButton} border border-black/10 bg-white text-[#6B6B73] hover:text-black`}
-          >
-            <ChevronIcon className="rotate-180" />
-          </button>
-          <button
-            type="button"
-            onClick={() => page(1)}
-            aria-label="Berita selanjutnya"
-            aria-controls="news-track"
-            className={`${pagerButton} bg-[#0B0B0F] text-white hover:bg-black`}
-          >
-            <ChevronIcon />
-          </button>
-        </div>
+        <CarouselPager
+          trackRef={trackRef}
+          label="Berita"
+          className="mt-6 sm:hidden"
+        />
 
         <Button
           href="#"
