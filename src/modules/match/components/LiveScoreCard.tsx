@@ -46,11 +46,11 @@ export function LiveScoreCard({ match }: LiveScoreCardProps) {
     <Link
       href={`/pertandingan/${match.id}`}
       aria-label={`Statistik ${sideName(match.home.players)} vs ${sideName(match.away.players)}`}
-      className="group block rounded-2xl border border-white/[0.06] bg-white/[0.02] px-6 py-5 shadow-[0_1px_0_rgba(255,255,255,0.03)_inset] transition-all hover:border-white/30 hover:bg-white/[0.04] active:scale-[0.995] active:border-white/30 active:bg-white/[0.05]"
+      className="group block rounded-2xl border border-white/[0.06] bg-white/[0.02] px-4 py-4 shadow-[0_1px_0_rgba(255,255,255,0.03)_inset] transition-all hover:border-white/30 hover:bg-white/[0.04] active:scale-[0.995] active:border-white/30 active:bg-white/[0.05] sm:px-6 sm:py-5"
     >
-      {/* Top row: status + court */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
+      {/* Top row: status + court — wraps rather than squeezing the long badges */}
+      <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
+        <div className="flex min-w-0 items-center gap-3">
           <span className="flex items-center gap-1.5 text-xs font-bold tracking-wide text-white">
             <span className="relative flex h-2 w-2">
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-500 opacity-60" />
@@ -59,7 +59,7 @@ export function LiveScoreCard({ match }: LiveScoreCardProps) {
             LIVE
           </span>
           <span className="text-white/25">·</span>
-          <span className="rounded-full border border-[#C79A3B]/40 bg-[#C79A3B]/[0.08] px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-[#E3B24D]">
+          <span className="truncate rounded-full border border-[#C79A3B]/40 bg-[#C79A3B]/[0.08] px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-[#E3B24D]">
             {disciplineLabel(match.categoryId)} {match.level}
           </span>
         </div>
@@ -70,24 +70,37 @@ export function LiveScoreCard({ match }: LiveScoreCardProps) {
         </span>
       </div>
 
-      {/* Main row: home · score · away */}
-      <div className="mt-5 grid grid-cols-[1fr_auto_1fr] items-center gap-4">
+      {/*
+        Main row. On mobile the two sides stack, each with its own score on the
+        right, so the names keep the full width; from sm up it becomes the
+        familiar home · score · away trio.
+      */}
+      <div className="mt-4 flex flex-col gap-3 sm:mt-5 sm:grid sm:grid-cols-[1fr_auto_1fr] sm:items-center sm:gap-4">
         {/* Home */}
-        <div className="min-w-0">
-          {match.home.players.map((name) => (
-            <p
-              key={name}
-              className="truncate text-base font-bold leading-tight text-white"
-            >
-              {name}
-            </p>
-          ))}
-          <p className="mt-1 text-xs text-[#7A7A83]">{match.home.team}</p>
+        <div className="flex items-center justify-between gap-3 sm:block sm:min-w-0">
+          <div className="min-w-0">
+            {match.home.players.map((name) => (
+              <p
+                key={name}
+                className="truncate text-base font-bold leading-tight text-white"
+              >
+                {name}
+              </p>
+            ))}
+            <p className="mt-1 text-xs text-[#7A7A83]">{match.home.team}</p>
+          </div>
+          <span
+            className={`shrink-0 text-3xl font-black tabular-nums sm:hidden ${
+              homeLeading ? "text-[#34E5A6]" : "text-[#8A8A93]"
+            }`}
+          >
+            {match.live.home}
+          </span>
         </div>
 
-        {/* Score */}
-        <div className="flex flex-col items-center">
-          <div className="flex items-baseline gap-3">
+        {/* Score — the big pair belongs to the sm+ trio; games sit under it */}
+        <div className="order-last flex flex-col items-center sm:order-0">
+          <div className="hidden items-baseline gap-3 sm:flex">
             <span
               className={`text-4xl font-black tabular-nums ${
                 homeLeading ? "text-[#34E5A6]" : "text-[#8A8A93]"
@@ -105,7 +118,7 @@ export function LiveScoreCard({ match }: LiveScoreCardProps) {
             </span>
           </div>
 
-          <div className="mt-2 flex items-center gap-2">
+          <div className="flex items-center gap-2 sm:mt-2">
             {match.games.map((game, i) => (
               <GameBoxes key={i} home={game.home} away={game.away} />
             ))}
@@ -116,17 +129,26 @@ export function LiveScoreCard({ match }: LiveScoreCardProps) {
         </div>
 
         {/* Away */}
-        <div className="min-w-0 text-right">
-          {match.away.players.map((name, i) => (
-            <p
-              key={`${name}-${i}`}
-              className="flex items-center justify-end gap-1.5 truncate text-base font-bold leading-tight text-white"
-            >
-              {name}
-              {i === 0 && <ArrowIcon className="shrink-0 text-[#34E5A6]" />}
-            </p>
-          ))}
-          <p className="mt-1 text-xs text-[#7A7A83]">{match.away.team}</p>
+        <div className="flex items-center justify-between gap-3 sm:block sm:min-w-0 sm:text-right">
+          <div className="min-w-0">
+            {match.away.players.map((name, i) => (
+              <p
+                key={`${name}-${i}`}
+                className="flex items-center justify-start gap-1.5 truncate text-base font-bold leading-tight text-white sm:justify-end"
+              >
+                {name}
+                {i === 0 && <ArrowIcon className="shrink-0 text-[#34E5A6]" />}
+              </p>
+            ))}
+            <p className="mt-1 text-xs text-[#7A7A83]">{match.away.team}</p>
+          </div>
+          <span
+            className={`shrink-0 text-3xl font-black tabular-nums sm:hidden ${
+              !homeLeading ? "text-[#34E5A6]" : "text-[#8A8A93]"
+            }`}
+          >
+            {match.live.away}
+          </span>
         </div>
       </div>
 

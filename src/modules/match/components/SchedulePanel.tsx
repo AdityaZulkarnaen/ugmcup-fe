@@ -28,8 +28,9 @@ export function SchedulePanel() {
 
   return (
     <div className="flex flex-col gap-5">
-      {/* Filters — kept on one row at every width */}
-      <div className="flex gap-2.5">
+      {/* Filters — two per row on phones, where three would truncate every
+          label down to a few characters; one row from sm up. */}
+      <div className="grid grid-cols-2 gap-2.5 sm:flex">
         <FilterSelect
           options={scheduleDays}
           value={day}
@@ -61,7 +62,7 @@ export function SchedulePanel() {
           label="Filter jenjang"
           accent="gold"
           accented={tier !== "all"}
-          className="min-w-0 flex-1 sm:max-w-56"
+          className="col-span-2 min-w-0 flex-1 sm:col-span-1 sm:max-w-56"
         />
       </div>
 
