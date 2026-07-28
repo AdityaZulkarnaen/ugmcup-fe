@@ -64,19 +64,27 @@ export const deleteInstitution = (id: string) =>
 
 // ================== ATHLETES ==================
 
-export const getAthletes = (institutionId?: string) =>
-  apiRequest<Athlete[]>(
-    `/athletes${institutionId ? `?institutionId=${institutionId}` : ""}`
-  );
+export const getAthletes = (params?: { institutionId?: string; gender?: string; institutionType?: string }) => {
+  const query = new URLSearchParams();
+  if (params?.institutionId) query.append("institutionId", params.institutionId);
+  if (params?.gender) query.append("gender", params.gender);
+  if (params?.institutionType) query.append("institutionType", params.institutionType);
+  const qStr = query.toString();
+  return apiRequest<Athlete[]>(`/athletes${qStr ? `?${qStr}` : ""}`);
+};
 
-export const createAthlete = (data: {
-  institutionId: string;
-  name: string;
-  gender: "PUTRA" | "PUTRI";
-  studentId?: string;
-}) =>
+export const getAthlete = (id: string) =>
+  apiRequest<any>(`/athletes/${id}`);
+
+export const createAthlete = (data: Partial<Athlete>) =>
   apiRequest<Athlete>("/admin/athletes", {
     method: "POST",
+    body: JSON.stringify(data),
+  });
+
+export const updateAthlete = (id: string, data: Partial<Athlete>) =>
+  apiRequest<Athlete>(`/admin/athletes/${id}`, {
+    method: "PATCH",
     body: JSON.stringify(data),
   });
 

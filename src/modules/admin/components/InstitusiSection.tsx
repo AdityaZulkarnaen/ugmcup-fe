@@ -37,7 +37,7 @@ export function InstitusiSection() {
     setError("");
     try {
       let finalLogoUrl = form.logoUrl;
-      
+
       // Jika ada file yang dipilih, upload terlebih dahulu
       if (logoFile) {
         if (logoFile.size > 1024 * 1024) {
@@ -52,7 +52,7 @@ export function InstitusiSection() {
       } else {
         await createInstitution(payload);
       }
-      
+
       setModalOpen(false);
       setEditId(null);
       setForm({ name: "", type: "UNIVERSITAS", logoUrl: "" });
@@ -106,8 +106,8 @@ export function InstitusiSection() {
           {[{ value: "", label: "Semua Tipe" }, { value: "UNIVERSITAS", label: "Universitas" }, { value: "SMA", label: "SMA/SMK" }].map((opt) => (
             <button key={opt.value} onClick={() => setFilterType(opt.value)}
               className="rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors"
-              style={filterType === opt.value 
-                ? { background: "#6C47D1", borderColor: "#6C47D1", color: "#fff" } 
+              style={filterType === opt.value
+                ? { background: "#6C47D1", borderColor: "#6C47D1", color: "#fff" }
                 : { background: "#fff", borderColor: "#E5E7EB", color: "#374151" }}>
               {opt.label}
             </button>
@@ -125,7 +125,7 @@ export function InstitusiSection() {
             header: "Logo",
             render: (row) =>
               row.logoUrl ? (
-                <img src={row.logoUrl} alt={row.name} className="h-8 w-8 rounded-full object-cover border" />
+                <img src={row.logoUrl} alt={row.name} className="h-8 w-8 rounded-full object-cover" />
               ) : (
                 "-"
               ),
@@ -271,7 +271,7 @@ export function InstitusiSection() {
         <div className="p-4 rounded-xl mb-2" style={{ background: "#FEF2F2", border: "1px solid #FCA5A5" }}>
           <p className="font-semibold text-red-700 mb-2">Hati-hati!</p>
           <p className="text-sm text-red-600">
-            Apakah Anda yakin ingin menghapus institusi ini? 
+            Apakah Anda yakin ingin menghapus institusi ini?
             <strong> Semua data atlet, tim, dan peserta (individu/ganda) yang berafiliasi dengan institusi ini juga akan ikut terhapus secara permanen!</strong>
           </p>
         </div>
