@@ -83,7 +83,7 @@ export const startMatch = (id: string) =>
 
 export const finishMatch = (
   id: string,
-  data: { retired?: boolean; winnerParticipantId?: string; winnerTeamId?: string }
+  data: { retired?: boolean; winnerId?: string }
 ) =>
   apiRequest<Match>(`/admin/matches/${id}/finish`, {
     method: "PATCH",
@@ -119,7 +119,7 @@ export const redoScore = (id: string) =>
 export const updateSetTimer = (
   id: string,
   setNumber: number,
-  action: "START" | "PAUSE" | "RESET"
+  action: "START" | "PAUSE" | "RESET" | "STOP"
 ) =>
   apiRequest<{ durationSeconds: number; timerStatus: string; timerStartedAt?: string }>(
     `/admin/matches/${id}/timer`,
