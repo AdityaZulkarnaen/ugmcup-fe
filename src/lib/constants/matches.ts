@@ -15,6 +15,8 @@ export interface LiveMatch {
   id: string;
   /** Discipline key, matches a `disciplines` id. */
   categoryId: string;
+  /** Entrant level of this draw. */
+  tier: ParticipantTier;
   /** Age group / division, e.g. "U-21" or "Open". */
   level: string;
   /** ISO day the match is played on, e.g. "2026-08-10". */
@@ -41,6 +43,7 @@ export const liveMatches: LiveMatch[] = [
   {
     id: "match-1",
     categoryId: "tunggal-putra",
+    tier: "universitas",
     level: "U-21",
     date: "2026-08-10",
     time: "11:30",
@@ -56,6 +59,7 @@ export const liveMatches: LiveMatch[] = [
   {
     id: "match-2",
     categoryId: "ganda-putri",
+    tier: "universitas",
     level: "Open",
     date: "2026-08-10",
     time: "12:15",
@@ -74,6 +78,7 @@ export const liveMatches: LiveMatch[] = [
   {
     id: "match-3",
     categoryId: "ganda-campuran",
+    tier: "universitas",
     level: "U-19",
     date: "2026-08-10",
     time: "13:00",
@@ -100,6 +105,8 @@ export interface ScheduleMatch {
   date: string;
   /** Category filter key, matches a `disciplines` id. */
   categoryId: string;
+  /** Entrant level of this draw. */
+  tier: ParticipantTier;
   /** Start time, e.g. "08:00". */
   time: string;
   /** Age group / division shown next to the pill, e.g. "U-21" or "Open". */
@@ -119,6 +126,24 @@ export interface ScheduleFilter {
   id: string;
   label: string;
 }
+
+/** Entrant level; the tournament runs a school draw beside the campus one. */
+export type ParticipantTier = "sma" | "universitas";
+
+export const participantTiers: { id: ParticipantTier; label: string }[] = [
+  { id: "sma", label: "SMA/K" },
+  { id: "universitas", label: "Universitas" },
+];
+
+export function tierLabel(id: string): string {
+  return participantTiers.find((item) => item.id === id)?.label ?? id;
+}
+
+/** Tier filter options, with the "all" entry the panels open on. */
+export const tierFilters: ScheduleFilter[] = [
+  { id: "all", label: "Semua Jenjang" },
+  ...participantTiers,
+];
 
 /**
  * Single source of truth for the disciplines. The schedule filter, the bracket
@@ -170,6 +195,7 @@ export const scheduleMatches: ScheduleMatch[] = [
     id: "sched-7",
     date: "2026-08-09",
     categoryId: "tunggal-putra",
+    tier: "universitas",
     time: "11:30",
     level: "Open",
     court: "Lapangan 1",
@@ -187,6 +213,7 @@ export const scheduleMatches: ScheduleMatch[] = [
     id: "sched-8",
     date: "2026-08-09",
     categoryId: "ganda-putra",
+    tier: "universitas",
     time: "15:45",
     level: "U-21",
     court: "Lapangan 2",
@@ -203,6 +230,7 @@ export const scheduleMatches: ScheduleMatch[] = [
     id: "sched-1",
     date: "2026-08-10",
     categoryId: "tunggal-putra",
+    tier: "universitas",
     time: "11:30",
     level: "U-21",
     court: "Lapangan 1",
@@ -214,6 +242,7 @@ export const scheduleMatches: ScheduleMatch[] = [
     id: "sched-2",
     date: "2026-08-10",
     categoryId: "ganda-putri",
+    tier: "universitas",
     time: "12:15",
     level: "Open",
     court: "Lapangan 2",
@@ -225,6 +254,7 @@ export const scheduleMatches: ScheduleMatch[] = [
     id: "sched-3",
     date: "2026-08-11",
     categoryId: "ganda-putra",
+    tier: "universitas",
     time: "08:00",
     level: "Open",
     court: "Lapangan 1",
@@ -236,6 +266,7 @@ export const scheduleMatches: ScheduleMatch[] = [
     id: "sched-4",
     date: "2026-08-11",
     categoryId: "tunggal-putra",
+    tier: "universitas",
     time: "10:15",
     level: "U-21",
     court: "Lapangan 1",
@@ -247,6 +278,7 @@ export const scheduleMatches: ScheduleMatch[] = [
     id: "sched-5",
     date: "2026-08-12",
     categoryId: "ganda-putra",
+    tier: "universitas",
     time: "09:00",
     level: "U-21",
     court: "Lapangan 1",
@@ -258,6 +290,7 @@ export const scheduleMatches: ScheduleMatch[] = [
     id: "sched-6",
     date: "2026-08-13",
     categoryId: "ganda-putra",
+    tier: "universitas",
     time: "13:00",
     level: "Open",
     court: "Lapangan 1",
@@ -269,6 +302,7 @@ export const scheduleMatches: ScheduleMatch[] = [
     id: "sched-9",
     date: "2026-08-14",
     categoryId: "tunggal-putri",
+    tier: "universitas",
     time: "09:30",
     level: "Open",
     court: "Lapangan 2",
@@ -280,11 +314,54 @@ export const scheduleMatches: ScheduleMatch[] = [
     id: "sched-10",
     date: "2026-08-15",
     categoryId: "ganda-campuran",
+    tier: "universitas",
     time: "16:00",
     level: "Open",
     court: "Lapangan 1",
     home: { players: ["Rizky Fadhilah", "Sinta Rahayu"], team: "FT UGM" },
     away: { players: ["Dani Setiawan", "Devi Kurnia"], team: "FEB UGM" },
+    status: "upcoming",
+  },
+  // School draw
+  {
+    id: "sched-11",
+    date: "2026-08-10",
+    categoryId: "tunggal-putra",
+    tier: "sma",
+    time: "08:30",
+    level: "U-19",
+    court: "Lapangan 3",
+    home: { players: ["Bima Anggara"], team: "SMAN 1 Yogyakarta" },
+    away: { players: ["Rafa Pradipta"], team: "SMAN 3 Yogyakarta" },
+    status: "done",
+    winner: "home",
+    games: [
+      { home: 21, away: 17 },
+      { home: 21, away: 19 },
+    ],
+  },
+  {
+    id: "sched-12",
+    date: "2026-08-12",
+    categoryId: "ganda-putra",
+    tier: "sma",
+    time: "10:00",
+    level: "U-19",
+    court: "Lapangan 3",
+    home: { players: ["Bima Anggara", "Nanda Prasetyo"], team: "SMAN 1 Yogyakarta" },
+    away: { players: ["Rafa Pradipta", "Yusuf Alfarizi"], team: "SMK 2 Depok" },
+    status: "upcoming",
+  },
+  {
+    id: "sched-13",
+    date: "2026-08-14",
+    categoryId: "tunggal-putri",
+    tier: "sma",
+    time: "13:30",
+    level: "U-19",
+    court: "Lapangan 2",
+    home: { players: ["Nabila Ayu"], team: "SMAN 8 Yogyakarta" },
+    away: { players: ["Kirana Puspita"], team: "SMA De Britto" },
     status: "upcoming",
   },
 ];
@@ -333,6 +410,30 @@ export const participants: Participant[] = [
   athlete("fajar-ramadhan", "FIB UGM", "Fajar Ramadhan"),
   athlete("galih-saputra", "FH UGM", "Galih Saputra"),
   athlete("hendra-kusuma", "Fapet UGM", "Hendra Kusuma"),
+  athlete("naufal-hakim", "Psikologi UGM", "Naufal Hakim"),
+  athlete("oka-mahendra", "FTP UGM", "Oka Mahendra"),
+  athlete("panji-wicaksono", "Biologi UGM", "Panji Wicaksono"),
+  athlete("qomar-aditya", "Geografi UGM", "Qomar Aditya"),
+  athlete("rendra-mahesa", "Kehutanan UGM", "Rendra Mahesa"),
+  athlete("satria-wibowo", "Pertanian UGM", "Satria Wibowo"),
+  athlete("teguh-prasetya", "Vokasi UGM", "Teguh Prasetya"),
+  athlete("umar-faruq", "FKG UGM", "Umar Faruq"),
+  athlete("vino-ardiansyah", "Filsafat UGM", "Vino Ardiansyah"),
+  athlete("wisnu-baskara", "FT UGM", "Wisnu Baskara"),
+  athlete("yoga-alfarizi", "FEB UGM", "Yoga Alfarizi"),
+  athlete("zidan-maulana", "FISIPOL UGM", "Zidan Maulana"),
+  athlete("aldo-kurniawan", "FMIPA UGM", "Aldo Kurniawan"),
+  athlete("bayu-anggara", "FK-KMK UGM", "Bayu Anggara"),
+  athlete("cakra-pratomo", "FIB UGM", "Cakra Pratomo"),
+  athlete("damar-sanjaya", "FH UGM", "Damar Sanjaya"),
+  athlete("erlangga-putra", "Fapet UGM", "Erlangga Putra"),
+  athlete("farhan-ridho", "Farmasi UGM", "Farhan Ridho"),
+  athlete("gani-pradana", "Psikologi UGM", "Gani Pradana"),
+  athlete("hafiz-ramadhan", "FTP UGM", "Hafiz Ramadhan"),
+  athlete("irfan-nugroho", "Biologi UGM", "Irfan Nugroho"),
+  athlete("julian-syahputra", "Geografi UGM", "Julian Syahputra"),
+  athlete("kevin-halim", "Kehutanan UGM", "Kevin Halim"),
+  athlete("lukman-hakim", "Pertanian UGM", "Lukman Hakim"),
 
   // Tunggal Putri
   athlete("sinta-rahayu", "FT UGM", "Sinta Rahayu"),
@@ -408,10 +509,13 @@ export interface BracketRound {
   champion?: { label: string; name: string; participantId?: string };
 }
 
-/** A knockout bracket for one discipline, e.g. Tunggal Putra. */
+/** A knockout bracket for one discipline at one entrant level. */
 export interface CategoryBracket {
+  /** Composite key, `${disciplineId}-${tier}`. */
   id: string;
   label: string;
+  disciplineId: string;
+  tier: ParticipantTier;
   /** Entrants in first-round slot order; length must be a power of two. */
   seeds: string[];
   rounds: BracketRound[];
@@ -424,7 +528,15 @@ export interface CategoryBracket {
 type MatchOutcome = [winner: 0 | 1, winnerScore: number, loserScore: number];
 
 /** Round names counting back from the final; index 0 is the last round. */
-const roundLabels = ["Final", "Semi Final", "Perempat Final", "16 Besar"];
+const roundLabels = [
+  "Final",
+  "Semi Final",
+  "Perempat Final",
+  "16 Besar",
+  "32 Besar",
+  "64 Besar",
+  "128 Besar",
+];
 
 /**
  * Expands seeds plus per-round outcomes into bracket rounds, so a winner always
@@ -491,8 +603,8 @@ function buildRounds(
 }
 
 interface BracketInput {
-  id: string;
-  label: string;
+  disciplineId: string;
+  tier: ParticipantTier;
   seeds: string[];
   outcomes: (MatchOutcome | null)[][];
 }
@@ -503,8 +615,9 @@ interface BracketInput {
  */
 const bracketInputs: BracketInput[] = [
   {
-    id: "tunggal-putra",
-    label: "Tunggal Putra",
+    disciplineId: "tunggal-putra",
+    tier: "universitas",
+    // 32 entrants, so the draw runs 32 Besar -> Final over five rounds.
     seeds: [
       "rizky-fadhilah",
       "dani-setiawan",
@@ -514,21 +627,77 @@ const bracketInputs: BracketInput[] = [
       "fajar-ramadhan",
       "galih-saputra",
       "hendra-kusuma",
+      "naufal-hakim",
+      "oka-mahendra",
+      "panji-wicaksono",
+      "qomar-aditya",
+      "rendra-mahesa",
+      "satria-wibowo",
+      "teguh-prasetya",
+      "umar-faruq",
+      "vino-ardiansyah",
+      "wisnu-baskara",
+      "yoga-alfarizi",
+      "zidan-maulana",
+      "aldo-kurniawan",
+      "bayu-anggara",
+      "cakra-pratomo",
+      "damar-sanjaya",
+      "erlangga-putra",
+      "farhan-ridho",
+      "gani-pradana",
+      "hafiz-ramadhan",
+      "irfan-nugroho",
+      "julian-syahputra",
+      "kevin-halim",
+      "lukman-hakim",
     ],
     outcomes: [
+      // 32 Besar
       [
         [0, 2, 0],
         [1, 2, 1],
         [0, 2, 1],
         [1, 2, 0],
+        [0, 2, 1],
+        [0, 2, 0],
+        [1, 2, 1],
+        [0, 2, 1],
+        [1, 2, 0],
+        [0, 2, 1],
+        [0, 2, 0],
+        [1, 2, 1],
+        [0, 2, 1],
+        [1, 2, 0],
+        [0, 2, 1],
+        [0, 2, 0],
       ],
+      // 16 Besar
+      [
+        [0, 2, 1],
+        [1, 2, 0],
+        [0, 2, 0],
+        [0, 2, 1],
+        [1, 2, 1],
+        [0, 2, 1],
+        [0, 2, 0],
+        [1, 2, 1],
+      ],
+      // Perempat Final
+      [
+        [0, 2, 1],
+        [1, 2, 0],
+        [0, 2, 1],
+        [0, 2, 0],
+      ],
+      // Semi Final — second match still to play.
       [[0, 2, 1], null],
       [null],
     ],
   },
   {
-    id: "tunggal-putri",
-    label: "Tunggal Putri",
+    disciplineId: "tunggal-putri",
+    tier: "universitas",
     seeds: [
       "sinta-rahayu",
       "devi-kurnia",
@@ -554,8 +723,8 @@ const bracketInputs: BracketInput[] = [
     ],
   },
   {
-    id: "ganda-putra",
-    label: "Ganda Putra",
+    disciplineId: "ganda-putra",
+    tier: "universitas",
     seeds: [
       "gpa-dani-hendra",
       "gpa-yogi-wahyu",
@@ -578,8 +747,8 @@ const bracketInputs: BracketInput[] = [
     ],
   },
   {
-    id: "ganda-putri",
-    label: "Ganda Putri",
+    disciplineId: "ganda-putri",
+    tier: "universitas",
     seeds: [
       "gpi-sinta-devi",
       "gpi-layla-putri",
@@ -597,8 +766,8 @@ const bracketInputs: BracketInput[] = [
     ],
   },
   {
-    id: "ganda-campuran",
-    label: "Ganda Campuran",
+    disciplineId: "ganda-campuran",
+    tier: "universitas",
     seeds: [
       "gc-rizky-sinta",
       "gc-dani-devi",
@@ -625,13 +794,95 @@ const bracketInputs: BracketInput[] = [
   },
 ];
 
+const schoolNames = [
+  "SMAN 1 Yogyakarta",
+  "SMAN 3 Yogyakarta",
+  "SMAN 8 Yogyakarta",
+  "SMA De Britto",
+  "SMK 2 Depok",
+  "SMAN 1 Sleman",
+  "SMAN 2 Bantul",
+  "SMA Stella Duce",
+];
+const schoolFirstNames = [
+  "Bima",
+  "Rafa",
+  "Nanda",
+  "Yusuf",
+  "Aldi",
+  "Reza",
+  "Farel",
+  "Zaki",
+];
+const schoolLastNames = [
+  "Anggara",
+  "Pradipta",
+  "Prasetyo",
+  "Alfarizi",
+  "Mahendra",
+  "Kurniawan",
+  "Baskara",
+  "Ramadhan",
+];
+
+/**
+ * Placeholder entrants for the 64-player school draw. Generated rather than
+ * listed one by one — the admin registry replaces this wholesale.
+ */
+const schoolSeeds: Participant[] = Array.from({ length: 64 }, (_, i) =>
+  athlete(
+    `sma-tp-${i + 1}`,
+    schoolNames[i % schoolNames.length],
+    `${schoolFirstNames[i % 8]} ${schoolLastNames[Math.floor(i / 8)]}`,
+  ),
+);
+participants.push(...schoolSeeds);
+
+/**
+ * Deterministic placeholder results for a full draw: the higher seed advances
+ * except on every third match, which is an upset.
+ */
+function generatedOutcomes(firstRoundMatches: number): (MatchOutcome | null)[][] {
+  const outcomes: (MatchOutcome | null)[][] = [];
+  for (let count = firstRoundMatches; count >= 1; count = count / 2) {
+    outcomes.push(
+      Array.from({ length: count }, (_, i): MatchOutcome => {
+        const upset = (i + count) % 3 === 0;
+        return [upset ? 1 : 0, 2, i % 2 === 0 ? 1 : 0];
+      }),
+    );
+  }
+  return outcomes;
+}
+
+// School draw: a 64-player singles bracket (6 rounds) beside a small doubles one.
+bracketInputs.push(
+  {
+    disciplineId: "tunggal-putra",
+    tier: "sma",
+    seeds: schoolSeeds.map((entrant) => entrant.id),
+    outcomes: generatedOutcomes(32),
+  },
+  {
+    disciplineId: "ganda-putra",
+    tier: "sma",
+    seeds: schoolSeeds.slice(0, 8).map((entrant) => entrant.id),
+    outcomes: generatedOutcomes(4),
+  },
+);
+
 export const categoryBrackets: CategoryBracket[] = bracketInputs.map(
-  ({ id, label, seeds, outcomes }) => ({
-    id,
-    label,
-    seeds,
-    rounds: buildRounds(id, seeds, outcomes),
-  }),
+  ({ disciplineId, tier, seeds, outcomes }) => {
+    const id = `${disciplineId}-${tier}`;
+    return {
+      id,
+      label: disciplineLabel(disciplineId),
+      disciplineId,
+      tier,
+      seeds,
+      rounds: buildRounds(id, seeds, outcomes),
+    };
+  },
 );
 
 /** One searchable entrant, tagged with the bracket they compete in. */
@@ -646,10 +897,26 @@ export const bracketAthletes: BracketAthlete[] = categoryBrackets.flatMap(
     bracket.seeds.flatMap((id) => {
       const participant = getParticipant(id);
       return participant
-        ? [{ participant, categoryId: bracket.id, categoryLabel: bracket.label }]
+        ? [
+            {
+              participant,
+              categoryId: bracket.id,
+              categoryLabel: `${bracket.label} · ${tierLabel(bracket.tier)}`,
+            },
+          ]
         : [];
     }),
 );
+
+/** The bracket a match belongs to: its discipline within its entrant level. */
+export function findBracketForMatch(
+  categoryId: string,
+  tier: ParticipantTier,
+): CategoryBracket | undefined {
+  return categoryBrackets.find(
+    (bracket) => bracket.disciplineId === categoryId && bracket.tier === tier,
+  );
+}
 
 /**
  * Keys of every column slot a participant occupies: the ids of the matches they
@@ -683,13 +950,13 @@ export function bracketPathFor(
  * Returns undefined when that side never entered the knockout stage.
  */
 export function findBracketAthlete(
-  categoryId: string,
+  bracketId: string,
   players: string[],
 ): BracketAthlete | undefined {
   const key = sideName(players);
   return bracketAthletes.find(
     (athlete) =>
-      athlete.categoryId === categoryId &&
+      athlete.categoryId === bracketId &&
       sideName(athlete.participant.players) === key,
   );
 }
@@ -810,8 +1077,9 @@ export interface MatchDetail {
   /** Display stamp, e.g. "10.08.2026 11:30". */
   startsAt: string;
   category: string;
-  /** Bracket key, matches a `categoryBrackets` id. */
+  /** Discipline key, matches a `disciplines` id. */
   categoryId: string;
+  tier: ParticipantTier;
   level: string;
   court: string;
   home: MatchSide;
@@ -849,6 +1117,7 @@ export function getMatchDetail(id: string): MatchDetail | undefined {
       startsAt: formatMatchDateTime(live.date, live.time),
       category: disciplineLabel(live.categoryId),
       categoryId: live.categoryId,
+      tier: live.tier,
       level: live.level,
       court: live.court,
       home: live.home,
@@ -868,6 +1137,7 @@ export function getMatchDetail(id: string): MatchDetail | undefined {
     startsAt: formatMatchDateTime(scheduled.date, scheduled.time),
     category: disciplineLabel(scheduled.categoryId),
     categoryId: scheduled.categoryId,
+    tier: scheduled.tier,
     level: scheduled.level,
     court: scheduled.court,
     home: scheduled.home,

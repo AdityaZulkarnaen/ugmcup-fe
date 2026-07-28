@@ -5,6 +5,7 @@ import {
   scheduleCategories,
   scheduleDays,
   scheduleMatches,
+  tierFilters,
 } from "@/lib/constants/matches";
 import { FilterSelect } from "@/components/ui/FilterSelect";
 import { ScheduleRow } from "./ScheduleRow";
@@ -12,15 +13,17 @@ import { ScheduleRow } from "./ScheduleRow";
 export function SchedulePanel() {
   const [day, setDay] = useState("all");
   const [category, setCategory] = useState("all");
+  const [tier, setTier] = useState("all");
 
   const matches = useMemo(
     () =>
       scheduleMatches.filter(
         (match) =>
           (day === "all" || match.date === day) &&
-          (category === "all" || match.categoryId === category),
+          (category === "all" || match.categoryId === category) &&
+          (tier === "all" || match.tier === tier),
       ),
-    [day, category],
+    [day, category, tier],
   );
 
   return (
@@ -50,6 +53,15 @@ export function SchedulePanel() {
           optionLabel={(option) =>
             option.id === "all" ? "Semua Kategori" : option.label
           }
+        />
+        <FilterSelect
+          options={tierFilters}
+          value={tier}
+          onChange={setTier}
+          label="Filter jenjang"
+          accent="gold"
+          accented={tier !== "all"}
+          className="min-w-0 flex-1 sm:max-w-56"
         />
       </div>
 

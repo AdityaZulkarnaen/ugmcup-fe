@@ -126,7 +126,7 @@ export function AthleteSearch({
           id="athlete-search-results"
           role="listbox"
           aria-label="Hasil pencarian atlet"
-          className="absolute left-0 top-full z-30 mt-2 flex max-h-72 w-full flex-col gap-0.5 overflow-y-auto rounded-2xl border border-white/10 bg-[#1B1730] p-1.5 shadow-xl shadow-black/40"
+          className="scrollbar-thumb-only absolute left-0 top-full z-30 mt-2 flex max-h-72 w-full flex-col gap-0.5 overflow-y-auto rounded-2xl border border-white/10 bg-[#1B1730] p-1.5 shadow-xl shadow-black/40"
         >
           {results.length === 0 ? (
             <p className="px-3 py-2.5 text-xs text-[#6B6B73]">
