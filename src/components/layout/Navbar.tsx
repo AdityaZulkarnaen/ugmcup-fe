@@ -127,7 +127,7 @@ export function Navbar({ variant = "auto" }: NavbarProps) {
         <Button
           href="/pertandingan"
           variant="outline"
-          className={`hidden lg:inline-flex ${inverted ? "border-black/30! text-black!" : ""}`}
+          className={`hidden sm:inline-flex ${inverted ? "border-black/30! text-black!" : ""}`}
         >
           Lihat Live Score
           <ArrowIcon />
