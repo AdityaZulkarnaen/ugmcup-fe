@@ -64,8 +64,6 @@ export function getDashboardPath(role: AdminUser["role"]): string {
   switch (role) {
     case "SUPER_ADMIN":
       return "/admin";
-    case "PANITIA_LAPANGAN":
-      return "/panitia";
     case "EDITOR_KONTEN":
       return "/media";
     default:

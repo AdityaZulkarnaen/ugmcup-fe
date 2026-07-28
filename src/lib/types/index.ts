@@ -146,7 +146,7 @@ export interface Standing {
 
 // ================== ADMIN & AUDIT ==================
 
-export type AdminRole = "SUPER_ADMIN" | "PANITIA_LAPANGAN" | "EDITOR_KONTEN";
+export type AdminRole = "SUPER_ADMIN" | "EDITOR_KONTEN";
 
 export interface AdminUser {
   id: string;

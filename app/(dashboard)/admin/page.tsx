@@ -15,10 +15,12 @@ import { JadwalSection } from "@/modules/admin/components/JadwalSection";
 import { BracketSection } from "@/modules/admin/components/BracketSection";
 import { GrupSection } from "@/modules/admin/components/GrupSection";
 import { AuditLogSection } from "@/modules/admin/components/AuditLogSection";
+import { MatchAktifSection } from "@/modules/admin/components/MatchAktifSection";
+import { Zap } from "lucide-react";
 
 type Section =
   | "beranda" | "institusi" | "atlet" | "peserta"
-  | "jadwal" | "bracket" | "grup" | "audit-log";
+  | "jadwal" | "match-aktif" | "bracket" | "grup" | "audit-log";
 
 const SIDEBAR_ITEMS = [
   { key: "beranda",   label: "Beranda",           icon: <LayoutDashboard size={16} /> },
@@ -26,6 +28,7 @@ const SIDEBAR_ITEMS = [
   { key: "atlet",     label: "Atlet",              icon: <Users size={16} /> },
   { key: "peserta",   label: "Peserta & Tim",      icon: <UserCheck size={16} /> },
   { key: "jadwal",    label: "Jadwal",             icon: <Calendar size={16} /> },
+  { key: "match-aktif", label: "Match Aktif",      icon: <Zap size={16} /> },
   { key: "bracket",   label: "Bracket",            icon: <GitBranch size={16} /> },
   { key: "grup",      label: "Grup & Klasemen",    icon: <BarChart2 size={16} /> },
   { key: "audit-log", label: "Audit Log",          icon: <ClipboardList size={16} /> },
@@ -49,7 +52,8 @@ export default function AdminPage() {
       case "institusi": return <InstitusiSection />;
       case "atlet":     return <AtletSection />;
       case "peserta":   return <PesertaSection />;
-      case "jadwal":    return <JadwalSection />;
+      case "jadwal":    return <JadwalSection onStartAndSwitch={() => setSection("match-aktif")} />;
+      case "match-aktif": return <MatchAktifSection />;
       case "bracket":   return <BracketSection />;
       case "grup":      return <GrupSection />;
       case "audit-log": return <AuditLogSection />;

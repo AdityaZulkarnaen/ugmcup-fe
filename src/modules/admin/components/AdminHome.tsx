@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Building2, Trophy, CheckCircle, Newspaper } from "lucide-react";
+
 import { StatCard } from "@/components/dashboard/StatCard";
 import { getInstitutions } from "@/lib/api/admin";
 import { getMatches } from "@/lib/api/matches";
@@ -44,9 +44,9 @@ export function AdminHome() {
       </div>
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-3">
-        <StatCard label="Institusi Terdaftar" value={stats.institutions} icon={<Building2 size={20} />} />
-        <StatCard label="Match Hari Ini" value={stats.matchesToday} icon={<Trophy size={20} />} />
-        <StatCard label="Match Selesai" value={stats.matchFinished} icon={<CheckCircle size={20} />} accentColor="#059669" />
+        <StatCard label="Institusi Terdaftar" value={stats.institutions} />
+        <StatCard label="Match Hari Ini" value={stats.matchesToday} />
+        <StatCard label="Match Selesai" value={stats.matchFinished} />
       </div>
 
       <div className="mt-6 rounded-lg border bg-white p-5" style={{ borderColor: "#E5E7EB" }}>
@@ -56,7 +56,8 @@ export function AdminHome() {
             ["Tambahkan Institusi", "peserta terlebih dahulu"],
             ["Daftarkan Atlet", "dari setiap institusi"],
             ["Buat Peserta/Tim", "yang akan berlomba (individu atau beregu)"],
-            ["Buat Jadwal Pertandingan", "untuk tiap match"],
+            ["Buat Jadwal Pertandingan", "dan tentukan waktu serta lapangan"],
+            ["Mulai Match & Update Skor", "secara real-time melalui menu Match Aktif"],
             ["Setup Bracket", "fase gugur setelah grup selesai"],
           ].map(([bold, rest], i) => (
             <li key={i} className="flex items-start gap-2">

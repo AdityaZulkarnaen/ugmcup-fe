@@ -3,20 +3,19 @@ import type { ReactNode } from "react";
 interface StatCardProps {
   label: string;
   value: string | number;
-  icon: ReactNode;
   sub?: string;
   /** accent color for border-left, default is --dash-accent */
   accentColor?: string;
 }
 
-export function StatCard({ label, value, icon, sub, accentColor = "#6C47D1" }: StatCardProps) {
+export function StatCard({ label, value, sub, accentColor = "#6C47D1" }: StatCardProps) {
   return (
     <div
       className="flex items-center gap-4 rounded-lg border bg-white p-5 transition-shadow hover:shadow-md"
       style={{
         borderColor: "#E5E7EB",
         borderRightColor: accentColor,
-        borderRightWidth: "2px",
+        borderRightWidth: "2.5px",
         borderBottomColor: accentColor,
         borderBottomWidth: "3px",
       }}

@@ -4,11 +4,12 @@ import { useEffect, useState, useCallback } from "react";
 import { PageHeader, AddButton, FormField, DashSelect } from "@/components/dashboard/PageHeader";
 import { Modal, ModalCancelButton, ModalSubmitButton } from "@/components/dashboard/Modal";
 import {
-  getInstitutions, getAthletes, getDisciplines,
+  getInstitutions, getAthletes,
   getParticipants, createParticipant, deleteParticipant,
   getTeams, createTeam, deleteTeam,
 } from "@/lib/api/admin";
-import type { Institution, Athlete, Discipline, Participant, Team } from "@/lib/types";
+import { LEVELS, getDisciplinesByLevel, DISCIPLINES } from "@/lib/constants";
+import type { Institution, Athlete, Participant, Team } from "@/lib/types";
 
 const TEAM_SLOTS = ["TUNGGAL_PUTRA", "TUNGGAL_PUTRI", "GANDA_PUTRA", "GANDA_PUTRI", "TRIPLE_MIX"];
 
@@ -18,27 +19,26 @@ export function PesertaSection() {
   const [teams, setTeams] = useState<Team[]>([]);
   const [institutions, setInstitutions] = useState<Institution[]>([]);
   const [athletes, setAthletes] = useState<Athlete[]>([]);
-  const [disciplines, setDisciplines] = useState<Discipline[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");
-
-  // Form Individu
+  
+  const [pFormLevel, setPFormLevel] = useState("");
   const [pForm, setPForm] = useState({ disciplineId: "", institutionId: "", athlete1: "", athlete2: "" });
   // Form Tim
+  const [tFormLevel, setTFormLevel] = useState("");
   const [tForm, setTForm] = useState({ disciplineId: "", institutionId: "", slots: {} as Record<string, string> });
 
   const load = useCallback(async () => {
     setIsLoading(true);
-    const [p, t, insts, ath, disc] = await Promise.allSettled([
-      getParticipants(), getTeams(), getInstitutions(), getAthletes(), getDisciplines(),
+    const [p, t, insts, ath] = await Promise.allSettled([
+      getParticipants(), getTeams(), getInstitutions(), getAthletes()
     ]);
     setParticipants(p.status === "fulfilled" ? p.value : []);
     setTeams(t.status === "fulfilled" ? t.value : []);
     setInstitutions(insts.status === "fulfilled" ? insts.value : []);
     setAthletes(ath.status === "fulfilled" ? ath.value : []);
-    setDisciplines(disc.status === "fulfilled" ? disc.value : []);
     setIsLoading(false);
   }, []);
 
@@ -49,7 +49,7 @@ export function PesertaSection() {
     try {
       const athleteIds = [pForm.athlete1, pForm.athlete2].filter(Boolean);
       await createParticipant({ disciplineId: pForm.disciplineId, institutionId: pForm.institutionId, athleteIds });
-      setModalOpen(false); setPForm({ disciplineId: "", institutionId: "", athlete1: "", athlete2: "" });
+      setModalOpen(false); setPFormLevel(""); setPForm({ disciplineId: "", institutionId: "", athlete1: "", athlete2: "" });
       await load();
     } catch (e) { setError(e instanceof Error ? e.message : "Gagal"); }
     finally { setIsSaving(false); }
@@ -65,14 +65,14 @@ export function PesertaSection() {
           athleteId 
         }));
       await createTeam({ disciplineId: tForm.disciplineId, institutionId: tForm.institutionId, members });
-      setModalOpen(false); setTForm({ disciplineId: "", institutionId: "", slots: {} });
+      setModalOpen(false); setTFormLevel(""); setTForm({ disciplineId: "", institutionId: "", slots: {} });
       await load();
     } catch (e) { setError(e instanceof Error ? e.message : "Gagal"); }
     finally { setIsSaving(false); }
   }
 
-  const teamDisciplines = disciplines.filter((d) => d.isTeamEvent);
-  const individualDisciplines = disciplines.filter((d) => !d.isTeamEvent);
+  const teamDisciplines = DISCIPLINES.filter((d) => d.isTeamEvent);
+  const individualDisciplines = DISCIPLINES.filter((d) => !d.isTeamEvent);
 
   return (
     <div>
@@ -109,7 +109,7 @@ export function PesertaSection() {
                     : (p.institution?.name ?? institutions.find(i => i.id === p.institutionId)?.name ?? "—")}
                 </p>
                 <p className="text-xs mt-1" style={{ color: "#6B7280" }}>
-                  <span className="font-medium" style={{ color: "#4B5563" }}>{p.institution?.name ?? institutions.find(i => i.id === p.institutionId)?.name ?? "—"}</span> • {p.discipline?.name ?? disciplines.find(d => d.id === p.disciplineId)?.name ?? "—"}
+                  <span className="font-medium" style={{ color: "#4B5563" }}>{p.institution?.name ?? institutions.find(i => i.id === p.institutionId)?.name ?? "—"}</span> • {p.discipline?.name ?? DISCIPLINES.find(d => d.id === p.disciplineId)?.name ?? "—"}
                 </p>
               </div>
               <button onClick={() => deleteParticipant(p.id).then(load)} className="text-xs px-3 py-1 rounded-lg transition hover:bg-red-50" style={{ color: "#EF4444" }}>Hapus</button>
@@ -136,8 +136,21 @@ export function PesertaSection() {
         {error && <p className="mb-4 rounded-lg p-3 text-sm bg-red-50 text-red-600 border border-red-200">{error}</p>}
         {tab === "individu" ? (
           <>
-            <FormField label="Cabang" required>
-              <DashSelect value={pForm.disciplineId} onChange={(v) => setPForm((f) => ({ ...f, disciplineId: v }))} placeholder="Pilih cabang" options={individualDisciplines.map((d) => ({ value: d.id, label: d.name }))} />
+            <FormField label="Tingkat" required>
+              <DashSelect 
+                value={pFormLevel} 
+                onChange={(v) => { setPFormLevel(v); setPForm((f) => ({ ...f, disciplineId: "" })); }} 
+                placeholder="Pilih tingkat" 
+                options={LEVELS} 
+              />
+            </FormField>
+            <FormField label="Cabang Kategori" required>
+              <DashSelect 
+                value={pForm.disciplineId} 
+                onChange={(v) => setPForm((f) => ({ ...f, disciplineId: v }))} 
+                placeholder="Pilih kategori" 
+                options={(pFormLevel ? individualDisciplines.filter(d => d.level === pFormLevel) : individualDisciplines).map(d => ({ value: d.id, label: d.label }))}
+              />
             </FormField>
             <FormField label="Institusi" required>
               <DashSelect value={pForm.institutionId} onChange={(v) => setPForm((f) => ({ ...f, institutionId: v }))} placeholder="Pilih institusi" options={institutions.map((i) => ({ value: i.id, label: i.name }))} />
@@ -151,8 +164,21 @@ export function PesertaSection() {
           </>
         ) : (
           <>
+            <FormField label="Tingkat" required>
+              <DashSelect 
+                value={tFormLevel} 
+                onChange={(v) => { setTFormLevel(v); setTForm((f) => ({ ...f, disciplineId: "" })); }} 
+                placeholder="Pilih tingkat" 
+                options={LEVELS} 
+              />
+            </FormField>
             <FormField label="Cabang Beregu" required>
-              <DashSelect value={tForm.disciplineId} onChange={(v) => setTForm((f) => ({ ...f, disciplineId: v }))} placeholder="Pilih cabang beregu" options={teamDisciplines.map((d) => ({ value: d.id, label: d.name }))} />
+              <DashSelect 
+                value={tForm.disciplineId} 
+                onChange={(v) => setTForm((f) => ({ ...f, disciplineId: v }))} 
+                placeholder="Pilih kategori beregu" 
+                options={(tFormLevel ? teamDisciplines.filter(d => d.level === tFormLevel) : teamDisciplines).map(d => ({ value: d.id, label: d.label }))}
+              />
             </FormField>
             <FormField label="Institusi" required>
               <DashSelect value={tForm.institutionId} onChange={(v) => setTForm((f) => ({ ...f, institutionId: v }))} placeholder="Pilih institusi" options={institutions.map((i) => ({ value: i.id, label: i.name }))} />

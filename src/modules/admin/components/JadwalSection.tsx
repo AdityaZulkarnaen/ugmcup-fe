@@ -4,8 +4,10 @@ import { useEffect, useState, useCallback } from "react";
 import { DataTable } from "@/components/dashboard/DataTable";
 import { PageHeader, AddButton, FormField, DashInput, DashSelect } from "@/components/dashboard/PageHeader";
 import { Modal, ModalCancelButton, ModalSubmitButton } from "@/components/dashboard/Modal";
-import { getDisciplines, getParticipants } from "@/lib/api/admin";
-import { getMatches, createMatch, deleteMatch, updateMatchSchedule } from "@/lib/api/matches";
+import { getParticipants } from "@/lib/api/admin";
+import { LEVELS, getDisciplinesByLevel, DISCIPLINES } from "@/lib/constants";
+import { Play } from "lucide-react";
+import { getMatches, createMatch, deleteMatch, updateMatchSchedule, startMatch } from "@/lib/api/matches";
 import type { Match, Discipline, Participant, MatchStatus } from "@/lib/types";
 
 const STATUS_STYLE: Record<MatchStatus, { bg: string; color: string }> = {
@@ -15,15 +17,19 @@ const STATUS_STYLE: Record<MatchStatus, { bg: string; color: string }> = {
   WALKOVER:  { bg: "#FEE2E2", color: "#991B1B" },
 };
 
-export function JadwalSection() {
+export function JadwalSection({ onStartAndSwitch }: { onStartAndSwitch?: (matchId: string) => void } = {}) {
   const [data, setData] = useState<Match[]>([]);
-  const [disciplines, setDisciplines] = useState<Discipline[]>([]);
   const [participants, setParticipants] = useState<Participant[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");
+  const [starting, setStarting] = useState<string | null>(null);
   const [filterStatus, setFilterStatus] = useState("");
+  const [filterLevel, setFilterLevel] = useState("");
+  const [filterDiscipline, setFilterDiscipline] = useState("");
+  
+  const [formLevel, setFormLevel] = useState("");
   const [form, setForm] = useState({
     disciplineId: "", matchType: "INDIVIDUAL" as "INDIVIDUAL" | "TEAM",
     stage: "GROUP" as "GROUP" | "KNOCKOUT", roundName: "", groupName: "",
@@ -32,12 +38,11 @@ export function JadwalSection() {
 
   const load = useCallback(async () => {
     setIsLoading(true);
-    const [m, d, p] = await Promise.allSettled([
+    const [m, p] = await Promise.allSettled([
       getMatches(filterStatus ? { status: filterStatus as MatchStatus } : undefined),
-      getDisciplines(), getParticipants(),
+      getParticipants(),
     ]);
     setData(m.status === "fulfilled" ? m.value : []);
-    setDisciplines(d.status === "fulfilled" ? d.value : []);
     setParticipants(p.status === "fulfilled" ? p.value : []);
     setIsLoading(false);
   }, [filterStatus]);
@@ -56,6 +61,7 @@ export function JadwalSection() {
         participantBId: form.participantBId || undefined,
       });
       setModalOpen(false);
+      setFormLevel("");
       setForm({ disciplineId: "", matchType: "INDIVIDUAL", stage: "GROUP", roundName: "", groupName: "", participantAId: "", participantBId: "", courtNumber: "", scheduledTime: "" });
       await load();
     } catch (e) { setError(e instanceof Error ? e.message : "Gagal"); }
@@ -67,6 +73,17 @@ export function JadwalSection() {
     await deleteMatch(id); await load();
   }
 
+  async function handleStart(match: Match) {
+    setStarting(match.id);
+    try {
+      await startMatch(match.id);
+      onStartAndSwitch?.(match.id);
+      await load();
+    } catch (e) {
+      alert(e instanceof Error ? e.message : "Gagal memulai match");
+    } finally { setStarting(null); }
+  }
+
   return (
     <div>
       <PageHeader
@@ -76,21 +93,41 @@ export function JadwalSection() {
       />
 
       {/* Filter */}
-      <div className="mb-4 flex gap-2 flex-wrap">
-        {["", "SCHEDULED", "ONGOING", "FINISHED", "WALKOVER"].map((s) => (
-          <button key={s} onClick={() => setFilterStatus(s)}
-            className="rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors"
-            style={filterStatus === s 
-              ? { background: "#6C47D1", borderColor: "#6C47D1", color: "#fff" } 
-              : { background: "#fff", borderColor: "#E5E7EB", color: "#374151" }}>
-            {s || "Semua"}
-          </button>
-        ))}
+      <div className="mb-4 flex items-center justify-between gap-4 flex-wrap">
+        <div className="flex gap-2 flex-wrap">
+          {["", "SCHEDULED", "ONGOING", "FINISHED", "WALKOVER"].map((s) => (
+            <button key={s} onClick={() => setFilterStatus(s)}
+              className="rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors"
+              style={filterStatus === s 
+                ? { background: "#6C47D1", borderColor: "#6C47D1", color: "#fff" } 
+                : { background: "#fff", borderColor: "#E5E7EB", color: "#374151" }}>
+              {s || "Semua"}
+            </button>
+          ))}
+        </div>
+        <div className="flex gap-2 shrink-0">
+          <div className="w-40">
+            <DashSelect
+              value={filterLevel}
+              onChange={(v) => { setFilterLevel(v); setFilterDiscipline(""); }}
+              placeholder="Semua Tingkat"
+              options={LEVELS}
+            />
+          </div>
+          <div className="w-56">
+            <DashSelect
+              value={filterDiscipline}
+              onChange={setFilterDiscipline}
+              placeholder="Semua Kategori"
+              options={(filterLevel ? getDisciplinesByLevel(filterLevel) : DISCIPLINES).map(d => ({ value: d.id, label: d.name }))}
+            />
+          </div>
+        </div>
       </div>
 
       <DataTable
         isLoading={isLoading}
-        data={data}
+        data={data.filter(d => filterDiscipline ? d.disciplineId === filterDiscipline : (filterLevel ? DISCIPLINES.find(disc => disc.id === d.disciplineId)?.level === filterLevel : true))}
         emptyText="Tidak ada match ditemukan"
         columns={[
           { key: "status", header: "Status", render: (row) => {
@@ -117,15 +154,38 @@ export function JadwalSection() {
             return instName;
           }},
         ]}
-        onDelete={handleDelete}
+        actions={(row) => (
+          <div className="flex gap-2">
+            {row.status === "SCHEDULED" && (
+              <button
+                onClick={() => handleStart(row)}
+                disabled={starting === row.id}
+                className="flex items-center gap-1.5 rounded-lg px-3 py-1 text-xs font-semibold text-white transition hover:opacity-90 disabled:opacity-50"
+                style={{ background: "#6C47D1" }}
+              >
+                <Play size={12} />
+                {starting === row.id ? "Memulai..." : "Mulai"}
+              </button>
+            )}
+            <button
+              onClick={() => handleDelete(row.id)}
+              className="rounded-lg px-3 py-1 text-xs font-semibold text-red-600 border border-red-200 bg-red-50 hover:bg-red-100 transition"
+            >
+              Hapus
+            </button>
+          </div>
+        )}
       />
 
       <Modal isOpen={modalOpen} onClose={() => { setModalOpen(false); setError(""); }} title="Buat Match Baru" size="lg"
         footer={<><ModalCancelButton onClick={() => { setModalOpen(false); setError(""); }} /><ModalSubmitButton onClick={handleSave} isLoading={isSaving} /></>}>
         {error && <p className="mb-4 rounded-xl p-3 text-sm" style={{ background: "rgba(239,68,68,0.15)", color: "#f87171" }}>{error}</p>}
         <div className="grid grid-cols-2 gap-4">
-          <FormField label="Cabang" required>
-            <DashSelect value={form.disciplineId} onChange={(v) => setForm(f => ({ ...f, disciplineId: v }))} placeholder="Pilih cabang" options={disciplines.map(d => ({ value: d.id, label: d.name }))} />
+          <FormField label="Tingkat" required>
+            <DashSelect value={formLevel} onChange={(v) => { setFormLevel(v); setForm(f => ({ ...f, disciplineId: "" })); }} placeholder="Pilih tingkat" options={LEVELS} />
+          </FormField>
+          <FormField label="Cabang Kategori" required>
+            <DashSelect value={form.disciplineId} onChange={(v) => setForm(f => ({ ...f, disciplineId: v }))} placeholder="Pilih kategori" options={(formLevel ? getDisciplinesByLevel(formLevel) : DISCIPLINES).map(d => ({ value: d.id, label: d.label }))} />
           </FormField>
           <FormField label="Tipe Match">
             <DashSelect value={form.matchType} onChange={(v) => setForm(f => ({ ...f, matchType: v as "INDIVIDUAL" | "TEAM" }))} options={[{ value: "INDIVIDUAL", label: "Individual" }, { value: "TEAM", label: "Beregu" }]} />
