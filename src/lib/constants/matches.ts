@@ -1208,8 +1208,8 @@ export interface MatchTab {
 }
 
 export const matchTabs: MatchTab[] = [
-  { id: "livescore", label: "Live Score", caption: "Skor real-time" },
-  { id: "jadwal", label: "Jadwal", caption: "Filter & status" },
-  { id: "bracket", label: "Bracket", caption: "Bagan knockout" },
-  { id: "klasemen", label: "Klasemen", caption: "Tabel grup PBSI" },
+  { id: "livescore", label: "Live Score", caption: "" },
+  { id: "jadwal", label: "Jadwal", caption: "" },
+  { id: "bracket", label: "Bracket", caption: "" },
+  { id: "klasemen", label: "Klasemen", caption: "Tabel grup kategori beregu PBSI" },
 ];

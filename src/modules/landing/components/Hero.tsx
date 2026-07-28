@@ -121,14 +121,14 @@ export function Hero() {
             Lihat Live Score
             <ArrowIcon className="font-black" />
           </Button>
-          <Button
+          {/* <Button
             href="#"
             variant="outline"
             className="px-6 py-3 text-base font-black italic"
           >
             Dokumentasi
             <ArrowIcon className="font-black" />
-          </Button>
+          </Button> */}
         </div>
       </div>
     </section>

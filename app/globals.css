@@ -17,6 +17,8 @@
   --font-sans: var(--font-montserrat);
 }
 
+
+
 /* Reset default browser spacing. Each component sets the margin/padding it
    needs on its own. Kept in the base layer so Tailwind utilities still win. */
 @layer base {
@@ -71,6 +73,14 @@ body {
 
 .animate-marquee {
   animation: marquee 30s linear infinite;
+}
+.animate-marquee-fast {
+  animation: marquee 20s linear infinite;
+}
+@media (max-width: 639px) {
+.animate-marquee-fast {
+  animation: marquee 4s linear infinite;
+}
 }
 
 /* Fade the logos into transparency as they reach either edge. */

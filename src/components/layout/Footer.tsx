@@ -1,9 +1,5 @@
 import Image from "next/image";
-import {
-  YoutubeIcon,
-  TiktokIcon,
-  InstagramIcon,
-} from "@/components/ui/icons";
+import { socialLinks as socials } from "@/lib/constants/social";
 
 const navigasi = [
   { label: "Beranda", href: "#" },
@@ -26,13 +22,6 @@ const jadwal = [
   { label: "Fase Grup", value: "1-10 Agustus 2026" },
   { label: "Fase Gugur", value: "11-18 Agustus 2026" },
   { label: "Semifinal & Final", value: "19-20 Agustus 2026" },
-];
-
-/** Order of the icon buttons; the mobile text list runs the other way round. */
-const socials = [
-  { label: "YouTube", href: "#", Icon: YoutubeIcon },
-  { label: "TikTok", href: "#", Icon: TiktokIcon },
-  { label: "Instagram", href: "#", Icon: InstagramIcon },
 ];
 
 const columnHeading = "text-sm font-black italic text-white";
