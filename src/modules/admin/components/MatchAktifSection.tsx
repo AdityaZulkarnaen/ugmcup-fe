@@ -39,6 +39,7 @@ function SetTimerControl({
   initialDuration = 0,
   initialStatus = "STOPPED",
   initialStartedAt,
+  isSetCreated = true,
   onStatusChange
 }: {
   matchId: string;
@@ -46,6 +47,7 @@ function SetTimerControl({
   initialDuration?: number;
   initialStatus?: "STOPPED" | "RUNNING" | "LOCKED";
   initialStartedAt?: string | null;
+  isSetCreated?: boolean;
   onStatusChange?: (status: "STOPPED" | "RUNNING" | "LOCKED") => void;
 }) {
   const [status, setStatus] = useState(initialStatus);
@@ -100,7 +102,7 @@ function SetTimerControl({
       <div className="flex items-center gap-1.5 mb-1">
         <Timer size={14} className="text-[#8352D9]" />
         <span className="text-[11px] font-semibold uppercase tracking-wider text-[#5B21B6]">
-          Set {setNumber}
+          Set {isSetCreated ? setNumber : 0}
         </span>
         {status === "RUNNING" && (
           <span className="h-2 w-2 rounded-full bg-[#10B981] animate-ping" />
@@ -130,11 +132,21 @@ function SetTimerControl({
               </button>
             ) : (
               <button
-                onClick={() => handleTimerAction("START")}
-                disabled={loading}
+                onClick={() => {
+                  if (!isSetCreated) {
+                    alert("Buat Set 1 terlebih dahulu dengan menekan tombol '+ Mulai Set 1'");
+                    return;
+                  }
+                  handleTimerAction("START");
+                }}
+                disabled={loading || !isSetCreated}
                 aria-label="Mulai Timer"
-                title="Mulai Timer"
-                className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold text-[#0F172A] transition bg-[#66FFB4] hover:bg-[#50E69D] active:scale-95 shadow-[0_2px_8px_rgba(102,255,180,0.4)]"
+                title={!isSetCreated ? "Buat Set 1 terlebih dahulu" : "Mulai Timer"}
+                className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold transition ${
+                  !isSetCreated
+                    ? "bg-gray-200 text-gray-400 cursor-not-allowed shadow-none"
+                    : "bg-[#66FFB4] text-[#0F172A] hover:bg-[#50E69D] active:scale-95 shadow-[0_2px_8px_rgba(102,255,180,0.4)]"
+                }`}
               >
                 <Play size={12} fill="currentColor" /> Mulai
               </button>
@@ -142,14 +154,17 @@ function SetTimerControl({
 
             <button
               onClick={() => {
+                if (!isSetCreated) return;
                 if (confirm("Kunci timer untuk set ini? Waktu tidak bisa dilanjutkan lagi.")) {
                   handleTimerAction("STOP");
                 }
               }}
-              disabled={loading}
+              disabled={loading || !isSetCreated}
               aria-label="Berhenti & Kunci Timer"
-              title="Berhenti & Kunci Timer"
-              className="flex items-center justify-center p-1.5 rounded-lg text-white transition bg-[#EF4444] hover:opacity-90 active:scale-95 shadow-xs"
+              title={!isSetCreated ? "Buat Set 1 terlebih dahulu" : "Berhenti & Kunci Timer"}
+              className={`flex items-center justify-center p-1.5 rounded-lg text-white transition shadow-xs ${
+                !isSetCreated ? "bg-gray-300 cursor-not-allowed" : "bg-[#EF4444] hover:opacity-90 active:scale-95"
+              }`}
             >
               <Square size={12} fill="currentColor" />
             </button>
@@ -498,7 +513,8 @@ function ScoringPanel({ match, onRefresh }: { match: Match; onRefresh: () => voi
           <div className="flex flex-col gap-2">
             <SetTimerControl
               matchId={match.id}
-              setNumber={activeSet}
+              setNumber={sets.length === 0 ? 0 : activeSet}
+              isSetCreated={sets.length > 0}
               initialDuration={currentSet.durationSeconds}
               initialStatus={currentSet.timerStatus as any}
               initialStartedAt={currentSet.timerStartedAt}
