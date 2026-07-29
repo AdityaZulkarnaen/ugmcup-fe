@@ -103,8 +103,8 @@ export function LiveScoreCard({ match, isLight = false }: LiveScoreCardProps) {
           <span
             className={`truncate rounded-full border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.25px] ${
               isLight
-                ? "border-[#fee685] bg-[#fffbeb] text-[#bb4d00]"
-                : "border-[#C79A3B]/40 bg-[#C79A3B]/[0.08] text-[#E3B24D]"
+                ? "border-[#D9D3FF] bg-[#F3F0FF] text-[#6C47D1]"
+                : "border-[#8B5CF6]/40 bg-[#8B5CF6]/12 text-[#C4B5FD]"
             }`}
           >
             {disciplineLabel(match.categoryId)} {match.level}
@@ -193,7 +193,7 @@ export function LiveScoreCard({ match, isLight = false }: LiveScoreCardProps) {
             ))}
             <span
               className={`ml-1 text-xs font-medium ${
-                isLight ? "text-[#ef9f27]" : "text-[#7A7A83]"
+                isLight ? "text-[#8b5cf6]" : "text-[#7A7A83]"
               }`}
             >
               {match.setLabel}
@@ -212,13 +212,13 @@ export function LiveScoreCard({ match, isLight = false }: LiveScoreCardProps) {
                 }`}
               >
                 {name}
-                {i === 0 && (
+                {/* {i === 0 && (
                   <ArrowIcon
                     className={`shrink-0 ${
                       isLight ? "text-[#8b5cf6]" : "text-[#34E5A6]"
                     }`}
                   />
-                )}
+                )} */}
               </p>
             ))}
             <p
@@ -252,7 +252,9 @@ export function LiveScoreCard({ match, isLight = false }: LiveScoreCardProps) {
                 key={i}
                 className={`h-1 w-10 rounded-full ${
                   current
-                    ? "bg-[#EF9F27]"
+                    ? isLight
+                      ? "bg-[#8b5cf6]"
+                      : "bg-[#02F5D4]"
                     : played
                       ? isLight
                         ? "bg-[rgba(0,0,0,0.15)]"
@@ -267,7 +269,7 @@ export function LiveScoreCard({ match, isLight = false }: LiveScoreCardProps) {
         </div>
         <span
           className={`text-xs font-semibold ${
-            isLight ? "text-[#ef9f27]" : "text-[#7A7A83]"
+            isLight ? "text-[#8b5cf6]" : "text-[#7A7A83]"
           }`}
         >
           Game {match.currentGame}
@@ -279,7 +281,7 @@ export function LiveScoreCard({ match, isLight = false }: LiveScoreCardProps) {
         className={`mt-4 flex items-center justify-end gap-1 border-t pt-3 text-xs font-semibold ${
           isLight
             ? "border-[rgba(0,0,0,0.06)] text-[#8b5cf6]"
-            : "border-white/[0.06] text-[#E3B24D]"
+            : "border-white/[0.06] text-[#34E5A6]"
         }`}
       >
         Lihat statistik

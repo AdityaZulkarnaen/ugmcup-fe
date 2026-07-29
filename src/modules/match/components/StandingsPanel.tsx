@@ -106,7 +106,9 @@ function StandingRow({
       <td
         className={`px-3 py-3 text-center text-sm font-bold tabular-nums ${
           rank === 1
-            ? "text-[#E3B24D]"
+            ? isLight
+              ? "text-[#8b5cf6]"
+              : "text-[#34E5A6]"
             : isLight
               ? "text-[#808080]"
               : "text-[#6B6B73]"
@@ -193,8 +195,8 @@ function GroupTable({
       <h3
         className={`border-b px-4 py-2.5 text-[11px] font-bold uppercase tracking-wider ${
           isLight
-            ? "border-[rgba(0,0,0,0.06)] bg-[rgba(0,0,0,0.02)] text-[#bb4d00]"
-            : "border-white/[0.06] bg-white/[0.03] text-[#E3B24D]"
+            ? "border-[rgba(0,0,0,0.06)] bg-[rgba(0,0,0,0.02)] text-[#6C47D1]"
+            : "border-white/[0.06] bg-white/[0.03] text-[#34E5A6]"
         }`}
       >
         {group.label}

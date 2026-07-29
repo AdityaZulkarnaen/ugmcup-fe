@@ -40,9 +40,9 @@ export function MatchTabs({ isLight = false }: MatchTabsProps) {
               onClick={() => setActive(tab.id)}
               className={`flex flex-col items-center justify-center gap-0.5 rounded-xl px-4 py-3 text-center transition-all duration-200 ${
                 isActive && isLight
-                  ? "border border-[#fee685] bg-[#fffbeb] shadow-[0px_1px_1.5px_rgba(0,0,0,0.1),0px_1px_1px_rgba(0,0,0,0.1)]"
+                  ? "border border-[#D9D3FF] bg-[#F3F0FF] shadow-[0px_1px_1.5px_rgba(0,0,0,0.1),0px_1px_1px_rgba(0,0,0,0.1)]"
                   : isActive
-                    ? "border border-[#EF9F27]/35 bg-[#EF9F27]/15"
+                    ? "border border-[#8b5cf6]/60 bg-[#8b5cf6]/40"
                     : isLight
                       ? "border border-transparent hover:bg-[rgba(0,0,0,0.03)]"
                       : "border border-transparent hover:bg-white/[0.03]"
@@ -51,9 +51,9 @@ export function MatchTabs({ isLight = false }: MatchTabsProps) {
               <span
                 className={`flex items-center gap-1.5 text-sm font-bold tracking-wide transition-colors duration-200 ${
                   isActive && isLight
-                    ? "text-[#bb4d00]"
+                    ? "text-[#6C47D1]"
                     : isActive
-                      ? "text-[#FAC775]"
+                      ? "text-[#ffffff]"
                       : isLight
                         ? "text-[#808080]"
                         : "text-[#8A8A93]"
@@ -73,9 +73,9 @@ export function MatchTabs({ isLight = false }: MatchTabsProps) {
               <span
                 className={`text-xs leading-tight transition-colors duration-200 ${
                   isActive && isLight
-                    ? "text-[rgba(225,113,0,0.7)]"
+                    ? "text-[rgba(108,71,209,0.7)]"
                     : isActive
-                      ? "text-[#FAC775]/70"
+                      ? "text-[#5CFCE7]/70"
                       : isLight
                         ? "text-[rgba(128,128,128,0.5)]"
                         : "text-[#8A8A93]/50"

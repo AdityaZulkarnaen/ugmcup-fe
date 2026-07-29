@@ -24,7 +24,7 @@ function InfoRow({
 export function MatchInfo({ match }: { match: MatchDetail }) {
   return (
     <section className="overflow-hidden rounded-xl border border-white/[0.06]">
-      <h2 className="border-b border-white/[0.06] bg-white/[0.03] px-4 py-2.5 text-[11px] font-bold uppercase tracking-wider text-[#E3B24D]">
+      <h2 className="border-b border-white/[0.06] bg-white/[0.03] px-4 py-2.5 text-[11px] font-bold uppercase tracking-wider text-[#34E5A6]">
         Informasi Pertandingan
       </h2>
 

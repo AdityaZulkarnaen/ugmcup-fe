@@ -81,7 +81,7 @@ export function MatchDetailTabs({ match }: { match: MatchDetail }) {
                 onClick={() => setTab(item.id)}
                 className={`-mb-px border-b-2 px-5 py-3.5 text-[13px] font-bold uppercase tracking-wide transition-colors ${
                   isActive
-                    ? "border-[#EF9F27] text-[#E3B24D]"
+                    ? "border-[#02F5D4] text-[#34E5A6]"
                     : "border-transparent text-[#6B6B73] hover:text-white"
                 }`}
               >
@@ -104,7 +104,7 @@ export function MatchDetailTabs({ match }: { match: MatchDetail }) {
                   onClick={() => setSubTab(item.id)}
                   className={`rounded-full border px-4 py-2 text-[11px] font-bold uppercase tracking-wide transition-colors ${
                     isActive
-                      ? "border-[#C79A3B]/50 bg-[#C79A3B]/15 text-[#E3B24D]"
+                      ? "border-[#8B5CF6]/50 bg-[#8B5CF6]/15 text-[#C4B5FD]"
                       : "border-white/[0.06] bg-white/[0.03] text-[#8A8A93] hover:text-white"
                   }`}
                 >

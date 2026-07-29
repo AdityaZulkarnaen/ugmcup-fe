@@ -105,7 +105,7 @@ export function ScoreTable({ match }: { match: MatchDetail }) {
               <tr>
                 <th className={`${headCell} text-center`}>Tim / Atlet</th>
                 <th
-                  className={`${headCell} ${numberColumn} text-center text-[#E3B24D]`}
+                  className={`${headCell} ${numberColumn} text-center text-[#34E5A6]`}
                 >
                   Total
                 </th>

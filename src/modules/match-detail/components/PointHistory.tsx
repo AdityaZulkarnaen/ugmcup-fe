@@ -114,7 +114,7 @@ export function PointHistory({ match }: { match: MatchDetail }) {
               onClick={() => setSet(index)}
               className={`rounded-full border px-4 py-1.5 text-xs font-semibold transition-colors ${
                 isActive
-                  ? "border-[#C79A3B]/50 bg-[#C79A3B]/15 text-[#E3B24D]"
+                  ? "border-[#8B5CF6]/50 bg-[#8B5CF6]/15 text-[#C4B5FD]"
                   : "border-white/[0.06] bg-white/[0.03] text-[#8A8A93] hover:text-white"
               }`}
             >
@@ -124,7 +124,7 @@ export function PointHistory({ match }: { match: MatchDetail }) {
         })}
       </div>
 
-      <h3 className="text-center text-[13px] font-bold uppercase tracking-wider text-[#E3B24D]">
+      <h3 className="text-center text-[13px] font-bold uppercase tracking-wider text-[#34E5A6]">
         Poin demi poin — Set {set + 1}
       </h3>
 

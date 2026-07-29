@@ -2,6 +2,7 @@ import { Hero } from "./components/Hero";
 import { About } from "./components/About";
 import { News } from "./components/News";
 import { CountdownSection } from "./components/CountdownSection";
+import { Venue } from "./components/Venue";
 import { LiveScoreCta } from "./components/LiveScoreCta";
 import { Footer } from "@/components/layout/Footer";
 
@@ -17,6 +18,7 @@ export default function LandingPage() {
       <About />
       <News />
       <CountdownSection />
+      <Venue />
       <LiveScoreCta />
       <Footer />
     </>

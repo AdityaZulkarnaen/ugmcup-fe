@@ -100,8 +100,8 @@ function SideRow({
       onClick={() => participant && onSelect?.(participant.id)}
       className={`flex w-full items-center gap-2 py-2 pl-3.5 pr-3 text-left transition-colors disabled:cursor-default ${
         isLight
-          ? `enabled:hover:bg-[rgba(0,0,0,0.02)] ${isActive ? "bg-[#fffbeb]" : ""}`
-          : `enabled:hover:bg-white/[0.03] ${isActive ? "bg-[#EF9F27]/10" : ""}`
+          ? `enabled:hover:bg-[rgba(0,0,0,0.02)] ${isActive ? "bg-[#F3F0FF]" : ""}`
+          : `enabled:hover:bg-white/[0.03] ${isActive ? "bg-[#02F5D4]/10" : ""}`
       }`}
     >
       {participant && (
@@ -112,7 +112,7 @@ function SideRow({
           !participant
             ? isLight ? "italic text-[rgba(26,22,43,0.3)]" : "italic text-[#6B6B73]"
             : isActive
-              ? isLight ? "text-[#bb4d00]" : "text-[#FAC775]"
+              ? isLight ? "text-[#6C47D1]" : "text-[#5CFCE7]"
               : side.winner
                 ? isLight ? "text-[#1a162b]" : "text-white"
                 : isLight ? "text-[rgba(26,22,43,0.4)]" : "text-[#7A7A83]"
@@ -147,7 +147,7 @@ export function BracketMatchCard({
     <article
       className={`relative overflow-hidden rounded-xl border transition-all ${
         onPath
-          ? "border-[#EF9F27]/60 bg-[#EF9F27]/[0.06] shadow-[0_0_12px_-2px_rgba(239,159,39,0.35)]"
+          ? "border-[#02F5D4]/60 bg-[#02F5D4]/6 shadow-[0_0_12px_-2px_rgba(2,245,212,0.35)]"
           : isLight
             ? "border-[rgba(0,0,0,0.08)] bg-white hover:border-[rgba(0,0,0,0.15)]"
             : "border-white/[0.06] bg-white/[0.02] hover:border-white/15"
@@ -176,17 +176,17 @@ export function BracketChampionCard({
       className={`rounded-lg border px-4 py-3 text-center transition-all ${
         isLight
           ? onPath
-            ? "border-[#EF9F27] bg-gradient-to-b from-[#fffbeb] to-[#fff9e0] shadow-[0_0_12px_-2px_rgba(239,159,39,0.3)]"
-            : "border-[#fee685] bg-gradient-to-b from-[#fffdf7] to-[#fffbeb]"
+            ? "border-[#02F5D4] bg-linear-to-b from-[#F3F0FF] to-[#EDE8FF] shadow-[0_0_12px_-2px_rgba(2,245,212,0.35)]"
+            : "border-[#D9D3FF] bg-linear-to-b from-[#FBFAFF] to-[#F3F0FF]"
           : onPath
-            ? "border-[#EF9F27] bg-linear-to-b from-[#4A3A1E] to-[#2B2114] shadow-[0_0_12px_-2px_rgba(239,159,39,0.45)]"
-            : "border-[#C79A3B]/45 bg-linear-to-b from-[#4A3A1E] to-[#2B2114]"
+            ? "border-[#02F5D4] bg-linear-to-b from-[#2A1F52] to-[#181233] shadow-[0_0_12px_-2px_rgba(2,245,212,0.45)]"
+            : "border-[#8B5CF6]/45 bg-linear-to-b from-[#2A1F52] to-[#181233]"
       } ${dimmed ? "opacity-35" : ""}`}
     >
-      <p className={`text-xs font-bold uppercase tracking-widest ${isLight ? "text-[#bb4d00]" : "text-[#F0C97A]"}`}>
+      <p className={`text-xs font-bold uppercase tracking-widest ${isLight ? "text-[#6C47D1]" : "text-[#5CFCE7]"}`}>
         {label}
       </p>
-      <p className={`mt-0.5 text-sm font-semibold italic ${isLight ? "text-[#1a162b]" : "text-[#B9A87F]"}`}>
+      <p className={`mt-0.5 text-sm font-semibold italic ${isLight ? "text-[#1a162b]" : "text-[#D9D3FF]"}`}>
         {name}
       </p>
     </div>

@@ -92,7 +92,7 @@ export function MatchScoreboard({ match }: { match: MatchDetail }) {
           </p>
           {/* Squeezed into the middle column this wraps one word per line, so on
               mobile it moves under the whole board instead. */}
-          <p className="mt-2 hidden text-center text-[11px] font-bold uppercase tracking-wide text-[#E3B24D] sm:block">
+          <p className="mt-2 hidden text-center text-[11px] font-bold uppercase tracking-wide text-[#34E5A6] sm:block">
             {statusLine(match)}
           </p>
         </div>
@@ -104,7 +104,7 @@ export function MatchScoreboard({ match }: { match: MatchDetail }) {
         />
       </div>
 
-      <p className="mt-5 text-center text-[11px] font-bold uppercase tracking-wide text-[#E3B24D] sm:hidden">
+      <p className="mt-5 text-center text-[11px] font-bold uppercase tracking-wide text-[#34E5A6] sm:hidden">
         {statusLine(match)}
       </p>
     </section>

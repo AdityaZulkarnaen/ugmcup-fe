@@ -14,12 +14,12 @@ import {
 } from "./BracketMatchCard";
 
 const roundLabel =
-  "text-[11px] font-bold uppercase tracking-wider text-[#E3B24D]";
+  "text-[11px] font-bold uppercase tracking-wider text-[#34E5A6]";
 
 const connector = "absolute";
 const connectorIdleDark = "bg-white/12";
 const connectorIdleLight = "bg-[rgba(0,0,0,0.08)]";
-const connectorLit = "bg-[#EF9F27]";
+const connectorLit = "bg-[#02F5D4]";
 
 /** Column slot keys: match ids, or the round id for the champion column. */
 export function columnKeys(round: BracketRound): string[] {
@@ -96,7 +96,7 @@ function RoundColumn({
     <div className="flex h-full flex-col">
       {/* Label with a rule running out to the edge of the column */}
       <div className="mb-3 flex items-center gap-3">
-        <p className={isLight ? "text-[11px] font-bold uppercase tracking-wider text-[#bb4d00]" : roundLabel}>{round.label}</p>
+        <p className={isLight ? "text-[11px] font-bold uppercase tracking-wider text-[#6C47D1]" : roundLabel}>{round.label}</p>
         <span className={`h-px flex-1 ${isLight ? "bg-[rgba(0,0,0,0.08)]" : "bg-white/12"}`} />
       </div>
 
@@ -263,7 +263,7 @@ export function BracketBoard({
           </button>
 
           <div className="text-center">
-            <p className={isLight ? "text-[11px] font-bold uppercase tracking-wider text-[#bb4d00]" : roundLabel}>{current.round.label}</p>
+            <p className={isLight ? "text-[11px] font-bold uppercase tracking-wider text-[#6C47D1]" : roundLabel}>{current.round.label}</p>
             <p className={`mt-0.5 text-[11px] ${isLight ? "text-[rgba(26,22,43,0.4)]" : "text-[#6B6B73]"}`}>
               Babak {page + 1} dari {columns.length}
             </p>
@@ -293,10 +293,16 @@ export function BracketBoard({
                 aria-current={i === page}
                 className={`h-1.5 rounded-full transition-all ${
                   i === page
-                    ? "w-6 bg-[#EF9F27]"
+                    ? isLight
+                      ? "w-6 bg-[#8b5cf6]"
+                      : "w-6 bg-[#02F5D4]"
                     : roundOnPath
-                      ? "w-1.5 bg-[#EF9F27]/60"
-                      : "w-1.5 bg-white/15"
+                      ? isLight
+                        ? "w-1.5 bg-[#8b5cf6]/60"
+                        : "w-1.5 bg-[#02F5D4]/60"
+                      : isLight
+                        ? "w-1.5 bg-black/15"
+                        : "w-1.5 bg-white/15"
                 }`}
               />
             );

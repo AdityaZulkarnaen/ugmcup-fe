@@ -152,8 +152,8 @@ export function ScheduleRow({ match, isLight = false }: ScheduleRowProps) {
             <span
               className={`rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${
                 isLight
-                  ? "border-[#fee685] bg-[#fffbeb] text-[#bb4d00]"
-                  : "border-[#C79A3B]/40 bg-[#C79A3B]/[0.08] text-[#E3B24D]"
+                  ? "border-[#D9D3FF] bg-[#F3F0FF] text-[#6C47D1]"
+                  : "border-[#8B5CF6]/40 bg-[#8B5CF6]/12 text-[#C4B5FD]"
               }`}
             >
               {disciplineLabel(match.categoryId)}
@@ -225,7 +225,7 @@ export function ScheduleRow({ match, isLight = false }: ScheduleRowProps) {
           className={`shrink-0 transition-all ${
             isLight
               ? "text-[rgba(26,22,43,0.25)] group-hover:translate-x-0.5 group-hover:text-[#8b5cf6]"
-              : "text-[#5A5A63] group-hover:translate-x-0.5 group-hover:text-[#E3B24D]"
+              : "text-[#5A5A63] group-hover:translate-x-0.5 group-hover:text-[#34E5A6]"
           }`}
         />
       </div>

@@ -86,8 +86,8 @@ export function AthleteSearch({
         className={`flex items-center gap-2 rounded-full border px-4 py-2 transition-colors ${
           selected
             ? isLight
-              ? "border-[#fee685] bg-[#fffbeb]"
-              : "border-[#EF9F27]/40 bg-[#EF9F27]/10"
+              ? "border-[#D9D3FF] bg-[#F3F0FF]"
+              : "border-[#02F5D4]/40 bg-[#02F5D4]/10"
             : isLight
               ? "border-[rgba(0,0,0,0.08)] bg-[rgba(0,0,0,0.02)] focus-within:border-[rgba(0,0,0,0.15)]"
               : "border-white/[0.08] bg-white/[0.02] focus-within:border-white/20"
@@ -96,7 +96,7 @@ export function AthleteSearch({
         <SearchIcon
           className={`shrink-0 ${
             selected
-              ? isLight ? "text-[#bb4d00]" : "text-[#FAC775]"
+              ? isLight ? "text-[#6C47D1]" : "text-[#5CFCE7]"
               : isLight ? "text-[rgba(26,22,43,0.3)]" : "text-[#6B6B73]"
           }`}
         />
@@ -117,7 +117,7 @@ export function AthleteSearch({
           onFocus={() => setOpen(true)}
           className={`min-w-0 flex-1 bg-transparent text-xs font-medium outline-none [&::-webkit-search-cancel-button]:hidden ${
             selected
-              ? isLight ? "text-[#bb4d00] placeholder:text-[#bb4d00]/50" : "text-[#FAC775] placeholder:text-[#6B6B73]"
+              ? isLight ? "text-[#6C47D1] placeholder:text-[#6C47D1]/50" : "text-[#5CFCE7] placeholder:text-[#6B6B73]"
               : isLight ? "text-[#1a162b] placeholder:text-[rgba(26,22,43,0.35)]" : "text-white placeholder:text-[#6B6B73]"
           }`}
         />

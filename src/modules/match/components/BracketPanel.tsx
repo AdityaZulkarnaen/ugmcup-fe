@@ -90,7 +90,7 @@ export function BracketPanel({ isLight = false }: BracketPanelProps) {
           value={tier}
           onChange={changeTier}
           label="Filter jenjang bracket"
-          accent="gold"
+          accent="mint"
           className="min-w-0 flex-1 basis-[45%] md:basis-2/12"
           isLight={isLight}
         />

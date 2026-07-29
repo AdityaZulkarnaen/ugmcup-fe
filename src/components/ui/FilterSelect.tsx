@@ -10,9 +10,9 @@ export interface FilterOption {
 
 /** Accent palettes for the trigger and the selected option — dark theme. */
 const accentsDark = {
-  gold: {
-    trigger: "border-[#EF9F27]/30 bg-[#EF9F27]/15 text-[#FAC775]",
-    option: "bg-[#EF9F27]/15 text-[#FAC775]",
+  mint: {
+    trigger: "border-[#02F5D4]/30 bg-[#02F5D4]/15 text-[#5CFCE7]",
+    option: "bg-[#02F5D4]/15 text-[#5CFCE7]",
   },
   violet: {
     trigger: "border-[#8B5CF6]/40 bg-[#8B5CF6]/20 text-[#C4B5FD]",
@@ -22,9 +22,9 @@ const accentsDark = {
 
 /** Accent palettes for the trigger and the selected option — light theme. */
 const accentsLight = {
-  gold: {
-    trigger: "border-[#fee685] bg-[#fffbeb] text-[#bb4d00]",
-    option: "bg-[#fffbeb] text-[#bb4d00]",
+  mint: {
+    trigger: "border-[#D9D3FF] bg-[#F3F0FF] text-[#6C47D1]",
+    option: "bg-[#F3F0FF] text-[#6C47D1]",
   },
   violet: {
     trigger: "border-[#8b5cf6]/30 bg-[#8b5cf6]/10 text-[#8b5cf6]",
@@ -44,7 +44,7 @@ export function FilterSelect({
   value,
   onChange,
   label,
-  accent = "gold",
+  accent = "mint",
   accented = true,
   optionLabel = (option) => option.label,
   className = "w-full sm:w-56",

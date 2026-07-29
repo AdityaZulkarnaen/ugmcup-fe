@@ -22,18 +22,18 @@ export default function MatchPage() {
 
       <main
         className={`relative pt-28 pb-24 transition-colors duration-300 ${isLight
-            ? "bg-gradient-to-b from-[#fffdf7] to-[#f5f5f5]"
+            ? "bg-gradient-to-b from-[#FBFAFF] to-[#f5f5f5]"
             : "bg-linear-to-b from-[#1A162B] to-[#0F0E1A]"
           }`}
       >
-        {/* Radial amber glow — visible in both modes but more prominent in light */}
+        {/* Radial violet glow — visible in both modes but more prominent in light */}
         <div
           aria-hidden
           className={`pointer-events-none absolute left-1/2 top-0 -translate-x-1/2 h-[200px] w-full max-w-5xl transition-opacity duration-300 ${isLight ? "opacity-100" : "opacity-0"
             }`}
           style={{
             background:
-              "radial-gradient(ellipse 80% 60% at 50% 0%, rgba(239,159,39,0.08) 0%, transparent 70%)",
+              "radial-gradient(ellipse 80% 60% at 50% 0%, rgba(124,92,255,0.10) 0%, transparent 70%)",
           }}
         />
 
@@ -41,7 +41,7 @@ export default function MatchPage() {
         <header className="relative mx-auto flex w-full max-w-6xl flex-col items-center px-6 text-center gap-2">
           {/* Live count badge */}
           {isLight ? (
-            <span className="inline-flex items-center gap-2 rounded-full border border-[#fee685] bg-[#fffbeb] px-4 py-1.5 text-xs font-semibold text-[#bb4d00] shadow-[0px_3px_6px_0px_rgba(139,92,246,0.02)]">
+            <span className="inline-flex items-center gap-2 rounded-full border border-[#D9D3FF] bg-[#F3F0FF] px-4 py-1.5 text-xs font-semibold text-[#6C47D1] shadow-[0px_3px_6px_0px_rgba(139,92,246,0.02)]">
               <span className="relative flex h-2.5 w-2.5">
                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#FB2C36] opacity-60" />
                 <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-[#FB2C36]" />
@@ -49,7 +49,7 @@ export default function MatchPage() {
               {liveCount} match berlangsung
             </span>
           ) : (
-            <span className="inline-flex items-center gap-2 rounded-full border border-[#EF9F27]/30 bg-[#EF9F27]/12 px-4 py-1.5 text-xs font-medium text-[#FAC775]">
+            <span className="inline-flex items-center gap-2 rounded-full border border-[#02F5D4]/30 bg-[#02F5D4]/12 px-4 py-1.5 text-xs font-medium text-[#5CFCE7]">
               <span className="h-2 w-2 rounded-full bg-[#FB2C36]" />
               {liveCount} match berlangsung
             </span>

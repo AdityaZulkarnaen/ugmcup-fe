@@ -39,7 +39,7 @@ export function SchedulePanel({ isLight = false }: SchedulePanelProps) {
           value={day}
           onChange={setDay}
           label="Filter hari"
-          accent="gold"
+          accent="mint"
           accented={day !== "all"}
           className="min-w-0 flex-1 sm:max-w-56"
           optionLabel={(option) =>
@@ -65,7 +65,7 @@ export function SchedulePanel({ isLight = false }: SchedulePanelProps) {
           value={tier}
           onChange={setTier}
           label="Filter jenjang"
-          accent="gold"
+          accent="mint"
           accented={tier !== "all"}
           className="col-span-2 min-w-0 flex-1 sm:col-span-1 sm:max-w-56"
           isLight={isLight}

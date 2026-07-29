@@ -1003,8 +1003,17 @@ export function searchBracketAthletes(
     .slice(0, limit);
 }
 
-/** Single venue for the whole tournament, shown on the match detail page. */
-export const tournamentVenue = { name: "GOR Nusantara", org: "UGM" };
+/**
+ * Single venue for the whole tournament, shown on the match detail page and in
+ * the landing page venue section. `mapsUrl` is a plain Maps search so it keeps
+ * working if the listing changes; swap it for the exact place link when the
+ * committee has one.
+ */
+export const tournamentVenue = {
+  name: "GOR Nusantara",
+  org: "UGM",
+  mapsUrl: "https://maps.app.goo.gl/Tw9cF2gCzB4LFM2t9",
+};
 
 export type MatchSideKey = "home" | "away";
 

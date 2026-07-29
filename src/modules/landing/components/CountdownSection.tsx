@@ -33,7 +33,7 @@ function CountdownDigit({ digit, delay }: { digit: string; delay: number }) {
       className="relative flex h-24 w-18 items-center justify-center overflow-hidden rounded-[1.25rem] bg-[#8B5AF7] shadow-[0_8px_0_rgba(0,0,0,0.04),0_16px_18px_rgba(78,44,150,0.12)] sm:h-70 sm:w-54 sm:rounded-[1.9rem] md:h-36 md:w-30 md:rounded-[1.75rem]"
     >
       <span className="absolute inset-x-0 top-1/2 h-0.5 -translate-y-1/2 bg-[#F5FFB0]" />
-      <span className="relative translate-y-[0.08em] text-[2.8rem] font-black italic leading-none tracking-[-0.06em] text-[#E9FF53] sm:text-[7rem] md:text-[3.75rem]">
+      <span className="relative translate-y-[0.08em] text-[2.8rem] font-black italic leading-none tracking-[-0.06em] text-[#DAFA78] sm:text-[7rem] md:text-[3.75rem]">
         {digit}
       </span>
     </div>
@@ -87,7 +87,7 @@ export function CountdownSection() {
   }, []);
 
   return (
-    <section className="overflow-hidden bg-[#D7FF63] py-20 text-center text-[#0A0A0A] sm:py-28">
+    <section className="overflow-hidden bg-[#DAFA78] py-20 text-center text-[#0A0A0A] sm:py-28">
       <div className="mx-auto flex w-[87.5%] flex-col items-center">
         <h2
           data-aos="fade-up"
