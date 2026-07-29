@@ -203,9 +203,12 @@ export function JadwalSection({ onStartAndSwitch }: { onStartAndSwitch?: (matchI
             }
           },
         ]}
-        actions={(row) => (
+        actions={(row) => {
+          const hasBothParticipants = (row.participantA || row.teamA) && (row.participantB || row.teamB);
+          
+          return (
           <div className="flex gap-2">
-            {row.status === "SCHEDULED" && (
+            {row.status === "SCHEDULED" && hasBothParticipants && (
               <button
                 onClick={() => handleStart(row)}
                 disabled={starting === row.id}
@@ -229,7 +232,8 @@ export function JadwalSection({ onStartAndSwitch }: { onStartAndSwitch?: (matchI
               Hapus
             </button>
           </div>
-        )}
+          );
+        }}
       />
 
       <Modal isOpen={editModalOpen} onClose={() => { setEditModalOpen(false); setError(""); }} title="Edit Jadwal & Lapangan" size="md"

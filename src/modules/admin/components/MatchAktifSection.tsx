@@ -72,7 +72,12 @@ function SetTimerControl({
         setElapsedMs(duration * 1000 + Math.max(0, diffMs));
       }, 33);
     } else {
-      setElapsedMs(duration * 1000);
+      setElapsedMs((prev) => {
+        if (Math.floor(prev / 1000) === duration) {
+          return prev;
+        }
+        return duration * 1000;
+      });
     }
     return () => {
       if (interval) clearInterval(interval);
@@ -102,11 +107,15 @@ function SetTimerControl({
       const res = await updateSetTimer(matchId, setNumber, action);
       setDuration(res.durationSeconds);
       setStatus(res.timerStatus as any);
-      setStartedAt(res.timerStartedAt ?? null);
+      
+      if (action !== "START") {
+        setStartedAt(res.timerStartedAt ?? null);
+      }
+      
       onTimerUpdate?.({
         timerStatus: res.timerStatus,
         durationSeconds: res.durationSeconds,
-        timerStartedAt: res.timerStartedAt ?? null
+        timerStartedAt: action === "START" ? nowIso : (res.timerStartedAt ?? null)
       });
     } catch (e) {
       console.error("Failed to sync timer action:", e);
