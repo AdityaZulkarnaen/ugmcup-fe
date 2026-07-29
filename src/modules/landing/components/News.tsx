@@ -1,13 +1,19 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useEffect, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { CarouselPager } from "@/components/ui/CarouselPager";
-import { news } from "@/lib/constants/news";
+import { getNews } from "@/lib/api/content";
+import type { News as NewsType } from "@/lib/types";
 import { NewsCard } from "./NewsCard";
 
 export function News() {
   const trackRef = useRef<HTMLDivElement>(null);
+  const [newsList, setNewsList] = useState<NewsType[]>([]);
+
+  useEffect(() => {
+    getNews().then((data) => setNewsList(data.slice(0, 3))).catch(console.error);
+  }, []);
 
   return (
     <section className="bg-[#F5F5F5] py-20 text-center text-[#0B0B0F] sm:py-28">
@@ -39,7 +45,7 @@ export function News() {
           ref={trackRef}
           className="scrollbar-none mt-12 flex w-full snap-x snap-mandatory gap-2 overflow-x-auto pb-2 sm:grid sm:grid-cols-3 sm:gap-6 sm:overflow-visible sm:pb-0 [&::-webkit-scrollbar]:hidden"
         >
-          {news.map((item, index) => (
+          {newsList.map((item, index) => (
             <div
               key={item.id}
               // Cards land one after the other, left to right

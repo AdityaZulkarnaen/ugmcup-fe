@@ -4,10 +4,11 @@ import { useEffect, useState, useCallback } from "react";
 import { DataTable } from "@/components/dashboard/DataTable";
 import { PageHeader, AddButton, FormField, DashInput, DashTextarea } from "@/components/dashboard/PageHeader";
 import { Modal, ModalCancelButton, ModalSubmitButton } from "@/components/dashboard/Modal";
+import { DragDropUpload } from "@/components/dashboard/DragDropUpload";
 import { getNews, createNews, updateNews, deleteNews } from "@/lib/api/content";
 import type { News } from "@/lib/types";
 
-const EMPTY_FORM = { title: "", content: "", coverImage: "", publishedAt: "" };
+const EMPTY_FORM = { title: "", content: "", coverImage: "", url: "", publishedAt: "" };
 
 export function BeritaSection() {
   const [data, setData] = useState<News[]>([]);
@@ -28,7 +29,7 @@ export function BeritaSection() {
   function openAdd() { setEditTarget(null); setForm(EMPTY_FORM); setModalOpen(true); }
   function openEdit(item: News) {
     setEditTarget(item);
-    setForm({ title: item.title, content: item.content, coverImage: item.coverImage ?? "", publishedAt: item.publishedAt ? item.publishedAt.slice(0, 16) : "" });
+    setForm({ title: item.title, content: item.content, coverImage: item.coverImage ?? "", url: item.url ?? "", publishedAt: item.publishedAt ? item.publishedAt.slice(0, 16) : "" });
     setModalOpen(true);
   }
 
@@ -38,6 +39,7 @@ export function BeritaSection() {
       const payload = {
         title: form.title, content: form.content,
         coverImage: form.coverImage || undefined,
+        url: form.url || undefined,
         publishedAt: form.publishedAt || undefined,
       };
       if (editTarget) await updateNews(editTarget.id, payload);
@@ -56,7 +58,7 @@ export function BeritaSection() {
     <div>
       <PageHeader
         title="Berita & Artikel"
-        subtitle="Kelola konten berita yang ditampilkan di landing page"
+        subtitle="Kelola konten berita yang ditampilkan di landing page dan informasi"
         action={<AddButton onClick={openAdd} label="Tulis Berita" />}
       />
       <DataTable
@@ -64,10 +66,10 @@ export function BeritaSection() {
         data={data}
         emptyText="Belum ada berita diterbitkan"
         columns={[
-          { key: "title", header: "Judul", render: (row) => <span className="font-semibold text-white line-clamp-1">{row.title}</span> },
-          { key: "publishedAt", header: "Tanggal", render: (row) => row.publishedAt ? new Date(row.publishedAt).toLocaleDateString("id-ID") : <span style={{ color: "#fbbf24" }}>Draft</span> },
+          { key: "title", header: "Judul", render: (row) => <span className="font-semibold text-gray-900 line-clamp-1">{row.title}</span> },
+          { key: "publishedAt", header: "Tanggal", render: (row) => row.publishedAt ? new Date(row.publishedAt).toLocaleDateString("id-ID") : <span className="rounded-md px-2 py-0.5 text-xs font-semibold bg-amber-100 text-amber-700">Draft</span> },
           { key: "createdAt", header: "Dibuat", render: (row) => new Date(row.createdAt).toLocaleDateString("id-ID") },
-          { key: "coverImage", header: "Cover", render: (row) => row.coverImage ? <span style={{ color: "#66FFB4" }}>Ada</span> : <span style={{ color: "#9D9DB6" }}>—</span> },
+          { key: "coverImage", header: "Cover", render: (row) => row.coverImage ? <span className="rounded-md px-2 py-0.5 text-xs font-semibold bg-emerald-100 text-emerald-700">Ada</span> : <span className="text-gray-400">—</span> },
         ]}
         onEdit={openEdit}
         onDelete={handleDelete}
@@ -82,8 +84,11 @@ export function BeritaSection() {
         <FormField label="Konten" required>
           <DashTextarea value={form.content} onChange={(v) => setForm(f => ({ ...f, content: v }))} placeholder="Tulis isi berita..." rows={6} />
         </FormField>
-        <FormField label="URL Cover Image">
-          <DashInput value={form.coverImage} onChange={(v) => setForm(f => ({ ...f, coverImage: v }))} placeholder="https://..." type="url" />
+        <FormField label="Cover Image">
+          <DragDropUpload value={form.coverImage} onChange={(url) => setForm(f => ({ ...f, coverImage: url }))} label="Upload Cover Image" />
+        </FormField>
+        <FormField label="Tautan Eksternal (URL)">
+          <DashInput value={form.url} onChange={(v) => setForm(f => ({ ...f, url: v }))} placeholder="https://..." type="url" />
         </FormField>
         <FormField label="Tanggal Publikasi">
           <DashInput value={form.publishedAt} onChange={(v) => setForm(f => ({ ...f, publishedAt: v }))} type="datetime-local" />

@@ -1,92 +1,39 @@
 "use client";
 
 import Image from "next/image";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Footer } from "@/components/layout/Footer";
 import { Navbar } from "@/components/layout/Navbar";
 
-type FilterKey = "Semua" | "Sorotan" | "Informasi";
+import { getNews } from "@/lib/api/content";
+import type { News } from "@/lib/types";
 
-interface Article {
-  id: string;
-  title: string;
-  date: string;
-  category: string;
-  image: string;
-}
+type FilterKey = "Semua" | "Sorotan" | "Informasi";
 
 const FILTERS: FilterKey[] = ["Semua", "Sorotan", "Informasi"];
 
-const ARTICLES: Article[] = [
-  {
-    id: "ginting-1",
-    title: "Ginting: Jalan Baru Menuju Kemenangan? tunggal putra andalan Indonesia!",
-    date: "12. August 2025",
-    category: "Informasi",
-    image: "/images/news/news-1.webp",
-  },
-  {
-    id: "ginting-2",
-    title: "Ginting: Jalan Baru Menuju Kemenangan? tunggal putra andalan Indonesia!",
-    date: "12. August 2025",
-    category: "Informasi",
-    image: "/images/news/news-1.webp",
-  },
-  {
-    id: "ginting-3",
-    title: "Ginting: Jalan Baru Menuju Kemenangan? tunggal putra andalan Indonesia!",
-    date: "12. August 2025",
-    category: "Informasi",
-    image: "/images/news/news-1.webp",
-  },
-  {
-    id: "axelsen-1",
-    title: "Axelsen: Kekuatan yang Tak Terbendung di Puncak Dunia",
-    date: "07. August 2025",
-    category: "Informasi",
-    image: "/images/news/news-3.webp",
-  },
-  {
-    id: "axelsen-2",
-    title: "Axelsen: Kekuatan yang Tak Terbendung di Puncak Dunia",
-    date: "07. August 2025",
-    category: "Informasi",
-    image: "/images/news/news-3.webp",
-  },
-  {
-    id: "shida-1",
-    title: "Kelincahan Shida: Standar Baru dalam Laga Ganda Putri!",
-    date: "06. August 2025",
-    category: "Informasi",
-    image: "/images/news/news-2.webp",
-  },
-  {
-    id: "shida-2",
-    title: "Kelincahan Shida: Standar Baru dalam Laga Ganda Putri!",
-    date: "06. August 2025",
-    category: "Informasi",
-    image: "/images/news/news-2.webp",
-  },
-];
+function InfoCard({ article }: { article: News }) {
+  const href = article.url || "#";
+  const image = article.coverImage || "https://images.unsplash.com/photo-1541534741688-6078c6bfb5c5?auto=format&fit=crop&q=80";
+  const date = article.publishedAt ? new Date(article.publishedAt).toLocaleDateString("id-ID", { day: 'numeric', month: 'long', year: 'numeric' }) : "";
 
-function InfoCard({ article }: { article: Article }) {
   return (
-    <a href="#" className="flex flex-col text-left">
+    <a href={href} target="_blank" rel="noopener noreferrer" className="flex flex-col text-left">
       <div className="relative aspect-35/36 w-full overflow-hidden rounded-[1.8rem] bg-neutral-200 shadow-[0_14px_32px_rgba(17,17,17,0.05)]">
         <Image
-          src={article.image}
+          src={image}
           alt={article.title}
           fill
           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
           className="object-cover"
         />
         <span className="absolute left-3 top-3 rounded-full bg-[#02F5D4] px-3 py-1 text-[11px] font-semibold text-[#8352D9]">
-          {article.category}
+          INFO
         </span>
       </div>
 
       <p className="mt-4 text-[11px] font-normal uppercase tracking-[0.02em] text-[#7C7C8A]">
-        {article.date}
+        {date}
       </p>
       <h3 className="mt-2 max-w-[20rem] text-[1.15rem] font-black italic leading-[0.92] tracking-tighter text-[#0B0B0F] sm:text-[1.25rem]">
         {article.title}
@@ -97,6 +44,15 @@ function InfoCard({ article }: { article: Article }) {
 
 export function InformasiPage() {
   const [activeFilter, setActiveFilter] = useState<FilterKey>("Semua");
+  const [articles, setArticles] = useState<News[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    getNews()
+      .then(setArticles)
+      .catch(console.error)
+      .finally(() => setIsLoading(false));
+  }, []);
 
   return (
     <main className="min-h-screen bg-white text-[#0B0B0F]">
@@ -140,7 +96,7 @@ export function InformasiPage() {
 
       <section className="mx-auto w-[87.5%] max-w-7xl pb-20 pt-10 sm:pb-24 sm:pt-14">
         <div className="grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 xl:grid-cols-3">
-          {ARTICLES.map((article) => (
+          {articles.map((article) => (
             <InfoCard key={article.id} article={article} />
           ))}
         </div>

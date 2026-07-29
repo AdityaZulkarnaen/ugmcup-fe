@@ -182,6 +182,7 @@ export interface News {
   title: string;
   content: string;
   coverImage?: string;
+  url?: string;
   publishedAt?: string;
   createdAt: string;
 }

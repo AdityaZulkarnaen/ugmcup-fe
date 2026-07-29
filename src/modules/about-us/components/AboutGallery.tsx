@@ -1,12 +1,20 @@
 "use client";
 
 import Image from "next/image";
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { CarouselPager } from "@/components/ui/CarouselPager";
-import { aboutGallery } from "@/lib/constants/about";
+import { getMedia } from "@/lib/api/content";
+import type { Media } from "@/lib/types";
 
 export function AboutGallery() {
   const trackRef = useRef<HTMLDivElement>(null);
+  const [photos, setPhotos] = useState<Media[]>([]);
+
+  useEffect(() => {
+    getMedia()
+      .then(setPhotos)
+      .catch(console.error);
+  }, []);
 
   return (
     <section className="bg-white py-8 sm:py-12">
@@ -24,16 +32,19 @@ export function AboutGallery() {
           Fixed height, `w-auto`: each photo keeps its own proportions, so
           portrait and landscape shots of any size sit side by side untouched.
         */}
-        {aboutGallery.map((photo, index) => (
+        {photos.map((photo, index) => (
           <Image
             key={photo.id}
-            src={photo.src}
-            alt={photo.alt}
+            src={photo.imageUrl}
+            alt={photo.caption || "About UGM CUP"}
+            width={0}
+            height={0}
+            sizes="100vw"
             // Y-only reveal: a sideways offset inside a snap scroller would
             // stretch the track and let the page scroll horizontally.
             data-aos="fade-up"
             data-aos-delay={`${index * 110}`}
-            className="h-56 w-auto shrink-0 snap-start rounded-2xl sm:h-96 lg:h-132"
+            className="h-56 w-auto shrink-0 snap-start rounded-2xl object-cover sm:h-96 lg:h-132"
           />
         ))}
       </div>

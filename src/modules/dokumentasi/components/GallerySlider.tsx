@@ -4,21 +4,33 @@ import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { PointerEvent as ReactPointerEvent } from "react";
 import { Button } from "@/components/ui/Button";
-import { documentationPhotos, driveFolderUrl } from "@/lib/constants/dokumentasi";
+import { getMedia } from "@/lib/api/content";
+import { apiRequest } from "@/lib/api/client";
+import type { Media } from "@/lib/types";
 import { ProgressArc } from "./ProgressArc";
 
-/** Kemiringan kartu yang sedang tidak di tengah, dalam derajat. */
 const TILT = 11;
 
-/**
- * Slider foto dokumentasi: kartu yang berada di tengah berdiri tegak dan
- * terang, tetangganya miring dan meredup. Posisi scroll-nya juga yang menyetir
- * busur indikator di bawah slider.
- */
 export function GallerySlider() {
   const trackRef = useRef<HTMLDivElement>(null);
   const [progress, setProgress] = useState(0);
   const [activeIndex, setActiveIndex] = useState(0);
+  const [photos, setPhotos] = useState<Media[]>([]);
+  const [driveUrl, setDriveUrl] = useState<string>("#");
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    Promise.all([
+      getMedia(),
+      apiRequest<{ key: string; value: string }>("/settings/DRIVE_LINK").catch(() => null),
+    ])
+      .then(([mediaRes, settingRes]) => {
+        setPhotos(mediaRes);
+        if (settingRes && settingRes.value) setDriveUrl(settingRes.value);
+      })
+      .catch(console.error)
+      .finally(() => setIsLoading(false));
+  }, []);
 
   const sync = useCallback(() => {
     const track = trackRef.current;
@@ -131,7 +143,7 @@ export function GallerySlider() {
         onPointerCancel={endDrag}
         className="relative flex cursor-grab snap-x snap-mandatory gap-10 overflow-x-auto overscroll-x-contain px-[calc(50%-35vw)] py-12 select-none [scrollbar-width:none] active:cursor-grabbing sm:gap-14 sm:px-[calc(50%-190px)] sm:py-16 lg:gap-16 lg:px-[calc(50%-210px)] [&::-webkit-scrollbar]:hidden"
       >
-        {documentationPhotos.map((photo, index) => {
+        {photos.map((photo, index) => {
           const isActive = index === activeIndex;
           const tilt = isActive ? 0 : index < activeIndex ? -TILT : TILT;
           return (
@@ -147,12 +159,10 @@ export function GallerySlider() {
               }`}
             >
               <Image
-                src={photo.src}
-                alt={photo.alt}
+                src={photo.imageUrl}
+                alt={photo.caption || "Dokumentasi"}
                 fill
                 draggable={false}
-                // Dua kartu pertama sudah terlihat sebelum user menggeser
-                // apa pun, jadi keduanya ikut antrean muat awal.
                 priority={index < 2}
                 sizes="(max-width: 640px) 70vw, 420px"
                 className="object-cover"
@@ -172,7 +182,9 @@ export function GallerySlider() {
         <ProgressArc progress={progress} onScrub={scrubTo} onScrubEnd={restoreSnap} />
 
         <Button
-          href={driveFolderUrl}
+          href={driveUrl}
+          target="_blank"
+          rel="noopener noreferrer"
           variant="solid"
           className="absolute top-[72%] left-1/2 -translate-x-1/2 -translate-y-1/2 px-6 py-3 text-sm font-black italic sm:text-base"
         >
