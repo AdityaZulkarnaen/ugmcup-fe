@@ -22,6 +22,8 @@ interface NavbarProps {
    * - `"light"` — always uses the light treatment regardless of scroll.
    */
   variant?: "auto" | "dark" | "light";
+  /** Forces the same inverted treatment used by the landing navbar after scroll. */
+  forceInverted?: boolean;
 }
 
 /**
@@ -35,7 +37,7 @@ function isActiveLink(href: string, pathname: string): boolean {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
-export function Navbar({ variant = "auto" }: NavbarProps) {
+export function Navbar({ variant = "auto", forceInverted = false }: NavbarProps) {
   const pathname = usePathname();
   // True once the page has scrolled past the full-height hero section.
   const [scrolled, setScrolled] = useState(false);
@@ -73,9 +75,9 @@ export function Navbar({ variant = "auto" }: NavbarProps) {
   /**
    * `inverted` = the Figma "Header [Light]" treatment:
    * white bar, dark logo, dark nav text, black CTA.
-   * Active when: variant="light", OR variant="auto" and scrolled past hero, OR menu is open.
+   * Active when: variant="light", forceInverted, OR variant="auto" and scrolled past hero, OR menu is open.
    */
-  const inverted = variant === "light" || (variant === "auto" && scrolled) || menuOpen;
+  const inverted = variant === "light" || forceInverted || (variant === "auto" && scrolled) || menuOpen;
 
   return (
     <>
@@ -83,8 +85,9 @@ export function Navbar({ variant = "auto" }: NavbarProps) {
       {/* The bar. Never moves. Skins between Light and Dark treatments.      */}
       {/* ------------------------------------------------------------------ */}
       <header
-        className={`fixed inset-x-0 top-0 z-50 transition-colors duration-300 ${inverted ? "bg-white shadow-[0_1px_0_rgba(0,0,0,0.06)]" : "bg-transparent backdrop-blur-md"
-          }`}
+        className={`fixed inset-x-0 top-0 z-50 transition-colors duration-300 ${
+          inverted ? "bg-white shadow-[0_1px_0_rgba(0,0,0,0.06)]" : "bg-transparent backdrop-blur-md"
+        }`}
       >
         <div className="mx-auto flex h-[76px] w-full max-w-[1280px] items-center justify-between px-8">
 
@@ -95,8 +98,9 @@ export function Navbar({ variant = "auto" }: NavbarProps) {
               alt="UGMCUP"
               width={4800}
               height={4800}
-              className={`h-10 w-36 transition duration-300 sm:h-11 sm:w-40 ${inverted ? "invert" : ""
-                }`}
+              className={`h-10 w-36 transition duration-300 sm:h-11 sm:w-40 ${
+                inverted ? "invert" : ""
+              }`}
             />
           </Link>
 
@@ -116,13 +120,14 @@ export function Navbar({ variant = "auto" }: NavbarProps) {
                   className={`
                     relative flex items-center justify-center rounded-full
                     px-4 py-1.5 text-sm font-semibold transition-colors
-                    ${inverted
-                      ? isActive
-                        ? "bg-[#f3f4f6] text-[#1a162b]"
-                        : "text-[#99a1af] hover:text-[#1a162b] hover:bg-[#f3f4f6]"
-                      : isActive
-                        ? "text-[#00F5D4] font-bold"
-                        : "text-white/70 hover:text-white"
+                    ${
+                      inverted
+                        ? isActive
+                          ? "bg-[#f3f4f6] text-[#1a162b]"
+                          : "text-[#99a1af] hover:text-[#1a162b] hover:bg-[#f3f4f6]"
+                        : isActive
+                          ? "text-[#00F5D4] font-bold"
+                          : "text-white/70 hover:text-white"
                     }
                   `}
                 >
@@ -180,10 +185,11 @@ export function Navbar({ variant = "auto" }: NavbarProps) {
             aria-expanded={menuOpen}
             aria-controls="mobile-menu"
             aria-label={menuOpen ? "Tutup menu" : "Buka menu"}
-            className={`flex h-10 w-10 items-center justify-center rounded-full transition-colors lg:hidden ${inverted
+            className={`flex h-10 w-10 items-center justify-center rounded-full transition-colors lg:hidden ${
+              inverted
                 ? "text-[#1a162b] hover:bg-black/5"
                 : "text-white hover:bg-white/10"
-              }`}
+            }`}
           >
             {menuOpen ? <CloseIcon /> : <MenuIcon />}
           </button>
@@ -198,8 +204,9 @@ export function Navbar({ variant = "auto" }: NavbarProps) {
       <div
         id="mobile-menu"
         aria-hidden={!menuOpen}
-        className={`fixed inset-0 z-40 flex flex-col bg-white pt-[76px] transition-transform duration-300 ease-out lg:hidden ${menuOpen ? "translate-x-0" : "pointer-events-none translate-x-full"
-          }`}
+        className={`fixed inset-0 z-40 flex flex-col bg-white pt-[76px] transition-transform duration-300 ease-out lg:hidden ${
+          menuOpen ? "translate-x-0" : "pointer-events-none translate-x-full"
+        }`}
       >
         <nav className="flex flex-1 flex-col items-center justify-center gap-2 px-6 text-center">
           {navLinks.map((link) => {
@@ -210,10 +217,11 @@ export function Navbar({ variant = "auto" }: NavbarProps) {
                 href={link.href}
                 aria-current={isActive ? "page" : undefined}
                 onClick={() => setMenuOpen(false)}
-                className={`text-3xl font-black italic transition-colors sm:text-4xl ${isActive
+                className={`text-3xl font-black italic transition-colors sm:text-4xl ${
+                  isActive
                     ? "text-[#7C5CFF]"
                     : "text-[#1a162b] hover:text-[#7C5CFF]"
-                  }`}
+                }`}
               >
                 {link.label}
               </Link>
@@ -238,6 +246,8 @@ export function Navbar({ variant = "auto" }: NavbarProps) {
                 href={href}
                 aria-label={label}
                 className="flex h-12 w-12 items-center justify-center rounded-full bg-[#F1F1F3] text-[#1a162b] transition-colors hover:bg-[#E4E4E8]"
+                target="_blank"
+                rel="noopener noreferrer"
               >
                 <Icon className="h-5 w-5" />
               </a>

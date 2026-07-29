@@ -24,11 +24,15 @@ export function AboutGallery() {
           Fixed height, `w-auto`: each photo keeps its own proportions, so
           portrait and landscape shots of any size sit side by side untouched.
         */}
-        {aboutGallery.map((photo) => (
+        {aboutGallery.map((photo, index) => (
           <Image
             key={photo.id}
             src={photo.src}
             alt={photo.alt}
+            // Y-only reveal: a sideways offset inside a snap scroller would
+            // stretch the track and let the page scroll horizontally.
+            data-aos="fade-up"
+            data-aos-delay={`${index * 110}`}
             className="h-56 w-auto shrink-0 snap-start rounded-2xl sm:h-96 lg:h-132"
           />
         ))}

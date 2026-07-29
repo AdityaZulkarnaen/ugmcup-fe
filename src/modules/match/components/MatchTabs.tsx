@@ -38,7 +38,7 @@ export function MatchTabs({ isLight = false }: MatchTabsProps) {
               role="tab"
               aria-selected={isActive}
               onClick={() => setActive(tab.id)}
-              className={`flex flex-col items-center gap-0.5 rounded-xl px-4 py-3 text-center transition-all duration-200 ${
+              className={`flex flex-col items-center justify-center gap-0.5 rounded-xl px-4 py-3 text-center transition-all duration-200 ${
                 isActive && isLight
                   ? "border border-[#fee685] bg-[#fffbeb] shadow-[0px_1px_1.5px_rgba(0,0,0,0.1),0px_1px_1px_rgba(0,0,0,0.1)]"
                   : isActive

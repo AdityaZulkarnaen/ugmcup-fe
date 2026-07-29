@@ -2,10 +2,12 @@ import Image from "next/image";
 import { socialLinks as socials } from "@/lib/constants/social";
 
 const navigasi = [
-  { label: "Beranda", href: "#" },
-  { label: "Pertandingan", href: "#" },
-  { label: "Dokumentasi", href: "#" },
-  { label: "tentang kami", href: "#" },
+  { label: "Beranda", href: "/" },
+  { label: "Pertandingan", href: "/pertandingan" },
+  { label: "Informasi", href: "/informasi" },
+  { label: "Dokumentasi", href: "/dokumentasi" },
+  { label: "tentang kami", href: "/tentang-kami" },
+  
 ];
 
 const kontak = [
@@ -95,6 +97,8 @@ export function Footer() {
                     href={href}
                     aria-label={label}
                     className="flex h-12 w-12 items-center justify-center rounded-full border border-white text-white transition-colors hover:border-white/60 hover:text-white md:h-16 md:w-16"
+                    target="_blank"
+                    rel="noopener noreferrer"
                   >
                     <Icon />
                   </a>
