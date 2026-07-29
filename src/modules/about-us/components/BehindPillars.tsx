@@ -5,13 +5,20 @@ export function BehindPillars() {
   return (
     <section className="bg-[#F5F5F5] py-20 text-[#0B0B0F] sm:py-28">
       <div className="mx-auto w-[87.5%]">
-        <h2 className="text-center text-3xl font-black italic sm:text-4xl lg:text-5xl">
+        <h2
+          data-aos="fade-up"
+          className="text-center text-3xl font-black italic sm:text-4xl lg:text-5xl"
+        >
           Di Balik UGM CUP
         </h2>
 
         <div className="mt-10 grid grid-cols-1 gap-6 sm:mt-14 sm:grid-cols-3">
-          {aboutPillars.map((pillar) => (
-            <div key={pillar.id}>
+          {aboutPillars.map((pillar, index) => (
+            <div
+              key={pillar.id}
+              data-aos="zoom-in-up"
+              data-aos-delay={`${index * 140}`}
+            >
               <div className="flex aspect-7/6 items-center justify-center rounded-2xl bg-[#8B5CF6] p-10">
                 <Image
                   src={pillar.logo}

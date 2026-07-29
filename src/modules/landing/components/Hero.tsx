@@ -75,6 +75,7 @@ export function Hero() {
         <div className="flex items-center justify-center bg-transparent">
         {/* Komponen Badge Utama */}
         <div
+          data-aos="fade-down"
           className="
             inline-flex
             items-center
@@ -98,21 +99,42 @@ export function Hero() {
         {/* Title + sponsor marquee share the same width */}
         <div className="flex w-fit flex-col items-center">
           <h1 className="flex flex-col w-fit">
-            <span className="bg-linear-to-r from-accent to-accent-2 bg-clip-text text-[42px] font-extrabold italic text-[#00F5D4] sm:text-[96px]">
+            <span
+              data-aos="blur-in"
+              data-aos-delay="120"
+              data-aos-duration="900"
+              className="bg-linear-to-r from-accent to-accent-2 bg-clip-text text-[42px] font-extrabold italic text-[#00F5D4] sm:text-[96px]"
+            >
               Rallyverse
             </span>
-            <span className="hidden sm:flex -mt-1 text-4xl font-extrabold italic text-white sm:-mt-4 sm:text-[96px]">
+            <span
+              data-aos="blur-in"
+              data-aos-delay="260"
+              data-aos-duration="900"
+              className="hidden sm:flex -mt-1 text-4xl font-extrabold italic text-white sm:-mt-4 sm:text-[96px]"
+            >
               Power in every motion
             </span>
-            <span className="flex sm:hidden leading-[0.9] -mt-4 text-[42px] font-extrabold italic text-white sm:-mt-4 sm:text-[96px]">
+            <span
+              data-aos="blur-in"
+              data-aos-delay="260"
+              data-aos-duration="900"
+              className="flex sm:hidden leading-[0.9] -mt-4 text-[42px] font-extrabold italic text-white sm:-mt-4 sm:text-[96px]"
+            >
               Power in every <br></br> motion
             </span>
           </h1>
 
+          {/* The marquee is already in motion; a reveal on top of it reads as
+              a stutter, so it fades in with nothing else. */}
           <SponsorRow className="mt-2 sm:mt-6 max-w-6xl" />
         </div>
 
-        <div className="mt-2 flex flex-wrap items-center justify-center gap-3">
+        <div
+          data-aos="fade-up"
+          data-aos-delay="560"
+          className="mt-2 flex flex-wrap items-center justify-center gap-3"
+        >
           <Button
             href="/pertandingan"
             variant="solid"

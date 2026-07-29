@@ -36,10 +36,17 @@
   --color-dash-body: var(--dash-body-bg);
   --color-dash-accent: var(--dash-accent);
   --color-dash-muted: var(--dash-text-muted);
+  
 }
 
 
-
+@theme {
+--animate-fade-in: fade-in 2s ease-out forwards;
+  @keyframes fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+}
 
 /* Reset default browser spacing. Each component sets the margin/padding it
    needs on its own. Kept in the base layer so Tailwind utilities still win. */
@@ -81,6 +88,72 @@ body {
 
 .scrollbar-thumb-only::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.35);
+}
+
+/* --- Scroll reveal ---------------------------------------------------------
+   Hidden state for anything carrying `data-aos`; `<ScrollAnimator>` adds
+   `.aos-animate` when the element scrolls into view. Delay and duration come in
+   as custom properties, set from the `data-aos-delay` / `data-aos-duration`
+   attributes. See src/components/layout/ScrollAnimator.tsx. */
+[data-aos] {
+  opacity: 0;
+  transition-property: opacity, transform, filter;
+  transition-duration: var(--aos-duration, 700ms);
+  /* Fast out of the gate, long settle — reads as momentum rather than a fade. */
+  transition-timing-function: cubic-bezier(0.22, 0.61, 0.36, 1);
+  transition-delay: var(--aos-delay, 0ms);
+}
+
+[data-aos].aos-animate {
+  opacity: 1;
+  transform: none;
+  filter: none;
+}
+
+[data-aos="fade-up"] {
+  transform: translate3d(0, 2.5rem, 0);
+}
+[data-aos="fade-down"] {
+  transform: translate3d(0, -2rem, 0);
+}
+[data-aos="fade-right"] {
+  transform: translate3d(-2.5rem, 0, 0);
+}
+[data-aos="fade-left"] {
+  transform: translate3d(2.5rem, 0, 0);
+}
+[data-aos="zoom-in"] {
+  transform: scale(0.9);
+}
+[data-aos="zoom-in-up"] {
+  transform: translate3d(0, 2rem, 0) scale(0.94);
+}
+/* Digit tiles and cards tipping up into place */
+[data-aos="flip-up"] {
+  transform: perspective(1000px) rotateX(-28deg) translate3d(0, 1.5rem, 0);
+}
+/* Hero headline: defocused and slightly low, snapping into focus */
+[data-aos="blur-in"] {
+  filter: blur(14px);
+  transform: translate3d(0, 1rem, 0) scale(1.02);
+}
+
+/* Horizontal offsets would widen a snap scroller and let the page scroll
+   sideways, so tracks only ever move on Y. */
+@media (max-width: 639px) {
+  [data-aos="fade-right"],
+  [data-aos="fade-left"] {
+    transform: translate3d(0, 2rem, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-aos] {
+    opacity: 1 !important;
+    transform: none !important;
+    filter: none !important;
+    transition: none !important;
+  }
 }
 
 /* --- Sponsor marquee --- */
