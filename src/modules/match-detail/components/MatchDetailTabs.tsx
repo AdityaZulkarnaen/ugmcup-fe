@@ -22,7 +22,7 @@ const subTabs = [
 ];
 
 export function formatSlotLabel(slotType?: string, index?: number): string {
-  if (!slotType) return index !== undefined ? `Partai ${index + 1}` : "Partai";
+  if (!slotType) return index !== undefined ? `Match ${index + 1}` : "Match";
 
   const customMap: Record<string, string> = {
     TUNGGAL_1: "Tunggal 1",
@@ -204,11 +204,11 @@ export function MatchDetailTabs({ initialMatch }: { initialMatch: Match }) {
 
   useEffect(() => {
     refreshMatch();
-  }, [activeScore, activeFinished, parentScore, parentFinished, lastUpdate, refreshMatch]);
+  }, [activeMatchForDetail.id, activeScore, activeFinished, parentScore, parentFinished, lastUpdate, refreshMatch]);
 
-  // Polling fallback every 4 seconds to stream real-time updates seamlessly
+  // Polling fallback every 2 seconds to stream real-time updates seamlessly
   useEffect(() => {
-    const interval = setInterval(refreshMatch, 4000);
+    const interval = setInterval(refreshMatch, 2000);
     return () => clearInterval(interval);
   }, [refreshMatch]);
 
@@ -334,7 +334,7 @@ export function MatchDetailTabs({ initialMatch }: { initialMatch: Match }) {
           {isTeamMatch && selectedSubMatchId === null ? (
             <div className="flex flex-col gap-4">
               <h3 className="text-sm font-bold uppercase tracking-wider text-[#34E5A6]">
-                Daftar Partai Beregu
+                Daftar Match Beregu
               </h3>
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
                 {childMatches.map((child, index) => (

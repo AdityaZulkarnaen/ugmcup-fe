@@ -164,7 +164,7 @@ export function ScheduleRow({ match, isLight = false }: ScheduleRowProps) {
   const setScoreSummary = isTeamMatch
     ? finishedChildren.length > 0
       ? `${winsA} - ${winsB}`
-      : "5 Partai Beregu"
+      : "5 Match Beregu"
     : sets.length > 0
       ? sets.map((s) => `${s.scoreA}-${s.scoreB}`).join(" · ")
       : null;

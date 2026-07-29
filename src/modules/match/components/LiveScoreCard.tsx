@@ -187,7 +187,7 @@ export function LiveScoreCard({ match, isLight = false }: LiveScoreCardProps) {
             )}
             {isTeamMatch && (
               <p className="mt-1 text-xs font-medium text-emerald-400">
-                {winsA} Partai Dimenangkan
+                {winsA} Match Dimenangkan
               </p>
             )}
           </div>
@@ -257,7 +257,7 @@ export function LiveScoreCard({ match, isLight = false }: LiveScoreCardProps) {
           ) : (
             <div className="mt-2 flex items-center gap-2">
               <span className={`text-xs font-semibold ${isLight ? "text-[#6C47D1]" : "text-[#5CFCE7]"}`}>
-                {finishedChildren.length} / {childMatches.length || 5} Partai Selesai
+                {finishedChildren.length} / {childMatches.length || 5} Match Selesai
               </span>
             </div>
           )}
@@ -285,7 +285,7 @@ export function LiveScoreCard({ match, isLight = false }: LiveScoreCardProps) {
             )}
             {isTeamMatch && (
               <p className="mt-1 text-xs font-medium text-emerald-400">
-                {winsB} Partai Dimenangkan
+                {winsB} Match Dimenangkan
               </p>
             )}
           </div>
@@ -311,7 +311,7 @@ export function LiveScoreCard({ match, isLight = false }: LiveScoreCardProps) {
             })}
           </div>
           <span className={`text-xs font-medium ${isLight ? "text-[rgba(26,22,43,0.4)]" : "text-[#7A7A83]"}`}>
-            Partai {finishedChildren.length + 1}
+            Match {finishedChildren.length + 1}
           </span>
         </div>
       )}

@@ -7,7 +7,7 @@ function statusLine(match: Match): string {
       (c) => c.status === "FINISHED" || c.status === "RETIRED"
     );
     if (match.status === "FINISHED") return "Match Beregu Selesai";
-    return `${finishedChildren.length}/5 Partai Selesai`;
+    return `${finishedChildren.length}/5 Match Selesai`;
   }
 
   if (match.status === "ONGOING") {
