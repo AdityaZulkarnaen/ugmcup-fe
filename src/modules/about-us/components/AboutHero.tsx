@@ -44,7 +44,12 @@ export function AboutHero() {
       <Navbar />
 
       <div className="relative z-10 mx-auto flex min-h-screen w-full max-w-6xl flex-col items-center justify-center px-6 pb-16 pt-24 text-center sm:h-full sm:min-h-0">
-        <h1 className="text-5xl font-black italic leading-[0.95] text-white sm:text-8xl lg:text-[8rem]">
+        <h1
+          data-aos="blur-in"
+          data-aos-delay="120"
+          data-aos-duration="900"
+          className="text-5xl font-black italic leading-[0.95] text-white sm:text-8xl lg:text-[8rem]"
+        >
           Welcome to
           <br />
           Rallyverse!

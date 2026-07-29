@@ -8,5 +8,5 @@ export const navLinks: NavLink[] = [
   { label: "Pertandingan", href: "/pertandingan" },
   { label: "Informasi", href: "/informasi" },
   { label: "Tentang kami", href: "/tentang-kami" },
-  { label: "Dokumentasi", href: "#" },
+  { label: "Dokumentasi", href: "/dokumentasi" },
 ];

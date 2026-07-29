@@ -208,6 +208,8 @@ export function Navbar({ variant = "auto", forceInverted = false }: NavbarProps)
                 href={href}
                 aria-label={label}
                 className="flex h-12 w-12 items-center justify-center rounded-full bg-[#F1F1F3] text-[#0B0B0F] transition-colors hover:bg-[#E4E4E8]"
+                target="_blank"
+                rel="noopener noreferrer"
               >
                 <Icon className="h-5 w-5" />
               </a>

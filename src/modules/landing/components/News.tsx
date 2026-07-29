@@ -12,11 +12,18 @@ export function News() {
   return (
     <section className="bg-[#F5F5F5] py-20 text-center text-[#0B0B0F] sm:py-28">
       <div className="mx-auto flex w-[87.5%] flex-col items-center">
-        <p className="text-sm font-medium tracking-wide text-[#6B6B73] sm:text-base">
+        <p
+          data-aos="fade-down"
+          className="text-sm font-medium tracking-wide text-[#6B6B73] sm:text-base"
+        >
           Kabar Terkini Seputar UGM CUP
         </p>
 
-        <h2 className="mt-3 text-4xl font-black italic sm:text-6xl">
+        <h2
+          data-aos="fade-up"
+          data-aos-delay="100"
+          className="mt-3 text-4xl font-black italic sm:text-6xl"
+        >
           Berita &amp; Informasi
         </h2>
 
@@ -32,9 +39,12 @@ export function News() {
           ref={trackRef}
           className="scrollbar-none mt-12 flex w-full snap-x snap-mandatory gap-2 overflow-x-auto pb-2 sm:grid sm:grid-cols-3 sm:gap-6 sm:overflow-visible sm:pb-0 [&::-webkit-scrollbar]:hidden"
         >
-          {news.map((item) => (
+          {news.map((item, index) => (
             <div
               key={item.id}
+              // Cards land one after the other, left to right
+              data-aos="fade-up"
+              data-aos-delay={`${index * 130}`}
               className="w-[86%] shrink-0 snap-start sm:w-auto"
             >
               <NewsCard item={item} />
@@ -49,13 +59,16 @@ export function News() {
           className="mt-6 sm:hidden"
         />
 
-        <Button
-          href="#"
-          variant="solid"
-          className="mt-12 px-6 py-3 text-base font-black italic"
-        >
-          Baca Berita Lainnya
-        </Button>
+        {/* Wrapper carries the reveal so the button keeps its own transitions */}
+        <div data-aos="zoom-in" className="mt-12">
+          <Button
+            href="#"
+            variant="solid"
+            className="px-6 py-3 text-base font-black italic"
+          >
+            Baca Berita Lainnya
+          </Button>
+        </div>
       </div>
     </section>
   );

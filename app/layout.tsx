@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Montserrat } from "next/font/google";
+import { ScrollAnimator } from "@/components/layout/ScrollAnimator";
 import "./globals.css";
 
 const montserrat = Montserrat({
@@ -23,7 +24,21 @@ export default function RootLayout({
       lang="en"
       className={`${montserrat.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        {/*
+          Scroll-reveal targets start invisible, so without JS they would never
+          come back — this puts them straight on screen instead. Written as raw
+          HTML because React would otherwise hoist the <style> out of the
+          <noscript> and into the head, where it applies to everyone.
+        */}
+        <noscript
+          dangerouslySetInnerHTML={{
+            __html: `<style>[data-aos]{opacity:1!important;transform:none!important;filter:none!important}</style>`,
+          }}
+        />
+        <ScrollAnimator />
+        {children}
+      </body>
     </html>
   );
 }
