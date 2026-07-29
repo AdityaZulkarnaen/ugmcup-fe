@@ -156,6 +156,66 @@ body {
   }
 }
 
+/* --- Skeleton loading ------------------------------------------------------
+   A placeholder block with a highlight sweeping across it. The sweep is what
+   separates "still loading" from "loaded and empty" — a static grey box reads
+   as broken layout, a moving one reads as work in progress.
+
+   `--skeleton-delay` staggers the sweep down a stack of rows so the list
+   ripples instead of flashing as one slab. See src/components/ui/Skeleton.tsx. */
+@keyframes skeleton-sweep {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(100%);
+  }
+}
+
+.skeleton {
+  position: relative;
+  overflow: hidden;
+}
+
+.skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--skeleton-sheen, rgba(255, 255, 255, 0.07)) 50%,
+    transparent 100%
+  );
+  animation: skeleton-sweep 1.6s ease-in-out infinite;
+  animation-delay: var(--skeleton-delay, 0ms);
+}
+
+/* On a white card the sweep has to be lighter than the block, not darker. */
+.skeleton-light {
+  --skeleton-sheen: rgba(255, 255, 255, 0.85);
+}
+
+/* Motion is the whole point here, so with it switched off the blocks pulse
+   their opacity instead — still clearly "pending", nothing sliding. */
+@media (prefers-reduced-motion: reduce) {
+  .skeleton::after {
+    animation: none;
+  }
+  .skeleton {
+    animation: skeleton-fade 1.8s ease-in-out infinite;
+  }
+  @keyframes skeleton-fade {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.55;
+    }
+  }
+}
+
 /* --- Sponsor marquee --- */
 @keyframes marquee {
   from {

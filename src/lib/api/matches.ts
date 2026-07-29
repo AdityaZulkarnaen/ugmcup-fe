@@ -1,5 +1,5 @@
 import { apiRequest } from "./client";
-import type { Match, MatchStatus } from "@/lib/types";
+import type { Match, MatchStatus, MatchHistoryEntry } from "@/lib/types";
 
 // ================== READ ==================
 
@@ -21,6 +21,9 @@ export const getMatches = (filters?: {
 };
 
 export const getMatch = (id: string) => apiRequest<Match>(`/matches/${id}`);
+
+export const getMatchHistory = (id: string) =>
+  apiRequest<MatchHistoryEntry[]>(`/matches/${id}/history`);
 
 // ================== WRITE (admin/panitia) ==================
 
@@ -83,7 +86,7 @@ export const startMatch = (id: string) =>
 
 export const finishMatch = (
   id: string,
-  data: { retired?: boolean; winnerParticipantId?: string; winnerTeamId?: string }
+  data: { retired?: boolean; winnerId?: string }
 ) =>
   apiRequest<Match>(`/admin/matches/${id}/finish`, {
     method: "PATCH",
@@ -119,7 +122,7 @@ export const redoScore = (id: string) =>
 export const updateSetTimer = (
   id: string,
   setNumber: number,
-  action: "START" | "PAUSE" | "RESET"
+  action: "START" | "PAUSE" | "RESET" | "STOP"
 ) =>
   apiRequest<{ durationSeconds: number; timerStatus: string; timerStartedAt?: string }>(
     `/admin/matches/${id}/timer`,

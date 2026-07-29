@@ -1,33 +1,34 @@
-import {
-  setsWon,
-  sideName,
-  type MatchDetail,
-  type MatchSide,
-} from "@/lib/constants/matches";
-import { CheckIcon } from "@/components/ui/icons";
-import { SideEmblem } from "./SideEmblem";
+import type { Match } from "@/lib/types";
+import { getMatchSideDetails } from "./MatchScoreboard";
+
 
 const headCell =
-  "px-1.5 py-2.5 text-[10px] font-bold uppercase tracking-wider text-[#7A7A83] sm:px-2";
-
-/** Narrow enough that two sides and three sets fit a 360px screen unscrolled. */
+  "px-1.5 py-2 text-[10px] font-bold uppercase tracking-wider text-[#7A7A83] sm:px-2";
 const numberColumn = "w-10 sm:w-14";
 
-/** One competitor row: name, sets won, then the score of each set. */
+function formatDuration(seconds?: number) {
+  if (!seconds) return "";
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  return `${m}:${s < 10 ? "0" : ""}${s}`;
+}
+
 function ScoreRow({
-  side,
+  name,
+  subName,
+  logoUrl,
   scores,
   total,
   won,
   decided,
   opponentScores,
 }: {
-  side: MatchSide;
+  name: string;
+  subName?: string;
+  logoUrl?: string;
   scores: number[];
   total: number;
-  /** Leading, or the winner once the match is over. */
   won: boolean;
-  /** Match is finished, so the lead can be marked with a check. */
   decided: boolean;
   opponentScores: number[];
 }) {
@@ -36,40 +37,40 @@ function ScoreRow({
       className={`border-t border-white/[0.04] ${won ? "bg-[#34E5A6]/[0.07]" : ""}`}
     >
       <td className="relative px-3 py-3 sm:px-4">
-        {/* Green accent + tint marks the winning side */}
         {won && (
           <span className="absolute inset-y-0 left-0 w-0.5 bg-[#34E5A6]" />
         )}
-        <div className="flex items-center gap-2 sm:gap-2.5">
-          {/* Dropped on phones so the name keeps the width it needs */}
-          <span className="hidden shrink-0 sm:block">
-            <SideEmblem players={side.players} />
-          </span>
-          <span
-            className={`min-w-0 truncate text-xs font-medium sm:text-sm ${
-              won ? "font-bold text-[#34E5A6]" : "text-white"
-            }`}
-          >
-            {sideName(side.players)}
-          </span>
-          {won && decided && (
-            <CheckIcon className="shrink-0 text-[#34E5A6]" />
-          )}
+        <div className="flex items-center gap-2.5">
+          <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-white/10 bg-white/[0.04]">
+            {logoUrl ? (
+              <img src={logoUrl} alt={name} className="h-full w-full rounded-lg object-cover" />
+            ) : (
+              <span className="text-xs font-bold text-gray-400">?</span>
+            )}
+          </div>
+          <div className="flex flex-col min-w-0">
+            <div className="flex items-center gap-1.5 min-w-0">
+              <span
+                className={`truncate text-xs font-semibold sm:text-sm ${won ? "text-[#34E5A6]" : "text-white"
+                  }`}
+              >
+                {name}
+              </span>
+            </div>
+          </div>
         </div>
       </td>
       <td
-        className={`px-1.5 py-3 text-center text-sm font-bold tabular-nums sm:px-2 ${
-          won ? "text-[#34E5A6]" : "text-[#6B6B73]"
-        }`}
+        className={`px-1.5 py-3 text-center text-sm font-bold tabular-nums sm:px-2 ${won ? "text-[#34E5A6]" : "text-[#6B6B73]"
+          }`}
       >
         {total}
       </td>
       {scores.map((score, i) => (
         <td
           key={i}
-          className={`px-1.5 py-3 text-center text-sm tabular-nums sm:px-2 ${
-            score > opponentScores[i] ? "text-white" : "text-[#5A5A63]"
-          }`}
+          className={`px-1.5 py-3 text-center text-sm tabular-nums sm:px-2 ${score > opponentScores[i] ? "text-white font-bold" : "text-[#5A5A63]"
+            }`}
         >
           {score}
         </td>
@@ -78,62 +79,81 @@ function ScoreRow({
   );
 }
 
-export function ScoreTable({ match }: { match: MatchDetail }) {
-  const homeScores = match.sets.map((set) => set.home);
-  const awayScores = match.sets.map((set) => set.away);
-  const homeTotal = setsWon(match.sets, "home");
-  const awayTotal = setsWon(match.sets, "away");
-  const decided = match.status === "done";
+export function ScoreTable({ match, parentMatch }: { match: Match; parentMatch?: Match }) {
+  const sets = match.sets ?? [];
+
+  const homeScores = sets.map((s) => s.scoreA);
+  const awayScores = sets.map((s) => s.scoreB);
+
+  let homeTotal = sets.filter((s) => s.scoreA > s.scoreB).length;
+  let awayTotal = sets.filter((s) => s.scoreB > s.scoreA).length;
+
+  const decided = match.status === "FINISHED" || match.status === "RETIRED";
+
+  const { nameA, subA, logoA, nameB, subB, logoB } = getMatchSideDetails(match, parentMatch);
+  const wonA =
+    (!!match.winnerParticipantId && match.winnerParticipantId === match.participantAId) ||
+    (!!match.winnerTeamId && match.winnerTeamId === match.teamAId);
+
+  const wonB =
+    (!!match.winnerParticipantId && match.winnerParticipantId === match.participantBId) ||
+    (!!match.winnerTeamId && match.winnerTeamId === match.teamBId);
+
+  if (decided && homeTotal === 0 && awayTotal === 0) {
+    if (wonA) homeTotal = 2;
+    if (wonB) awayTotal = 2;
+  }
 
   return (
     <section className="overflow-hidden rounded-xl border border-white/[0.06]">
       <h2 className="border-b border-white/[0.06] bg-white/[0.03] px-4 py-2.5 text-[11px] font-bold uppercase tracking-wider text-white">
-        Skor
+        SKOR
       </h2>
 
-      {match.sets.length === 0 ? (
+      {sets.length === 0 ? (
         <p className="px-4 py-6 text-center text-sm text-[#7A7A83]">
           Pertandingan belum dimulai, skor belum tersedia.
         </p>
       ) : (
         <div className="scrollbar-thumb-only overflow-x-auto">
-          {/* Fixed layout so the name column absorbs the leftover width and
-              truncates rather than pushing the set columns out of view; the
-              scroll wrapper only kicks in once a long match adds set columns */}
           <table className="w-full table-fixed">
             <thead>
               <tr>
-                <th className={`${headCell} text-center`}>Tim / Atlet</th>
+                <th className={`${headCell} text-center pl-4`}>TIM / ATLET</th>
                 <th
                   className={`${headCell} ${numberColumn} text-center text-[#34E5A6]`}
                 >
-                  Total
+                  TOTAL
                 </th>
-                {match.sets.map((set, i) => (
+                {sets.map((set, i) => (
                   <th
                     key={i}
                     className={`${headCell} ${numberColumn} text-center`}
                   >
-                    Set {i + 1}
+                    SET {set.setNumber}
                   </th>
                 ))}
               </tr>
             </thead>
             <tbody>
               <ScoreRow
-                side={match.home}
+                name={nameA}
+                subName={subA}
+                logoUrl={logoA}
                 scores={homeScores}
                 opponentScores={awayScores}
                 total={homeTotal}
-                won={homeTotal > awayTotal}
+                won={wonA}
                 decided={decided}
               />
               <ScoreRow
-                side={match.away}
+                name={nameB}
+                subName={subB}
+                logoUrl={logoB}
                 scores={awayScores}
                 opponentScores={homeScores}
                 total={awayTotal}
-                won={awayTotal > homeTotal}
+                won={wonB}
                 decided={decided}
               />
             </tbody>

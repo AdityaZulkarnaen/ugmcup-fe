@@ -4,7 +4,7 @@ export interface Sponsor {
   logo: string;
 }
 
-const SPONSOR_DIR = "/images/hero/sponsor";
+const SPONSOR_DIR = "/images/landing/sponsor";
 
 export const sponsors: Sponsor[] = [
   { id: "suna", name: "Suna", logo: `${SPONSOR_DIR}/suna.webp` },

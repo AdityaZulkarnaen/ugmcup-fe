@@ -1,11 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
-import { liveMatches } from "@/lib/constants/matches";
 import { MatchTabs } from "./components/MatchTabs";
 import { ThemeToggle } from "./components/ThemeToggle";
+import { getMatches } from "@/lib/api/matches";
+import { useGlobalPanitiaRoom } from "@/lib/hooks/useSocket";
+import { SpinnerIcon } from "@/components/ui/icons";
 
 /**
  * Pertandingan (matches) page module root.
@@ -13,24 +15,51 @@ import { ThemeToggle } from "./components/ThemeToggle";
  * The app router renders this from `app/pertandingan/page.tsx`.
  */
 export default function MatchPage() {
-  const liveCount = liveMatches.length;
+  const [ongoingCount, setOngoingCount] = useState<number>(0);
+  // Until the first response lands, "0 match berlangsung" would be a claim we
+  // cannot make yet, so the badge holds a placeholder instead.
+  const [countLoading, setCountLoading] = useState(true);
   const [isLight, setIsLight] = useState(false);
+  const { lastUpdate } = useGlobalPanitiaRoom();
+
+  const fetchOngoingCount = useCallback(async () => {
+    try {
+      const data = await getMatches({ status: "ONGOING" });
+      setOngoingCount(data ? data.length : 0);
+    } catch (err) {
+      console.error("Gagal mengambil jumlah match berlangsung:", err);
+    } finally {
+      setCountLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchOngoingCount();
+  }, [fetchOngoingCount, lastUpdate]);
+
+  // Polling fallback every 15 seconds
+  useEffect(() => {
+    const interval = setInterval(fetchOngoingCount, 15000);
+    return () => clearInterval(interval);
+  }, [fetchOngoingCount]);
 
   return (
     <>
       <Navbar variant={isLight ? "light" : "dark"} />
 
       <main
-        className={`relative pt-28 pb-24 transition-colors duration-300 ${isLight
+        className={`relative pt-28 pb-24 transition-colors duration-300 ${
+          isLight
             ? "bg-gradient-to-b from-[#FBFAFF] to-[#f5f5f5]"
             : "bg-linear-to-b from-[#1A162B] to-[#0F0E1A]"
-          }`}
+        }`}
       >
         {/* Radial violet glow — visible in both modes but more prominent in light */}
         <div
           aria-hidden
-          className={`pointer-events-none absolute left-1/2 top-0 -translate-x-1/2 h-[200px] w-full max-w-5xl transition-opacity duration-300 ${isLight ? "opacity-100" : "opacity-0"
-            }`}
+          className={`pointer-events-none absolute left-1/2 top-0 -translate-x-1/2 h-[200px] w-full max-w-5xl transition-opacity duration-300 ${
+            isLight ? "opacity-100" : "opacity-0"
+          }`}
           style={{
             background:
               "radial-gradient(ellipse 80% 60% at 50% 0%, rgba(124,92,255,0.10) 0%, transparent 70%)",
@@ -40,31 +69,46 @@ export default function MatchPage() {
         {/* Header */}
         <header className="relative mx-auto flex w-full max-w-6xl flex-col items-center px-6 text-center gap-2">
           {/* Live count badge */}
-          {isLight ? (
+          {countLoading ? (
+            <span
+              role="status"
+              aria-live="polite"
+              className={`inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-xs font-medium ${
+                isLight
+                  ? "border-[#D9D3FF] bg-[#F3F0FF] text-[#6C47D1]"
+                  : "border-[#02F5D4]/30 bg-[#02F5D4]/12 text-[#5CFCE7]"
+              }`}
+            >
+              <SpinnerIcon className="animate-spin" />
+              Memuat status pertandingan…
+            </span>
+          ) : isLight ? (
             <span className="inline-flex items-center gap-2 rounded-full border border-[#D9D3FF] bg-[#F3F0FF] px-4 py-1.5 text-xs font-semibold text-[#6C47D1] shadow-[0px_3px_6px_0px_rgba(139,92,246,0.02)]">
               <span className="relative flex h-2.5 w-2.5">
                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#FB2C36] opacity-60" />
                 <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-[#FB2C36]" />
               </span>
-              {liveCount} match berlangsung
+              {ongoingCount} match berlangsung
             </span>
           ) : (
             <span className="inline-flex items-center gap-2 rounded-full border border-[#02F5D4]/30 bg-[#02F5D4]/12 px-4 py-1.5 text-xs font-medium text-[#5CFCE7]">
-              <span className="h-2 w-2 rounded-full bg-[#FB2C36]" />
-              {liveCount} match berlangsung
+              <span className="h-2 w-2 rounded-full bg-[#FB2C36] animate-pulse" />
+              {ongoingCount} match berlangsung
             </span>
           )}
 
           <div className="flex flex-col gap-2">
             <h1
-              className={`text-4xl font-black italic sm:text-6xl lg:text-[64px] tracking-[-2.25px] leading-[1.1] transition-colors duration-300 ${isLight ? "text-[#1a162b]" : "text-white"
-                }`}
+              className={`text-4xl font-black italic sm:text-6xl lg:text-[64px] tracking-[-2.25px] leading-[1.1] transition-colors duration-300 ${
+                isLight ? "text-[#1a162b]" : "text-white"
+              }`}
             >
               Pertandingan
             </h1>
             <p
-              className={`text-base transition-colors duration-300 ${isLight ? "text-[rgba(26,22,43,0.5)]" : "text-[#8A8A93]"
-                }`}
+              className={`text-base transition-colors duration-300 ${
+                isLight ? "text-[rgba(26,22,43,0.5)]" : "text-[#8A8A93]"
+              }`}
             >
               Live score, jadwal, bagan knockout, dan klasemen.
             </p>

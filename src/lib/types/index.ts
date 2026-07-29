@@ -146,6 +146,7 @@ export interface Standing {
   pointWon: number;
   pointLost: number;
   rank: number;
+  form?: Array<"W" | "L">;
   updatedAt: string;
   participant?: Participant;
   team?: Team;
@@ -181,6 +182,7 @@ export interface News {
   title: string;
   content: string;
   coverImage?: string;
+  url?: string;
   publishedAt?: string;
   createdAt: string;
 }
@@ -223,4 +225,15 @@ export interface MatchFinishedPayload {
   matchId: string;
   winnerParticipantId?: string;
   winnerTeamId?: string;
+}
+
+export interface MatchHistoryEntry {
+  id: string;
+  action: "UPDATE_SCORE" | "UNDO_SCORE";
+  setNumber?: number;
+  scoreA?: number;
+  scoreB?: number;
+  elapsedSeconds: number | null;
+  isUndone?: boolean;
+  createdAt: string;
 }

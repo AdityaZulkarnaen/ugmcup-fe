@@ -500,6 +500,10 @@ export const retirementLabels: Record<RetirementReason, string> = {
 export interface BracketSide {
   /** Registry id; omitted while the slot is still undecided (shows "TBD"). */
   participantId?: string;
+  name?: string;
+  inst?: string;
+  avatar?: string;
+  isBye?: boolean;
   /** Games won; `null` when the match has not been played. */
   score: number | null;
   /** True for the side that advances. */
@@ -512,6 +516,7 @@ export interface BracketMatch {
   id: string;
   home: BracketSide;
   away: BracketSide;
+  isByeMatch?: boolean;
 }
 
 export interface BracketRound {

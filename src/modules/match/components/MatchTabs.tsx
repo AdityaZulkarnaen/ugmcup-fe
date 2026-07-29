@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { liveMatches, matchTabs } from "@/lib/constants/matches";
-import { LiveScoreCard } from "./LiveScoreCard";
+import { matchTabs } from "@/lib/constants/matches";
+import { LiveScorePanel } from "./LiveScorePanel";
 import { SchedulePanel } from "./SchedulePanel";
 import { BracketPanel } from "./BracketPanel";
 import { StandingsPanel } from "./StandingsPanel";
@@ -29,8 +29,6 @@ export function MatchTabs({ isLight = false }: MatchTabsProps) {
       >
         {matchTabs.map((tab) => {
           const isActive = tab.id === active;
-          const isLiveTab = tab.id === "livescore";
-          const hasLive = liveMatches.length > 0;
 
           return (
             <button
@@ -59,8 +57,7 @@ export function MatchTabs({ isLight = false }: MatchTabsProps) {
                         : "text-[#8A8A93]"
                 }`}
               >
-                {/* Live dot — only shown on the active Live Score tab */}
-                {isActive && isLiveTab && hasLive && (
+                {isActive && tab.id === "livescore" && (
                   <span className="relative flex h-2.5 w-2.5">
                     <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#FB2C36] opacity-60" />
                     <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-[#FB2C36]" />
@@ -70,19 +67,21 @@ export function MatchTabs({ isLight = false }: MatchTabsProps) {
               </span>
 
               {/* Caption sub-label */}
-              <span
-                className={`text-xs leading-tight transition-colors duration-200 ${
-                  isActive && isLight
-                    ? "text-[rgba(108,71,209,0.7)]"
-                    : isActive
-                      ? "text-[#5CFCE7]/70"
-                      : isLight
-                        ? "text-[rgba(128,128,128,0.5)]"
-                        : "text-[#8A8A93]/50"
-                }`}
-              >
-                {tab.caption}
-              </span>
+              {tab.caption ? (
+                <span
+                  className={`text-xs leading-tight transition-colors duration-200 ${
+                    isActive && isLight
+                      ? "text-[rgba(108,71,209,0.7)]"
+                      : isActive
+                        ? "text-[#5CFCE7]/70"
+                        : isLight
+                          ? "text-[rgba(128,128,128,0.5)]"
+                          : "text-[#8A8A93]/50"
+                  }`}
+                >
+                  {tab.caption}
+                </span>
+              ) : null}
             </button>
           );
         })}
@@ -91,11 +90,7 @@ export function MatchTabs({ isLight = false }: MatchTabsProps) {
       {/* Panel */}
       <div className="mt-4">
         {active === "livescore" ? (
-          <div className="flex flex-col gap-4">
-            {liveMatches.map((match) => (
-              <LiveScoreCard key={match.id} match={match} isLight={isLight} />
-            ))}
-          </div>
+          <LiveScorePanel isLight={isLight} />
         ) : active === "jadwal" ? (
           <SchedulePanel isLight={isLight} />
         ) : active === "bracket" ? (

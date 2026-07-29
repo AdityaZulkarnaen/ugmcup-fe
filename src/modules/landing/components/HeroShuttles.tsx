@@ -36,7 +36,7 @@ interface Shuttle {
 const shuttles: Shuttle[] = [
   {
     id: "cock-left",
-    src: "/images/hero/cock2.png",
+    src: "/images/landing/cock2.png",
     position: "-left-20 top-42 h-70 w-70 sm:-left-28 sm:top-36 sm:h-132 sm:w-132",
     sizes: "(max-width: 640px) 160px, 528px",
     // Lifted from below the left edge, still climbing when it settles.
@@ -46,7 +46,7 @@ const shuttles: Shuttle[] = [
   },
   {
     id: "cock-right",
-    src: "/images/hero/cock1.png",
+    src: "/images/landing/cock1.png",
     position:
       "-right-28 -rotate-12 sm:rotate-0 top-12 h-80 w-80 sm:-right-36 sm:top-10 sm:h-144 sm:w-144",
     sizes: "(max-width: 640px) 144px, 576px",
@@ -57,7 +57,7 @@ const shuttles: Shuttle[] = [
   },
   {
     id: "cock-bottom",
-    src: "/images/hero/cock3.png",
+    src: "/images/landing/cock3.png",
     position:
       "bottom-0 translate-y-10 -right-20 h-65 w-65 sm:-bottom-52 sm:right-32 sm:h-120 sm:w-120 -rotate-12 sm:rotate-0",
     sizes: "(max-width: 640px) 64px, 480px",

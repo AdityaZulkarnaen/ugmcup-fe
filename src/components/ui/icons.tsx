@@ -58,6 +58,29 @@ export function CheckIcon({ className }: { className?: string }) {
   );
 }
 
+/** Spinner ring; pair with `animate-spin`. Used by the loading states. */
+export function SpinnerIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      width="14"
+      height="14"
+      viewBox="0 0 14 14"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className={className}
+    >
+      {/* Full ring underneath, bright arc on top — the gap is what reads as spin */}
+      <circle cx="7" cy="7" r="5.5" stroke="currentColor" strokeWidth="1.75" opacity="0.25" />
+      <path
+        d="M12.5 7a5.5 5.5 0 0 0-5.5-5.5"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
 /** Right-pointing chevron; rotate with a class for the other directions. */
 export function ChevronIcon({ className }: { className?: string }) {
   return (

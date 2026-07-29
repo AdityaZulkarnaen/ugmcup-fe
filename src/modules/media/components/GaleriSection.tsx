@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import { Image as ImageIcon } from "lucide-react";
 import { PageHeader, AddButton, FormField, DashInput, DashSelect } from "@/components/dashboard/PageHeader";
 import { Modal, ModalCancelButton, ModalSubmitButton } from "@/components/dashboard/Modal";
+import { DragDropUpload } from "@/components/dashboard/DragDropUpload";
 import { getMedia, createMedia, deleteMedia } from "@/lib/api/content";
 import type { Media } from "@/lib/types";
 
@@ -91,17 +92,11 @@ export function GaleriSection() {
       <Modal isOpen={modalOpen} onClose={() => { setModalOpen(false); setError(""); }} title="Tambah Foto"
         footer={<><ModalCancelButton onClick={() => { setModalOpen(false); setError(""); }} /><ModalSubmitButton onClick={handleSave} isLoading={isSaving} /></>}>
         {error && <p className="mb-4 rounded-xl p-3 text-sm" style={{ background: "rgba(239,68,68,0.15)", color: "#f87171" }}>{error}</p>}
-        <FormField label="URL Gambar" required>
-          <DashInput value={form.imageUrl} onChange={(v) => setForm(f => ({ ...f, imageUrl: v }))} placeholder="https://..." type="url" />
+        <FormField label="Gambar">
+          <DragDropUpload value={form.imageUrl} onChange={(url) => setForm(f => ({ ...f, imageUrl: url }))} label="Upload Gambar Galeri" maxSizeMB={20} />
         </FormField>
-        {form.imageUrl && (
-          <div className="mb-4 overflow-hidden rounded-xl aspect-video">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={form.imageUrl} alt="Preview" className="w-full h-full object-cover" onError={() => {}} />
-          </div>
-        )}
         <FormField label="Kategori">
-          <DashSelect value={form.category} onChange={(v) => setForm(f => ({ ...f, category: v }))} placeholder="Pilih kategori" options={CATEGORIES.map(c => ({ value: c, label: c }))} />
+          <DashSelect value={form.category} onChange={(v) => setForm(f => ({ ...f, category: v }))} options={[ { label: "Pilih Kategori", value: "" }, ...CATEGORIES.map(c => ({ label: c, value: c })) ]} />
         </FormField>
         <FormField label="Keterangan (Caption)">
           <DashInput value={form.caption} onChange={(v) => setForm(f => ({ ...f, caption: v }))} placeholder="Deskripsi singkat foto" />

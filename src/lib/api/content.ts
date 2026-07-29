@@ -10,6 +10,7 @@ export const createNews = (data: {
   title: string;
   content: string;
   coverImage?: string;
+  url?: string;
   publishedAt?: string;
 }) =>
   apiRequest<News>("/admin/news", {
@@ -19,7 +20,7 @@ export const createNews = (data: {
 
 export const updateNews = (
   id: string,
-  data: Partial<{ title: string; content: string; coverImage: string; publishedAt: string }>
+  data: Partial<{ title: string; content: string; coverImage: string; url: string; publishedAt: string }>
 ) =>
   apiRequest<News>(`/admin/news/${id}`, {
     method: "PATCH",

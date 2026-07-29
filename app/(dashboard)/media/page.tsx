@@ -8,14 +8,15 @@ import { MediaHome } from "@/modules/media/components/MediaHome";
 import { BeritaSection } from "@/modules/media/components/BeritaSection";
 import { GaleriSection } from "@/modules/media/components/GaleriSection";
 import { FaqSection } from "@/modules/media/components/FaqSection";
+import { DriveLinkSection } from "@/modules/media/components/DriveLinkSection";
 
-type Section = "beranda" | "berita" | "galeri" | "faq";
+type Section = "beranda" | "berita" | "galeri" | "drive";
 
 const SIDEBAR_ITEMS = [
   { key: "beranda", label: "Beranda", icon: <LayoutDashboard size={16} /> },
   { key: "berita",  label: "Berita",  icon: <Newspaper size={16} /> },
   { key: "galeri",  label: "Galeri",  icon: <ImageIcon size={16} /> },
-  { key: "faq",     label: "FAQ",     icon: <HelpCircle size={16} /> },
+  { key: "drive",   label: "Drive",   icon: <HelpCircle size={16} /> }, // Menggunakan icon HelpCircle sementara, bisa diganti LinkIcon
 ];
 
 export default function MediaPage() {
@@ -35,7 +36,7 @@ export default function MediaPage() {
       case "beranda": return <MediaHome />;
       case "berita":  return <BeritaSection />;
       case "galeri":  return <GaleriSection />;
-      case "faq":     return <FaqSection />;
+      case "drive":   return <DriveLinkSection />;
       default:        return <MediaHome />;
     }
   }

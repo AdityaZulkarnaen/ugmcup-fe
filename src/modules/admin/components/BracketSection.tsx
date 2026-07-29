@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { PageHeader, FormField, DashSelect } from "@/components/dashboard/PageHeader";
 import { Modal, ModalCancelButton, ModalSubmitButton } from "@/components/dashboard/Modal";
 import { getBracket, setupBracket, getParticipants, getTeams, reassignBracketNode } from "@/lib/api/admin";
@@ -27,6 +27,9 @@ export function BracketSection() {
   const [slotBId, setSlotBId] = useState<string>("");
   const [setupFilter, setSetupFilter] = useState<string>("ALL");
 
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [lines, setLines] = useState<{startX: number, startY: number, endX: number, endY: number}[]>([]);
+
   const loadBracket = useCallback(async () => {
     if (!selectedDisc) return;
     setIsLoading(true); setError("");
@@ -48,6 +51,63 @@ export function BracketSection() {
   }, [selectedDisc]);
 
   useEffect(() => { loadBracket(); }, [loadBracket]);
+
+  const drawLines = useCallback(() => {
+    if (!containerRef.current || bracketNodes.length === 0) return;
+    const container = containerRef.current;
+    const containerRect = container.getBoundingClientRect();
+    const newLines: {startX: number, startY: number, endX: number, endY: number}[] = [];
+    
+    // Build rounds array again for drawing logic
+    const grouped: Record<string, BracketNode[]> = {};
+    bracketNodes.forEach(node => {
+      const round = node.match?.roundName ?? "Unknown";
+      if (!grouped[round]) grouped[round] = [];
+      grouped[round].push(node);
+    });
+    const rArray = Object.entries(grouped).sort((a, b) => b[1].length - a[1].length);
+
+    for (let r = 0; r < rArray.length - 1; r++) {
+      const currentRoundNodes = rArray[r][1];
+      const nextRoundNodes = rArray[r+1][1];
+      
+      const sortedCurrent = [...currentRoundNodes].sort((a,b) => a.position - b.position);
+      const sortedNext = [...nextRoundNodes].sort((a,b) => a.position - b.position);
+      
+      for (let i = 0; i < sortedCurrent.length; i++) {
+        const nodeA = sortedCurrent[i];
+        const nextNodeIndex = Math.floor(i / 2);
+        const nodeB = sortedNext[nextNodeIndex];
+        
+        if (nodeA && nodeB) {
+          const elA = document.getElementById(`node-${nodeA.id}`);
+          const elB = document.getElementById(`node-${nodeB.id}`);
+          if (elA && elB) {
+            const rectA = elA.getBoundingClientRect();
+            const rectB = elB.getBoundingClientRect();
+            
+            const startX = rectA.right - containerRect.left;
+            const startY = rectA.top + rectA.height / 2 - containerRect.top;
+            
+            const endX = rectB.left - containerRect.left;
+            const endY = rectB.top + rectB.height / 2 - containerRect.top;
+            
+            newLines.push({ startX, startY, endX, endY });
+          }
+        }
+      }
+    }
+    setLines(newLines);
+  }, [bracketNodes]);
+
+  useEffect(() => {
+    const timeoutId = setTimeout(drawLines, 100);
+    window.addEventListener('resize', drawLines);
+    return () => {
+      clearTimeout(timeoutId);
+      window.removeEventListener('resize', drawLines);
+    };
+  }, [drawLines]);
 
   async function handleSetup() {
     setIsSaving(true); setError("");
@@ -199,7 +259,7 @@ export function BracketSection() {
       const p = item as Participant;
       const instName = p.institution?.name ?? "Instansi Tanpa Nama";
       if (p.athletes && p.athletes.length > 0) {
-        const names = p.athletes.map(a => a.athlete?.name).filter(Boolean).join(" & ");
+        const names = p.athletes.map(a => a.athlete?.name).filter(Boolean).join(" - ");
         return `${names} (${instName})`;
       }
       return instName;
@@ -274,7 +334,22 @@ export function BracketSection() {
         </div>
       ) : roundsArray.length > 0 ? (
         <div className="overflow-x-auto rounded-xl border bg-[#F8FAFC] p-8" style={{ borderColor: "#E2E8F0" }}>
-          <div className="flex flex-row gap-16 min-w-max items-stretch">
+          <div ref={containerRef} className="flex flex-row gap-16 min-w-max items-stretch relative">
+            <svg className="absolute inset-0 pointer-events-none w-full h-full" style={{ zIndex: 0 }}>
+              {lines.map((l, i) => {
+                const midX = (l.startX + l.endX) / 2;
+                return (
+                  <path 
+                    key={i} 
+                    d={`M ${l.startX} ${l.startY} L ${midX} ${l.startY} L ${midX} ${l.endY} L ${l.endX} ${l.endY}`}
+                    fill="none"
+                    stroke="#CBD5E1"
+                    strokeWidth="2"
+                    strokeLinejoin="round"
+                  />
+                );
+              })}
+            </svg>
             {roundsArray.map(([round, nodes], rIdx) => {
               const isFirstRound = rIdx === 0;
               return (
@@ -285,7 +360,7 @@ export function BracketSection() {
                       if (p) {
                         const inst = p.institution?.name ?? "Instansi";
                         if (p.athletes?.length) {
-                          const names = p.athletes.map((a: any) => a.athlete?.name).filter(Boolean).join(" & ");
+                          const names = p.athletes.map((a: any) => a.athlete?.name).filter(Boolean).join(" - ");
                           return `${names} (${inst})`;
                         }
                         return inst;
@@ -300,7 +375,7 @@ export function BracketSection() {
                     const nameB = getMatchEntityLabel(node.match?.participantB, node.match?.teamB, isFirstRound);
 
                     return (
-                      <div key={node.id} className="relative bg-white border rounded-lg shadow-sm overflow-hidden text-sm flex flex-col group" style={{ borderColor: "#CBD5E1" }}>
+                      <div id={`node-${node.id}`} key={node.id} className="relative bg-white border rounded-lg shadow-sm overflow-hidden text-sm flex flex-col group z-10" style={{ borderColor: "#CBD5E1" }}>
 
                         <div
                           draggable={isFirstRound}

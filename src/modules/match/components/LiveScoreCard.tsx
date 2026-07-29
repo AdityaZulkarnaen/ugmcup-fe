@@ -1,30 +1,24 @@
 import Link from "next/link";
-import {
-  disciplineLabel,
-  sideName,
-  type LiveMatch,
-} from "@/lib/constants/matches";
-import { ArrowIcon, ChevronIcon, CourtIcon } from "@/components/ui/icons";
+import type { Match } from "@/lib/types";
+import { ChevronIcon, CourtIcon } from "@/components/ui/icons";
 
 interface LiveScoreCardProps {
-  match: LiveMatch;
-  /** If true, renders the Figma Light Mode palette. */
+  match: Match;
   isLight?: boolean;
 }
 
-/** One live score box pair (home over away) shown under the main score. */
 function GameBoxes({
   home,
   away,
-  isLight,
+  isLight = false,
 }: {
   home: number;
   away: number;
-  isLight: boolean;
+  isLight?: boolean;
 }) {
   const homeWon = home >= away;
   const box =
-    "flex h-6 w-7 items-center justify-center rounded-md text-xs font-bold tabular-nums";
+    "flex h-6 w-6 items-center justify-center rounded-lg text-xs font-bold tabular-nums transition-colors";
   return (
     <div className="flex flex-col gap-1">
       <span
@@ -58,17 +52,64 @@ function GameBoxes({
 }
 
 export function LiveScoreCard({ match, isLight = false }: LiveScoreCardProps) {
-  const homeLeading = match.live.home >= match.live.away;
+  const isTeamMatch = match.matchType === "TEAM";
 
-  /** Leading score color — violet in light mode, mint in dark. */
-  const leadingColor = isLight ? "text-[#8b5cf6]" : "text-[#34E5A6]";
-  /** Trailing score color. */
-  const trailingColor = isLight ? "text-[#94a3b8]" : "text-[#8A8A93]";
+  // Calculations for Team Match
+  const childMatches = match.childMatches ?? [];
+  const finishedChildren = childMatches.filter(
+    (c) => c.status === "FINISHED" || c.status === "RETIRED"
+  );
+  const winsA = finishedChildren.filter((c) => {
+    if (c.winnerTeamId) return c.winnerTeamId === match.teamAId;
+    if (c.winnerParticipantId) return c.winnerParticipantId === c.participantAId;
+    const sets = c.sets ?? [];
+    const wA = sets.filter((s) => s.scoreA > s.scoreB).length;
+    const wB = sets.filter((s) => s.scoreB > s.scoreA).length;
+    return wA > wB || (c.status === "FINISHED" && wA >= wB && wA > 0);
+  }).length;
+
+  const winsB = finishedChildren.filter((c) => {
+    if (c.winnerTeamId) return c.winnerTeamId === match.teamBId;
+    if (c.winnerParticipantId) return c.winnerParticipantId === c.participantBId;
+    const sets = c.sets ?? [];
+    const wA = sets.filter((s) => s.scoreA > s.scoreB).length;
+    const wB = sets.filter((s) => s.scoreB > s.scoreA).length;
+    return wB > wA || (c.status === "FINISHED" && wB >= wA && wB > 0);
+  }).length;
+
+  // Calculations for Individual Match
+  const sets = match.sets ?? [];
+  const activeSet = sets.length > 0 ? sets[sets.length - 1] : null;
+  const activeSetNumber = activeSet ? activeSet.setNumber : 1;
+  const liveScoreA = activeSet ? activeSet.scoreA : 0;
+  const liveScoreB = activeSet ? activeSet.scoreB : 0;
+  const finishedSets = sets.length > 1
+    ? sets.slice(0, -1)
+    : sets.filter((s) => s.isFinished);
+
+  // Scores to display in center
+  const displayScoreA = isTeamMatch ? winsA : liveScoreA;
+  const displayScoreB = isTeamMatch ? winsB : liveScoreB;
+
+  // Names
+  const instA =
+    match.participantA?.institution?.name ||
+    match.teamA?.institution?.name ||
+    "Tim A";
+  const athletesA =
+    match.participantA?.athletes?.map((a) => a.athlete?.name).filter(Boolean) ?? [];
+
+  const instB =
+    match.participantB?.institution?.name ||
+    match.teamB?.institution?.name ||
+    "Tim B";
+  const athletesB =
+    match.participantB?.athletes?.map((a) => a.athlete?.name).filter(Boolean) ?? [];
 
   return (
     <Link
       href={`/pertandingan/${match.id}`}
-      aria-label={`Statistik ${sideName(match.home.players)} vs ${sideName(match.away.players)}`}
+      aria-label={`Statistik ${instA} vs ${instB}`}
       className={`group block rounded-2xl border px-4 py-4 transition-all sm:px-6 sm:py-5 ${
         isLight
           ? "border-[rgba(0,0,0,0.08)] bg-white shadow-[0px_2px_12px_0px_rgba(0,0,0,0.06),0px_1px_3px_0px_rgba(0,0,0,0.04)] hover:border-[rgba(0,0,0,0.15)] hover:shadow-[0px_4px_16px_0px_rgba(0,0,0,0.1)]"
@@ -107,7 +148,7 @@ export function LiveScoreCard({ match, isLight = false }: LiveScoreCardProps) {
                 : "border-[#8B5CF6]/40 bg-[#8B5CF6]/12 text-[#C4B5FD]"
             }`}
           >
-            {disciplineLabel(match.categoryId)} {match.level}
+            {match.discipline?.name || (isTeamMatch ? "Beregu" : "Badminton")}
           </span>
         </div>
 
@@ -118,163 +159,162 @@ export function LiveScoreCard({ match, isLight = false }: LiveScoreCardProps) {
           }`}
         >
           <CourtIcon />
-          {match.court}
+          {match.courtNumber ? `Lapangan ${match.courtNumber}` : "TBA"}
         </span>
       </div>
 
-      {/* Main row: home · score · away */}
+      {/* Main row */}
       <div className="mt-4 flex flex-col gap-3 sm:mt-5 sm:grid sm:grid-cols-[1fr_auto_1fr] sm:items-center sm:gap-4">
         {/* Home */}
         <div className="flex items-center justify-between gap-3 sm:block sm:min-w-0">
           <div className="min-w-0">
-            {match.home.players.map((name) => (
-              <p
-                key={name}
-                className={`truncate text-base font-bold leading-tight ${
-                  isLight ? "text-[#1a162b]" : "text-white"
-                }`}
-              >
-                {name}
+            {!isTeamMatch && athletesA.length > 0 ? (
+              athletesA.map((name, idx) => (
+                <p key={idx} className={`truncate text-base font-bold leading-tight ${isLight ? "text-[#1a162b]" : "text-white"}`}>
+                  {name}
+                </p>
+              ))
+            ) : (
+              <p className={`truncate text-base font-bold leading-tight ${isLight ? "text-[#1a162b]" : "text-white"}`}>
+                {instA}
               </p>
-            ))}
-            <p
-              className={`mt-1 text-xs ${
-                isLight ? "text-[rgba(26,22,43,0.4)]" : "text-[#7A7A83]"
-              }`}
-            >
-              {match.home.team}
-            </p>
+            )}
+
+            {!isTeamMatch && (
+              <p className={`mt-1 truncate text-xs ${isLight ? "text-[rgba(26,22,43,0.4)]" : "text-[#7A7A83]"}`}>
+                {instA}
+              </p>
+            )}
+            {isTeamMatch && (
+              <p className="mt-1 text-xs font-medium text-emerald-400">
+                {winsA} Partai Dimenangkan
+              </p>
+            )}
           </div>
-          {/* Mobile score */}
-          <span
-            className={`shrink-0 text-3xl font-black tabular-nums sm:hidden ${
-              homeLeading ? leadingColor : trailingColor
-            }`}
-          >
-            {match.live.home}
-          </span>
         </div>
 
-        {/* Score — sm+ trio */}
-        <div className="order-last flex flex-col items-center sm:order-0">
-          <div className="hidden items-baseline gap-3 sm:flex">
+        {/* Score & Progress Center */}
+        <div className="flex flex-col items-center">
+          <div className="flex items-baseline gap-2 sm:gap-3">
             <span
-              className={`text-4xl font-black tabular-nums ${
-                homeLeading ? leadingColor : trailingColor
+              className={`text-4xl font-black tabular-nums sm:text-5xl ${
+                displayScoreA > displayScoreB
+                  ? isLight ? "text-[#8b5cf6]" : "text-[#34E5A6]"
+                  : displayScoreA === displayScoreB && displayScoreA > 0
+                    ? isLight ? "text-[#8b5cf6]" : "text-[#34E5A6]"
+                    : isLight ? "text-[#1a162b]" : "text-white"
               }`}
             >
-              {match.live.home}
+              {displayScoreA}
             </span>
+            <span className={`text-2xl font-black sm:text-3xl ${isLight ? "text-[rgba(128,128,128,0.5)]" : "text-[#5A5A63]"}`}>:</span>
             <span
-              className={`text-2xl font-light ${
-                isLight ? "text-[rgba(128,128,128,0.5)]" : "text-[#5A5A63]"
+              className={`text-4xl font-black tabular-nums sm:text-5xl ${
+                displayScoreB > displayScoreA
+                  ? isLight ? "text-[#8b5cf6]" : "text-[#34E5A6]"
+                  : displayScoreA === displayScoreB && displayScoreB > 0
+                    ? isLight ? "text-[#8b5cf6]" : "text-[#34E5A6]"
+                    : isLight ? "text-[rgba(26,22,43,0.4)]" : "text-[#8A8A93]"
               }`}
             >
-              :
-            </span>
-            <span
-              className={`text-4xl font-black tabular-nums ${
-                !homeLeading ? leadingColor : trailingColor
-              }`}
-            >
-              {match.live.away}
+              {displayScoreB}
             </span>
           </div>
 
-          {/* Game boxes + set label */}
-          <div className="flex items-center gap-2 sm:mt-2">
-            {match.games.map((game, i) => (
-              <GameBoxes
-                key={i}
-                home={game.home}
-                away={game.away}
-                isLight={isLight}
-              />
-            ))}
-            <span
-              className={`ml-1 text-xs font-medium ${
-                isLight ? "text-[#8b5cf6]" : "text-[#7A7A83]"
-              }`}
-            >
-              {match.setLabel}
-            </span>
-          </div>
+          {!isTeamMatch ? (
+            <div className="mt-3 flex flex-col items-center gap-3">
+              {/* Set boxes + Active Set label */}
+              <div className="flex items-center gap-2">
+                {finishedSets.map((s) => (
+                  <GameBoxes key={s.id} home={s.scoreA} away={s.scoreB} isLight={isLight} />
+                ))}
+                <span className={`ml-1 text-xs font-medium ${isLight ? "text-[#8b5cf6]" : "text-[#7A7A83]"}`}>
+                  Set {activeSetNumber}
+                </span>
+              </div>
+
+              {/* Progress Segment Bars (Game 1 / Game 2 / Game 3) */}
+              <div className="mt-1 flex items-center gap-2">
+                <div className="flex items-center gap-1.5">
+                  {[1, 2, 3].map((step) => (
+                    <span
+                      key={step}
+                      className={`h-1 w-6 rounded-full transition-colors ${
+                        step === activeSetNumber
+                          ? isLight ? "bg-[#8b5cf6]" : "bg-[#02F5D4]"
+                          : step < activeSetNumber
+                            ? isLight ? "bg-[rgba(0,0,0,0.15)]" : "bg-white/25"
+                            : isLight ? "bg-[rgba(0,0,0,0.06)]" : "bg-white/10"
+                      }`}
+                    />
+                  ))}
+                </div>
+                <span className={`text-xs font-semibold ${isLight ? "text-[rgba(26,22,43,0.4)]" : "text-[#8A8A93]"}`}>
+                  Game {activeSetNumber}
+                </span>
+              </div>
+            </div>
+          ) : (
+            <div className="mt-2 flex items-center gap-2">
+              <span className={`text-xs font-semibold ${isLight ? "text-[#6C47D1]" : "text-[#5CFCE7]"}`}>
+                {finishedChildren.length} / {childMatches.length || 5} Partai Selesai
+              </span>
+            </div>
+          )}
         </div>
 
         {/* Away */}
         <div className="flex items-center justify-between gap-3 sm:block sm:min-w-0 sm:text-right">
           <div className="min-w-0">
-            {match.away.players.map((name, i) => (
-              <p
-                key={`${name}-${i}`}
-                className={`flex items-center justify-start gap-1.5 truncate text-base font-bold leading-tight sm:justify-end ${
-                  isLight ? "text-[#1a162b]" : "text-white"
-                }`}
-              >
-                {name}
-                {/* {i === 0 && (
-                  <ArrowIcon
-                    className={`shrink-0 ${
-                      isLight ? "text-[#8b5cf6]" : "text-[#34E5A6]"
-                    }`}
-                  />
-                )} */}
+            {!isTeamMatch && athletesB.length > 0 ? (
+              athletesB.map((name, idx) => (
+                <p key={idx} className={`truncate text-base font-bold leading-tight sm:text-right ${isLight ? "text-[#1a162b]" : "text-white"}`}>
+                  {name}
+                </p>
+              ))
+            ) : (
+              <p className={`truncate text-base font-bold leading-tight sm:text-right ${isLight ? "text-[#1a162b]" : "text-white"}`}>
+                {instB}
               </p>
-            ))}
-            <p
-              className={`mt-1 text-xs ${
-                isLight ? "text-[rgba(26,22,43,0.4)]" : "text-[#7A7A83]"
-              }`}
-            >
-              {match.away.team}
-            </p>
+            )}
+
+            {!isTeamMatch && (
+              <p className={`mt-1 truncate text-xs sm:text-right ${isLight ? "text-[rgba(26,22,43,0.4)]" : "text-[#7A7A83]"}`}>
+                {instB}
+              </p>
+            )}
+            {isTeamMatch && (
+              <p className="mt-1 text-xs font-medium text-emerald-400">
+                {winsB} Partai Dimenangkan
+              </p>
+            )}
           </div>
-          {/* Mobile score */}
-          <span
-            className={`shrink-0 text-3xl font-black tabular-nums sm:hidden ${
-              !homeLeading ? leadingColor : trailingColor
-            }`}
-          >
-            {match.live.away}
-          </span>
         </div>
       </div>
 
-      {/* Game progress bar */}
-      <div className="mt-5 flex items-center justify-center gap-3">
-        <div className="flex items-center gap-1.5">
-          {Array.from({ length: match.totalGames }).map((_, i) => {
-            const gameNumber = i + 1;
-            const played = gameNumber < match.currentGame;
-            const current = gameNumber === match.currentGame;
-            return (
-              <span
-                key={i}
-                className={`h-1 w-10 rounded-full ${
-                  current
-                    ? isLight
-                      ? "bg-[#8b5cf6]"
-                      : "bg-[#02F5D4]"
-                    : played
-                      ? isLight
-                        ? "bg-[rgba(0,0,0,0.15)]"
-                        : "bg-white/25"
-                      : isLight
-                        ? "bg-[rgba(0,0,0,0.06)]"
-                        : "bg-white/[0.06]"
-                }`}
-              />
-            );
-          })}
+      {/* Team Progress bar (for team match only) */}
+      {isTeamMatch && (
+        <div className="mt-5 flex items-center justify-center gap-3">
+          <div className="flex items-center gap-1.5">
+            {[1, 2, 3, 4, 5].map((idx) => {
+              const isFinishedChild = idx <= finishedChildren.length;
+              return (
+                <span
+                  key={idx}
+                  className={`h-1 w-8 rounded-full ${
+                    isFinishedChild
+                      ? isLight ? "bg-[#8b5cf6]" : "bg-[#34E5A6]"
+                      : isLight ? "bg-[rgba(0,0,0,0.08)]" : "bg-white/[0.08]"
+                  }`}
+                />
+              );
+            })}
+          </div>
+          <span className={`text-xs font-medium ${isLight ? "text-[rgba(26,22,43,0.4)]" : "text-[#7A7A83]"}`}>
+            Partai {finishedChildren.length + 1}
+          </span>
         </div>
-        <span
-          className={`text-xs font-semibold ${
-            isLight ? "text-[#8b5cf6]" : "text-[#7A7A83]"
-          }`}
-        >
-          Game {match.currentGame}
-        </span>
-      </div>
+      )}
 
       {/* Tap affordance */}
       <div
@@ -284,7 +324,7 @@ export function LiveScoreCard({ match, isLight = false }: LiveScoreCardProps) {
             : "border-white/[0.06] text-[#34E5A6]"
         }`}
       >
-        Lihat statistik
+        Lihat detail pertandingan
         <ChevronIcon className="transition-transform group-hover:translate-x-0.5" />
       </div>
     </Link>

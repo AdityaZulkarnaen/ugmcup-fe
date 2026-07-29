@@ -8,6 +8,7 @@ export interface Column<T> {
   key: string;
   header: string;
   render?: (row: T) => ReactNode;
+  getSearchValue?: (row: T) => string;
   searchable?: boolean;
 }
 
@@ -43,6 +44,9 @@ export function DataTable<T extends { id: string }>({
     const q = search.toLowerCase();
     return data.filter((row) =>
       columns.some((col) => {
+        if (col.getSearchValue) {
+          return col.getSearchValue(row).toLowerCase().includes(q);
+        }
         const val = (row as Record<string, unknown>)[col.key];
         return typeof val === "string" && val.toLowerCase().includes(q);
       })

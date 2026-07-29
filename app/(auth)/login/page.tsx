@@ -40,7 +40,7 @@ export default function LoginPage() {
       {/* Background sama dengan Hero section */}
       <div className="pointer-events-none absolute inset-x-0 top-0 h-360 w-360">
         <Image
-          src="/images/hero/halo-top.png"
+          src="/images/landing/halo-top.png"
           alt=""
           fill
           priority
@@ -49,7 +49,7 @@ export default function LoginPage() {
       </div>
       <div className="pointer-events-none absolute bottom-0 translate-y-270 -right-100 h-488 w-488">
         <Image
-          src="/images/hero/halo-bottom.png"
+          src="/images/landing/halo-bottom.png"
           alt=""
           fill
           className="object-contain"
@@ -58,13 +58,13 @@ export default function LoginPage() {
 
       {/* Decorative shuttlecocks */}
       <div className="pointer-events-none absolute -left-28 top-36 h-32 w-32 sm:h-132 sm:w-132">
-        <Image src="/images/hero/cock2.png" alt="" fill sizes="50vw" className="object-contain" />
+        <Image src="/images/landing/cock2.png" alt="" fill sizes="50vw" className="object-contain" />
       </div>
       <div className="pointer-events-none absolute -right-36 top-10 h-32 w-32 sm:h-144 sm:w-144">
-        <Image src="/images/hero/cock1.png" alt="" fill sizes="50vw" priority className="object-contain" />
+        <Image src="/images/landing/cock1.png" alt="" fill sizes="50vw" priority className="object-contain" />
       </div>
       <div className="pointer-events-none absolute -bottom-52 right-32 h-32 w-32 sm:h-120 sm:w-120">
-        <Image src="/images/hero/cock3.png" alt="" fill sizes="50vw" className="object-contain" />
+        <Image src="/images/landing/cock3.png" alt="" fill sizes="50vw" className="object-contain" />
       </div>
 
       <style>{`

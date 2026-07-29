@@ -34,6 +34,7 @@ export function SideEmblem({
           alt=""
           width={image}
           height={image}
+          unoptimized
           className="h-full w-full object-contain p-1"
         />
       ) : (

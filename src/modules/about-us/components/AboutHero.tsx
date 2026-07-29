@@ -9,7 +9,7 @@ import { Navbar } from "@/components/layout/Navbar";
 const decorations = [
   {
       id: "halo-top",
-      src: "/images/hero/halo-top.png",
+      src: "/images/landing/halo-top.png",
       position: "top-0 -left-40 h-300 w-300 sm:h-360 sm:w-360",
       fit: "object-contain",
       sizes: "(max-width: 640px) 400px, 1440px",
@@ -17,7 +17,7 @@ const decorations = [
     },
     {
       id: "halo-bottom",
-      src: "/images/hero/halo-bottom.png",
+      src: "/images/landing/halo-bottom.png",
       position:
         "bottom-0 -right-59 translate-y-140 h-300 w-300 sm:-right-100 sm:translate-y-270 sm:h-488 sm:w-488",
       fit: "object-contain",
