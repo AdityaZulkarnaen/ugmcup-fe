@@ -9,7 +9,7 @@ export const DISCIPLINES = [
   { id: 'univ-gp', level: 'univ', name: 'Ganda Putra Universitas', type: 'GANDA_PUTRA', isTeamEvent: false, label: 'Ganda Putra' },
   { id: 'univ-gpi', level: 'univ', name: 'Ganda Putri Universitas', type: 'GANDA_PUTRI', isTeamEvent: false, label: 'Ganda Putri' },
   { id: 'univ-gc', level: 'univ', name: 'Ganda Campuran Universitas', type: 'GANDA_CAMPURAN', isTeamEvent: false, label: 'Ganda Campuran' },
-  { id: 'univ-beregu', level: 'univ', name: 'Beregu Universitas', type: 'BEREGU', isTeamEvent: true, label: 'Beregu' },
+  { id: 'univ-beregu', level: 'univ', name: 'Beregu Sudirman', type: 'BEREGU', isTeamEvent: true, label: 'Beregu' },
 
   { id: 'sma-tp', level: 'sma', name: 'Tunggal Putra SMA', type: 'TUNGGAL_PUTRA', isTeamEvent: false, label: 'Tunggal Putra' },
   { id: 'sma-tpi', level: 'sma', name: 'Tunggal Putri SMA', type: 'TUNGGAL_PUTRI', isTeamEvent: false, label: 'Tunggal Putri' },

@@ -147,7 +147,8 @@ export function PesertaSection() {
   async function handleSaveTeam() {
     setIsSaving(true); setError("");
     try {
-      if (!univBereguDiscipline) throw new Error("Kategori beregu universitas tidak ditemukan di konfigurasi");
+      const sudirmanDiscipline = DISCIPLINES.find((d) => d.name === "Beregu Sudirman");
+      if (!sudirmanDiscipline) throw new Error("Kategori beregu sudirman tidak ditemukan di konfigurasi");
 
       const members = Object.entries(tForm.slots)
         .filter(([, athleteId]) => athleteId)
@@ -156,7 +157,7 @@ export function PesertaSection() {
           athleteId
         }));
 
-      const payload = { disciplineId: univBereguDiscipline.id, institutionId: tForm.institutionId, members };
+      const payload = { disciplineId: sudirmanDiscipline.id, institutionId: tForm.institutionId, members };
       if (editId) {
         await updateTeam(editId, payload);
       } else {

@@ -151,7 +151,7 @@ export function GrupSection() {
     <div>
       <PageHeader 
         title="Grup & Klasemen" 
-        subtitle={`Kategori: ${teamDisciplines.find(d => d.id === selectedDisc)?.name || "Beregu Universitas"}`} 
+        subtitle={`Kategori: ${teamDisciplines.find(d => d.id === selectedDisc)?.name || "Beregu Sudirman"}`} 
         action={
           <div className="flex gap-2">
             <button
