@@ -159,12 +159,23 @@ export function MatchScoreboard({ match, parentMatch }: { match: Match; parentMa
     const finishedChildren = (match.childMatches ?? []).filter(
       (c) => c.status === "FINISHED" || c.status === "RETIRED"
     );
-    displayScoreA = finishedChildren.filter(
-      (c) => c.winnerTeamId && c.winnerTeamId === match.teamAId
-    ).length;
-    displayScoreB = finishedChildren.filter(
-      (c) => c.winnerTeamId && c.winnerTeamId === match.teamBId
-    ).length;
+    displayScoreA = finishedChildren.filter((c) => {
+      if (c.winnerTeamId) return c.winnerTeamId === match.teamAId;
+      if (c.winnerParticipantId) return c.winnerParticipantId === c.participantAId;
+      const sets = c.sets ?? [];
+      const wA = sets.filter((s) => s.scoreA > s.scoreB).length;
+      const wB = sets.filter((s) => s.scoreB > s.scoreA).length;
+      return wA > wB || (c.status === "FINISHED" && wA >= wB && wA > 0);
+    }).length;
+
+    displayScoreB = finishedChildren.filter((c) => {
+      if (c.winnerTeamId) return c.winnerTeamId === match.teamBId;
+      if (c.winnerParticipantId) return c.winnerParticipantId === c.participantBId;
+      const sets = c.sets ?? [];
+      const wA = sets.filter((s) => s.scoreA > s.scoreB).length;
+      const wB = sets.filter((s) => s.scoreB > s.scoreA).length;
+      return wB > wA || (c.status === "FINISHED" && wB >= wA && wB > 0);
+    }).length;
   } else {
     displayScoreA = setsWonA;
     displayScoreB = setsWonB;

@@ -68,9 +68,19 @@ function SubMatchCard({
   const isOngoing = subMatch.status === "ONGOING";
 
   // Winner logic
+  const setsWonA = sets.filter((s) => s.scoreA > s.scoreB).length;
+  const setsWonB = sets.filter((s) => s.scoreB > s.scoreA).length;
   const winnerTeamId = subMatch.winnerTeamId;
-  const teamAWon = winnerTeamId && winnerTeamId === parentMatch.teamAId;
-  const teamBWon = winnerTeamId && winnerTeamId === parentMatch.teamBId;
+
+  const teamAWon =
+    (winnerTeamId && winnerTeamId === parentMatch.teamAId) ||
+    (subMatch.winnerParticipantId && subMatch.winnerParticipantId === subMatch.participantAId) ||
+    (isFinished && setsWonA > setsWonB);
+
+  const teamBWon =
+    (winnerTeamId && winnerTeamId === parentMatch.teamBId) ||
+    (subMatch.winnerParticipantId && subMatch.winnerParticipantId === subMatch.participantBId) ||
+    (isFinished && setsWonB > setsWonA);
 
   const instA =
     parentMatch.teamA?.institution?.name ||
@@ -112,36 +122,47 @@ function SubMatchCard({
         </span>
       </div>
 
-      <div className="mt-3 flex flex-col gap-2">
-        {/* Team A */}
-        <div className="flex items-center justify-between text-xs">
-          <div className="flex items-center gap-1.5 min-w-0">
-            <span
-              className={`truncate font-semibold ${teamAWon ? "text-[#34E5A6]" : "text-white"
-                }`}
-            >
-              {namesA}
-            </span>
-          </div>
-          <span className="font-mono font-bold text-white">
-            {sets.map((s) => s.scoreA).join(" · ") || "-"}
-          </span>
-        </div>
-
-        {/* Team B */}
-        <div className="flex items-center justify-between text-xs">
-          <div className="flex items-center gap-1.5 min-w-0">
-            <span
-              className={`truncate font-semibold ${teamBWon ? "text-[#34E5A6]" : "text-white"
-                }`}
-            >
-              {namesB}
-            </span>
-          </div>
-          <span className="font-mono font-bold text-white">
-            {sets.map((s) => s.scoreB).join(" · ") || "-"}
-          </span>
-        </div>
+      <div className="mt-3 overflow-hidden rounded-lg border border-white/[0.06] bg-white/[0.02]">
+        <table className="w-full text-[11px]">
+          <thead>
+            <tr className="border-b border-white/[0.06] bg-white/[0.02]">
+              <th className="py-2 pl-3 text-left font-bold uppercase tracking-wider text-[#7A7A83]">Tim / Atlet</th>
+              <th className="w-7 py-2 text-center font-bold text-[#7A7A83]">1</th>
+              <th className="w-7 py-2 text-center font-bold text-[#7A7A83]">2</th>
+              <th className="w-7 py-2 text-center font-bold text-[#7A7A83]">3</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-white/[0.04]">
+            <tr className={`${teamAWon ? "bg-[#34E5A6]/[0.07]" : ""}`}>
+              <td className="py-2 pl-3 pr-2">
+                <span
+                  className={`block max-w-[140px] truncate font-semibold ${teamAWon ? "text-[#34E5A6]" : "text-white"
+                    }`}
+                  title={namesA}
+                >
+                  {namesA}
+                </span>
+              </td>
+              <td className={`w-7 py-2 text-center font-mono font-bold ${sets[0]?.scoreA > sets[0]?.scoreB ? "text-white" : "text-white/60"}`}>{sets[0]?.scoreA ?? "-"}</td>
+              <td className={`w-7 py-2 text-center font-mono font-bold ${sets[1]?.scoreA > sets[1]?.scoreB ? "text-white" : "text-white/60"}`}>{sets[1]?.scoreA ?? "-"}</td>
+              <td className={`w-7 py-2 text-center font-mono font-bold ${sets[2]?.scoreA > sets[2]?.scoreB ? "text-white" : "text-white/60"}`}>{sets[2]?.scoreA ?? "-"}</td>
+            </tr>
+            <tr className={`${teamBWon ? "bg-[#34E5A6]/[0.07]" : ""}`}>
+              <td className="py-2 pl-3 pr-2">
+                <span
+                  className={`block max-w-[140px] truncate font-semibold ${teamBWon ? "text-[#34E5A6]" : "text-white"
+                    }`}
+                  title={namesB}
+                >
+                  {namesB}
+                </span>
+              </td>
+              <td className={`w-7 py-2 text-center font-mono font-bold ${sets[0]?.scoreB > sets[0]?.scoreA ? "text-white" : "text-white/60"}`}>{sets[0]?.scoreB ?? "-"}</td>
+              <td className={`w-7 py-2 text-center font-mono font-bold ${sets[1]?.scoreB > sets[1]?.scoreA ? "text-white" : "text-white/60"}`}>{sets[1]?.scoreB ?? "-"}</td>
+              <td className={`w-7 py-2 text-center font-mono font-bold ${sets[2]?.scoreB > sets[2]?.scoreA ? "text-white" : "text-white/60"}`}>{sets[2]?.scoreB ?? "-"}</td>
+            </tr>
+          </tbody>
+        </table>
       </div>
 
       <div className="mt-3 flex items-center justify-end gap-1 text-[10px] font-bold text-[#E3B24D] group-hover:underline">
@@ -240,7 +261,7 @@ export function MatchDetailTabs({ initialMatch }: { initialMatch: Match }) {
       )}
 
       <div className="mt-4">
-        <MatchScoreboard match={activeMatchForDetail} parentMatch={match} />
+        <MatchScoreboard match={activeMatchForDetail} parentMatch={selectedSubMatch ? match : undefined} />
       </div>
 
       <div className="overflow-hidden rounded-xl border border-white/[0.06] bg-white/[0.02]">
