@@ -12,12 +12,16 @@ import { FilterSelect } from "@/components/ui/FilterSelect";
 import { AthleteSearch } from "./AthleteSearch";
 import { BracketBoard } from "./BracketBoard";
 
+interface BracketPanelProps {
+  isLight?: boolean;
+}
+
 /**
  * The bracket tab: entrant level and category filters plus athlete search on
  * top of the board. The statistics page renders `BracketBoard` on its own
  * instead, fixed to the draw of the match being viewed.
  */
-export function BracketPanel() {
+export function BracketPanel({ isLight = false }: BracketPanelProps) {
   const [tier, setTier] = useState<ParticipantTier>("universitas");
   const [categoryId, setCategoryId] = useState(categoryBrackets[0].id);
   const [pinned, setPinned] = useState<BracketAthlete>();
@@ -88,6 +92,7 @@ export function BracketPanel() {
           label="Filter jenjang bracket"
           accent="gold"
           className="min-w-0 flex-1 basis-[45%] md:basis-2/12"
+          isLight={isLight}
         />
         <FilterSelect
           options={options.map(({ id, label }) => ({ id, label }))}
@@ -96,11 +101,13 @@ export function BracketPanel() {
           label="Filter kategori bracket"
           accent="violet"
           className="min-w-0 flex-1 basis-[45%] md:basis-2/12"
+          isLight={isLight}
         />
         <AthleteSearch
           selected={pinned}
           onSelect={selectAthlete}
           className="min-w-0 flex-1 basis-full md:basis-4/12"
+          isLight={isLight}
         />
       </div>
 
@@ -110,6 +117,7 @@ export function BracketPanel() {
         bracket={bracket}
         pinnedId={pinned?.participant.id}
         onSelect={toggleFromBoard}
+        isLight={isLight}
       />
     </div>
   );
