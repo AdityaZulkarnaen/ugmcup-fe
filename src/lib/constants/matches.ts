@@ -1216,5 +1216,5 @@ export const matchTabs: MatchTab[] = [
   { id: "livescore", label: "Live Score", caption: "" },
   { id: "jadwal", label: "Jadwal", caption: "" },
   { id: "bracket", label: "Bracket", caption: "" },
-  { id: "klasemen", label: "Klasemen", caption: "Tabel grup kategori beregu PBSI" },
+  { id: "klasemen", label: "Klasemen Beregu", caption: "" },
 ];

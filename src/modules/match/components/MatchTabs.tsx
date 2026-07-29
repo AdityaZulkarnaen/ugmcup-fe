@@ -26,7 +26,7 @@ export function MatchTabs() {
               role="tab"
               aria-selected={isActive}
               onClick={() => setActive(tab.id)}
-              className={`flex flex-col items-center gap-0.5 rounded-xl px-4 py-3 text-center transition-colors ${
+              className={`flex flex-col items-center justify-center gap-0.5 rounded-xl px-4 py-3 text-center transition-colors ${
                 isActive
                   ? "border border-[#EF9F27]/35 bg-[#EF9F27]/15"
                   : "border border-transparent hover:bg-white/[0.03]"

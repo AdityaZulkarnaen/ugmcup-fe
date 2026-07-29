@@ -19,6 +19,8 @@ interface NavbarProps {
    * interior pages that have a dark background throughout.
    */
   variant?: "auto" | "dark";
+  /** Forces the same inverted treatment used by the landing navbar after scroll. */
+  forceInverted?: boolean;
 }
 
 /**
@@ -32,7 +34,7 @@ function isActiveLink(href: string, pathname: string): boolean {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
-export function Navbar({ variant = "auto" }: NavbarProps) {
+export function Navbar({ variant = "auto", forceInverted = false }: NavbarProps) {
   const pathname = usePathname();
   // True once the page has scrolled past the full-height hero section.
   const [scrolled, setScrolled] = useState(false);
@@ -68,7 +70,7 @@ export function Navbar({ variant = "auto" }: NavbarProps) {
   }, [menuOpen]);
 
   // Whether to render the dark-text-on-light treatment.
-  const inverted = variant === "auto" && scrolled;
+  const inverted = forceInverted || (variant === "auto" && scrolled);
 
   return (
     <>
