@@ -259,7 +259,7 @@ export function BracketSection() {
       const p = item as Participant;
       const instName = p.institution?.name ?? "Instansi Tanpa Nama";
       if (p.athletes && p.athletes.length > 0) {
-        const names = p.athletes.map(a => a.athlete?.name).filter(Boolean).join(" & ");
+        const names = p.athletes.map(a => a.athlete?.name).filter(Boolean).join(" - ");
         return `${names} (${instName})`;
       }
       return instName;
@@ -360,7 +360,7 @@ export function BracketSection() {
                       if (p) {
                         const inst = p.institution?.name ?? "Instansi";
                         if (p.athletes?.length) {
-                          const names = p.athletes.map((a: any) => a.athlete?.name).filter(Boolean).join(" & ");
+                          const names = p.athletes.map((a: any) => a.athlete?.name).filter(Boolean).join(" - ");
                           return `${names} (${inst})`;
                         }
                         return inst;

@@ -182,7 +182,7 @@ export function JadwalSection({ onStartAndSwitch }: { onStartAndSwitch?: (matchI
             },
             render: (row: any) => {
               const isIndividu = row.participantA;
-              const athletes = isIndividu ? row.participantA?.athletes?.map((a:any) => a.athlete.name).join(" & ") : null;
+              const athletes = isIndividu ? row.participantA?.athletes?.map((a:any) => a.athlete.name).filter(Boolean).join(" - ") : null;
               const instName = row.participantA?.institution?.name ?? row.teamA?.institution?.name ?? "—";
               if (isIndividu && athletes) return <div className="flex flex-col"><span className="font-semibold">{athletes}</span><span className="text-xs text-gray-500">{instName}</span></div>;
               return instName;
@@ -196,7 +196,7 @@ export function JadwalSection({ onStartAndSwitch }: { onStartAndSwitch?: (matchI
             },
             render: (row: any) => {
               const isIndividu = row.participantB;
-              const athletes = isIndividu ? row.participantB?.athletes?.map((a:any) => a.athlete.name).join(" & ") : null;
+              const athletes = isIndividu ? row.participantB?.athletes?.map((a:any) => a.athlete.name).filter(Boolean).join(" - ") : null;
               const instName = row.participantB?.institution?.name ?? row.teamB?.institution?.name ?? "—";
               if (isIndividu && athletes) return <div className="flex flex-col"><span className="font-semibold">{athletes}</span><span className="text-xs text-gray-500">{instName}</span></div>;
               return instName;

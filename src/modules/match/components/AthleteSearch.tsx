@@ -1,24 +1,22 @@
-"use client";
-
 import { useEffect, useMemo, useRef, useState } from "react";
-import {
-  searchBracketAthletes,
-  sideName,
-  type BracketAthlete,
-} from "@/lib/constants/matches";
 import { CloseIcon, SearchIcon } from "@/components/ui/icons";
 
-/**
- * Athlete lookup across every bracket. Picking a result hands the entry back so
- * the panel can switch category and light up that athlete's path.
- */
+export interface SearchOption {
+  id: string;
+  name: string;
+  inst?: string;
+  categoryLabel?: string;
+}
+
 export function AthleteSearch({
-  selected,
+  options,
+  selectedId,
   onSelect,
   className = "w-full sm:max-w-xs",
 }: {
-  selected?: BracketAthlete;
-  onSelect: (athlete?: BracketAthlete) => void;
+  options: SearchOption[];
+  selectedId?: string;
+  onSelect: (id?: string) => void;
   className?: string;
 }) {
   const [query, setQuery] = useState("");
@@ -26,12 +24,14 @@ export function AthleteSearch({
   const rootRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  /**
-   * A pinned athlete owns the box — including when the bracket pins one by
-   * click — so the typed query only shows while nothing is selected.
-   */
-  const value = selected ? sideName(selected.participant.players) : query;
-  const results = useMemo(() => searchBracketAthletes(query), [query]);
+  const selectedOption = useMemo(() => options.find((o) => o.id === selectedId), [options, selectedId]);
+  const value = selectedOption ? selectedOption.name : query;
+
+  const results = useMemo(() => {
+    if (!query.trim()) return [];
+    const lower = query.toLowerCase();
+    return options.filter((o) => o.name.toLowerCase().includes(lower) || o.inst?.toLowerCase().includes(lower));
+  }, [query, options]);
 
   useEffect(() => {
     if (!open) return;
@@ -43,8 +43,8 @@ export function AthleteSearch({
     return () => document.removeEventListener("pointerdown", handlePointerDown);
   }, [open]);
 
-  function pick(athlete: BracketAthlete) {
-    onSelect(athlete);
+  function pick(option: SearchOption) {
+    onSelect(option.id);
     setOpen(false);
     inputRef.current?.blur();
   }
@@ -82,13 +82,13 @@ export function AthleteSearch({
     >
       <div
         className={`flex items-center gap-2 rounded-full border px-4 py-2 transition-colors ${
-          selected
+          selectedOption
             ? "border-[#EF9F27]/40 bg-[#EF9F27]/10"
             : "border-white/[0.08] bg-white/[0.02] focus-within:border-white/20"
         }`}
       >
         <SearchIcon
-          className={`shrink-0 ${selected ? "text-[#FAC775]" : "text-[#6B6B73]"}`}
+          className={`shrink-0 ${selectedOption ? "text-[#FAC775]" : "text-[#6B6B73]"}`}
         />
         <input
           ref={inputRef}
@@ -102,11 +102,11 @@ export function AthleteSearch({
           onChange={(event) => {
             setQuery(event.target.value);
             setOpen(true);
-            if (selected) onSelect(undefined);
+            if (selectedOption) onSelect(undefined);
           }}
           onFocus={() => setOpen(true)}
           className={`min-w-0 flex-1 bg-transparent text-xs font-medium outline-none placeholder:text-[#6B6B73] [&::-webkit-search-cancel-button]:hidden ${
-            selected ? "text-[#FAC775]" : "text-white"
+            selectedOption ? "text-[#FAC775]" : "text-white"
           }`}
         />
         {value !== "" && (
@@ -121,7 +121,7 @@ export function AthleteSearch({
         )}
       </div>
 
-      {open && query.trim() !== "" && !selected && (
+      {open && query.trim() !== "" && !selectedOption && (
         <div
           id="athlete-search-results"
           role="listbox"
@@ -133,21 +133,23 @@ export function AthleteSearch({
               Atlet tidak ditemukan.
             </p>
           ) : (
-            results.map((athlete) => (
+            results.map((option) => (
               <button
-                key={`${athlete.categoryId}-${athlete.participant.id}`}
+                key={option.id}
                 type="button"
                 role="option"
                 aria-selected={false}
-                onClick={() => pick(athlete)}
+                onClick={() => pick(option)}
                 className="flex flex-col gap-0.5 rounded-xl px-3 py-2 text-left transition-colors hover:bg-white/[0.04] focus:bg-white/[0.04] focus:outline-none"
               >
                 <span className="truncate text-xs font-semibold text-white">
-                  {sideName(athlete.participant.players)}
+                  {option.name}
                 </span>
-                <span className="truncate text-[11px] text-[#7A7A83]">
-                  {athlete.categoryLabel} · {athlete.participant.team}
-                </span>
+                {option.inst && (
+                  <span className="truncate text-[11px] text-[#7A7A83]">
+                    {option.inst}
+                  </span>
+                )}
               </button>
             ))
           )}

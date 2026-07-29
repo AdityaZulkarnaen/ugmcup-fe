@@ -72,6 +72,7 @@ function RoundColumn({
   nextKeys,
   isOnPath,
   hasPath,
+  isByeMatch,
   ...highlight
 }: {
   round: BracketRound;
@@ -82,6 +83,7 @@ function RoundColumn({
   nextKeys: string[];
   isOnPath: (key?: string) => boolean;
   hasPath: boolean;
+  isByeMatch: (key?: string) => boolean;
 } & HighlightProps) {
   /** Two feeders per slot means the incoming line forks; 1-to-1 stays straight. */
   const forked = feederKeys.length === keys.length * 2;
@@ -116,28 +118,34 @@ function RoundColumn({
                 <>
                   {forked && (
                     <>
-                      <span
-                        className={`${connector} -left-1.5 top-1/4 bottom-1/2 w-px ${upperLit ? connectorLit : connectorIdle}`}
-                      />
-                      <span
-                        className={`${connector} -left-1.5 top-1/2 bottom-1/4 w-px ${lowerLit ? connectorLit : connectorIdle}`}
-                      />
+                      {!isByeMatch(upperFeeder) && (
+                        <span
+                          className={`${connector} -left-1.5 top-1/4 bottom-1/2 w-px ${upperLit ? connectorLit : connectorIdle}`}
+                        />
+                      )}
+                      {!isByeMatch(lowerFeeder) && (
+                        <span
+                          className={`${connector} -left-1.5 top-1/2 bottom-1/4 w-px ${lowerLit ? connectorLit : connectorIdle}`}
+                        />
+                      )}
                     </>
                   )}
-                  <span
-                    className={`${connector} -left-1.5 top-1/2 h-px w-1.5 ${
-                      upperLit || lowerLit ? connectorLit : connectorIdle
-                    }`}
-                  />
+                  {(!isByeMatch(upperFeeder) || !isByeMatch(lowerFeeder)) && (
+                    <span
+                      className={`${connector} -left-1.5 top-1/2 h-px w-1.5 ${upperLit || lowerLit ? connectorLit : connectorIdle
+                        }`}
+                    />
+                  )}
                 </>
               )}
 
               {/* Stub out towards the next round */}
-              {nextKeys.length > 0 && (
+              {nextKeys.length > 0 && !isByeMatch(key) && (
                 <span
                   className={`${connector} -right-1.5 top-1/2 h-px w-1.5 ${outLit ? connectorLit : connectorIdle}`}
                 />
               )}
+
 
               <div className="w-full">
                 <RoundCard
@@ -195,6 +203,15 @@ export function BracketBoard({
   const hasPath = path.size > 0;
   const isOnPath = (key?: string) => (key ? path.has(key) : false);
 
+  const isByeMatch = (key?: string) => {
+    if (!key) return false;
+    for (const round of bracket.rounds) {
+      const match = round.matches.find(m => m.id === key);
+      if (match?.isByeMatch) return true;
+    }
+    return false;
+  };
+
   const lastPage = columns.length - 1;
   const current = columns[Math.min(page, lastPage)];
 
@@ -215,14 +232,12 @@ export function BracketBoard({
     <>
       {/* Desktop: every round side by side, joined by connector lines */}
       <div
-        className={`hidden lg:block ${
-          scrolls ? "scrollbar-thumb-only overflow-x-auto pb-3" : ""
-        }`}
+        className={`hidden lg:block ${scrolls ? "scrollbar-thumb-only overflow-x-auto pb-3" : ""
+          }`}
       >
         <div
-          className={`grid grid-flow-col gap-3 ${
-            scrolls ? "w-max auto-cols-[15rem]" : "auto-cols-fr"
-          }`}
+          className={`grid grid-flow-col gap-3 ${scrolls ? "w-max auto-cols-[15rem]" : "auto-cols-fr"
+            }`}
         >
           {columns.map(({ round, keys }, i) => (
             <RoundColumn
@@ -233,6 +248,7 @@ export function BracketBoard({
               nextKeys={i === lastPage ? [] : columns[i + 1].keys}
               isOnPath={isOnPath}
               hasPath={hasPath}
+              isByeMatch={isByeMatch}
               {...highlight}
             />
           ))}
@@ -281,13 +297,12 @@ export function BracketBoard({
                 onClick={() => setPage(i)}
                 aria-label={`Lihat ${round.label}`}
                 aria-current={i === page}
-                className={`h-1.5 rounded-full transition-all ${
-                  i === page
+                className={`h-1.5 rounded-full transition-all ${i === page
                     ? "w-6 bg-[#EF9F27]"
                     : roundOnPath
                       ? "w-1.5 bg-[#EF9F27]/60"
                       : "w-1.5 bg-white/15"
-                }`}
+                  }`}
               />
             );
           })}

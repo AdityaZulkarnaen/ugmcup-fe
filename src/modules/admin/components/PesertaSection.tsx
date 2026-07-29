@@ -257,7 +257,7 @@ export function PesertaSection() {
               render: (row) => (
                 <span className="font-semibold text-gray-900">
                   {row.athletes && row.athletes.length > 0
-                    ? row.athletes.map(a => a.athlete?.name).join(" & ")
+                    ? row.athletes.map(a => a.athlete?.name).filter(Boolean).join(" - ")
                     : "—"}
                 </span>
               ),

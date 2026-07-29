@@ -1,74 +1,127 @@
 import Link from "next/link";
-import {
-  disciplineLabel,
-  sideName,
-  type ScheduleMatch,
-  type ScheduleStatus,
-} from "@/lib/constants/matches";
+import type { Match, MatchStatus } from "@/lib/types";
 import { CheckIcon, ChevronIcon, CourtIcon } from "@/components/ui/icons";
 
 interface ScheduleRowProps {
-  match: ScheduleMatch;
+  match: Match;
 }
 
-const statusBadge: Record<ScheduleStatus, { label: string; className: string }> =
-  {
-    live: {
-      label: "LIVE",
-      className: "border-[#FB2C36]/40 bg-[#FB2C36]/15 text-[#FF8A90]",
-    },
-    upcoming: {
-      label: "MENDATANG",
-      className: "border-[#7C6BFF]/35 bg-[#7C6BFF]/15 text-[#B4A9FF]",
-    },
-    done: {
-      label: "SELESAI",
-      className: "border-white/10 bg-white/[0.04] text-[#8A8A93]",
-    },
-  };
+const statusBadge: Record<MatchStatus, { label: string; className: string }> = {
+  ONGOING: {
+    label: "LIVE",
+    className: "border-[#FB2C36]/40 bg-[#FB2C36]/15 text-[#FF8A90]",
+  },
+  SCHEDULED: {
+    label: "MENDATANG",
+    className: "border-[#7C6BFF]/35 bg-[#7C6BFF]/15 text-[#B4A9FF]",
+  },
+  FINISHED: {
+    label: "SELESAI",
+    className: "border-white/10 bg-white/[0.04] text-[#8A8A93]",
+  },
+  RETIRED: {
+    label: "RETIRED",
+    className: "border-white/10 bg-white/[0.04] text-[#8A8A93]",
+  },
+};
 
-/** Player names for one side, joined the way the schedule list shows them. */
 function SideName({
-  players,
+  name,
+  subName,
   won,
   align,
 }: {
-  players: string[];
+  name: string;
+  subName?: string;
   won: boolean;
   align: "left" | "right";
 }) {
   return (
-    <p
-      className={`flex min-w-0 items-center gap-1.5 text-sm font-bold leading-tight ${
-        // Stacked and left-aligned on mobile; mirrored columns from sm up.
-        align === "right"
-          ? "justify-start text-left sm:justify-end sm:text-right"
-          : "justify-start"
-      } ${won ? "text-[#34E5A6]" : "text-white"}`}
+    <div
+      className={`flex min-w-0 flex-col ${align === "right" ? "items-start sm:items-end text-left sm:text-right" : "items-start text-left"
+        }`}
     >
-      {won && align === "right" && (
-        <CheckIcon className="shrink-0 text-[#34E5A6]" />
-      )}
-      <span className="truncate">{sideName(players)}</span>
-      {won && align === "left" && (
-        <CheckIcon className="shrink-0 text-[#34E5A6]" />
-      )}
-    </p>
+      <p
+        className={`flex items-center gap-1.5 text-sm font-bold leading-tight ${won ? "text-[#34E5A6]" : "text-white"
+          }`}
+      >
+        {won && align === "right" && <CheckIcon className="shrink-0 text-[#34E5A6]" />}
+        <span className="truncate">{name}</span>
+        {won && align === "left" && <CheckIcon className="shrink-0 text-[#34E5A6]" />}
+      </p>
+      {subName && <span className="truncate text-[11px] text-[#7A7A83]">{subName}</span>}
+    </div>
   );
 }
 
 export function ScheduleRow({ match }: ScheduleRowProps) {
-  const badge = statusBadge[match.status];
-  const isLive = match.status === "live";
+  const isTeamMatch = match.matchType === "TEAM";
+  const badge = statusBadge[match.status] || statusBadge.SCHEDULED;
+  const isLive = match.status === "ONGOING";
 
-  /** Rendered in the meta line on mobile, in its own column from sm up. */
+  // Time format
+  let timeStr = "TBA";
+  if (match.scheduledTime) {
+    try {
+      const d = new Date(match.scheduledTime);
+      const hours = String(d.getHours()).padStart(2, "0");
+      const minutes = String(d.getMinutes()).padStart(2, "0");
+      timeStr = `${hours}:${minutes}`;
+    } catch {
+      timeStr = "TBA";
+    }
+  }
+
+  // Team / Participant A
+  const nameA =
+    match.participantA?.institution?.name ||
+    match.teamA?.institution?.name ||
+    "Tim A";
+  const subA =
+    match.participantA?.athletes?.map((a) => a.athlete?.name).filter(Boolean).join(" - ") || undefined;
+  const wonA =
+    (!!match.winnerParticipantId && match.winnerParticipantId === match.participantAId) ||
+    (!!match.winnerTeamId && match.winnerTeamId === match.teamAId);
+
+  // Team / Participant B
+  const nameB =
+    match.participantB?.institution?.name ||
+    match.teamB?.institution?.name ||
+    "Tim B";
+  const subB =
+    match.participantB?.athletes?.map((a) => a.athlete?.name).filter(Boolean).join(" - ") || undefined;
+  const wonB =
+    (!!match.winnerParticipantId && match.winnerParticipantId === match.participantBId) ||
+    (!!match.winnerTeamId && match.winnerTeamId === match.teamBId);
+
+  // Team calculations
+  const childMatches = match.childMatches ?? [];
+  const finishedChildren = childMatches.filter(
+    (c) => c.status === "FINISHED" || c.status === "RETIRED"
+  );
+  const winsA = finishedChildren.filter(
+    (c) => c.winnerTeamId && c.winnerTeamId === match.teamAId
+  ).length;
+  const winsB = finishedChildren.filter(
+    (c) => c.winnerTeamId && c.winnerTeamId === match.teamBId
+  ).length;
+
+  const sets = match.sets ?? [];
+  const setScoreSummary = isTeamMatch
+    ? finishedChildren.length > 0
+      ? `${winsA} - ${winsB}`
+      : "5 Partai Beregu"
+    : sets.length > 0
+      ? sets.map((s) => `${s.scoreA}-${s.scoreB}`).join(" · ")
+      : null;
+
   const statusPill = (
     <span
       className={`inline-block whitespace-nowrap rounded-full border px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide ${badge.className}`}
     >
       {isLive && (
         <span className="relative mr-1.5 inline-flex h-1.5 w-1.5 align-middle">
-          <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-[#FB2C36]" />
+          <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-[#FB2C36] animate-pulse" />
         </span>
       )}
       {badge.label}
@@ -78,75 +131,62 @@ export function ScheduleRow({ match }: ScheduleRowProps) {
   return (
     <Link
       href={`/pertandingan/${match.id}`}
-      aria-label={`Statistik ${sideName(match.home.players)} vs ${sideName(match.away.players)}`}
+      aria-label={`Statistik ${nameA} vs ${nameB}`}
       className="group relative block overflow-hidden rounded-xl border border-white/[0.06] bg-white/[0.02] py-3 pl-4 pr-3 transition-all hover:border-white/30 hover:bg-white/[0.04] active:scale-[0.995] active:border-white/30 active:bg-white/[0.05] sm:py-3.5 sm:pl-6 sm:pr-4"
     >
-      {/* Left accent, red while the match is running */}
       {isLive && (
         <span className="absolute inset-y-0 left-0 w-[3px] bg-[#FB2C36]" />
       )}
 
       <div className="flex items-center gap-3 sm:gap-4">
-        {/* Time — its own column from sm up, part of the meta line on mobile */}
+        {/* Time */}
         <span className="hidden w-12 shrink-0 text-sm font-bold tabular-nums text-white sm:block">
-          {match.time}
+          {timeStr}
         </span>
 
         {/* Meta + players */}
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
             <span className="text-sm font-bold tabular-nums text-white sm:hidden">
-              {match.time}
+              {timeStr}
             </span>
             <span className="rounded-full border border-[#C79A3B]/40 bg-[#C79A3B]/[0.08] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[#E3B24D]">
-              {disciplineLabel(match.categoryId)}
+              {match.discipline?.name || (isTeamMatch ? "Beregu" : "Badminton")}
             </span>
             <span className="text-[11px] font-medium text-[#7A7A83]">
-              {match.level}
+              {match.roundName || match.stage}
             </span>
             <span className="flex items-center gap-1 text-[11px] text-[#7A7A83]">
               <CourtIcon />
-              {match.court}
+              {match.courtNumber ? `Lapangan ${match.courtNumber}` : "TBA"}
             </span>
-            {/* On mobile the status rides along here instead of its own column */}
             <span className="ml-auto sm:hidden">{statusPill}</span>
           </div>
 
-          {/* Names stack on mobile, mirrored columns from sm up */}
-          <div className="mt-1.5 flex flex-col gap-0.5 sm:grid sm:grid-cols-[1fr_auto_1fr] sm:items-center sm:gap-3">
-            <SideName
-              players={match.home.players}
-              won={match.winner === "home"}
-              align="left"
-            />
+          {/* Names */}
+          <div className="mt-1.5 flex flex-col gap-1 sm:grid sm:grid-cols-[1fr_auto_1fr] sm:items-center sm:gap-3">
+            <SideName name={nameA} subName={isTeamMatch ? undefined : subA} won={wonA} align="left" />
 
             <div className="order-last flex items-center gap-2 sm:order-none sm:flex-col sm:gap-0">
               <span className="hidden text-[11px] font-medium text-[#5A5A63] sm:block">
                 vs
               </span>
-              {match.games && match.games.length > 0 && (
-                <span className="text-[10px] tabular-nums text-[#6B6B73] sm:mt-0.5">
-                  {match.games
-                    .map((game) => `${game.home}-${game.away}`)
-                    .join(" · ")}
+              {setScoreSummary && (
+                <span className="text-[10px] font-medium tabular-nums text-[#FAC775] sm:mt-0.5">
+                  {setScoreSummary}
                 </span>
               )}
             </div>
 
-            <SideName
-              players={match.away.players}
-              won={match.winner === "away"}
-              align="right"
-            />
+            <SideName name={nameB} subName={isTeamMatch ? undefined : subB} won={wonB} align="right" />
           </div>
         </div>
 
-        {/* Status — fixed width so the centre "vs" lines up across every row */}
+        {/* Status */}
         <div className="hidden w-28 shrink-0 justify-end sm:flex">
           {statusPill}
         </div>
 
-        {/* Always-visible tap affordance, so touch screens do not rely on hover */}
         <ChevronIcon className="shrink-0 text-[#5A5A63] transition-all group-hover:translate-x-0.5 group-hover:text-[#E3B24D]" />
       </div>
     </Link>

@@ -1,4 +1,4 @@
-import { tournamentVenue, type MatchDetail } from "@/lib/constants/matches";
+import type { Match } from "@/lib/types";
 import { CourtIcon, StadiumIcon } from "@/components/ui/icons";
 
 function InfoRow({
@@ -21,7 +21,7 @@ function InfoRow({
   );
 }
 
-export function MatchInfo({ match }: { match: MatchDetail }) {
+export function MatchInfo({ match }: { match: Match }) {
   return (
     <section className="overflow-hidden rounded-xl border border-white/[0.06]">
       <h2 className="border-b border-white/[0.06] bg-white/[0.03] px-4 py-2.5 text-[11px] font-bold uppercase tracking-wider text-[#E3B24D]">
@@ -29,14 +29,11 @@ export function MatchInfo({ match }: { match: MatchDetail }) {
       </h2>
 
       <dl>
-        <InfoRow icon={<StadiumIcon />} label="Stadion">
-          {tournamentVenue.name}{" "}
-          <span className="font-medium text-[#7A7A83]">
-            ({tournamentVenue.org})
-          </span>
+        <InfoRow icon={<StadiumIcon />} label="STADION">
+          GOR Nusantara (UGM)
         </InfoRow>
-        <InfoRow icon={<CourtIcon />} label="Lokasi">
-          {match.court}
+        <InfoRow icon={<CourtIcon />} label="LOKASI">
+          {match.courtNumber ? `Lapangan ${match.courtNumber}` : "Lapangan 1"}
         </InfoRow>
       </dl>
     </section>

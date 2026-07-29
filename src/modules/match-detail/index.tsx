@@ -1,19 +1,60 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ChevronIcon } from "@/components/ui/icons";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
-import { getMatchDetail } from "@/lib/constants/matches";
+import { getMatch } from "@/lib/api/matches";
+import type { Match } from "@/lib/types";
 import { MatchDetailTabs } from "./components/MatchDetailTabs";
 
-/**
- * Match statistics page module root.
- * Reached by clicking a live score card or a schedule row; the app router
- * renders this from `app/pertandingan/[id]/page.tsx`.
- */
 export default function MatchDetailPage({ id }: { id: string }) {
-  const match = getMatchDetail(id);
-  if (!match) notFound();
+  const [match, setMatch] = useState<Match | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+
+  useEffect(() => {
+    let isMounted = true;
+    async function load() {
+      try {
+        const data = await getMatch(id);
+        if (isMounted) {
+          if (!data) setError(true);
+          else setMatch(data);
+        }
+      } catch (err) {
+        console.error("Gagal mengambil detail match:", err);
+        if (isMounted) setError(true);
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    }
+    load();
+    return () => {
+      isMounted = false;
+    };
+  }, [id]);
+
+  if (loading) {
+    return (
+      <>
+        <Navbar variant="dark" />
+        <main className="relative min-h-screen bg-linear-to-b from-[#1A162B] to-[#0F0E1A] pt-28 pb-24">
+          <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-6">
+            <div className="h-8 w-24 animate-pulse rounded-full bg-white/10" />
+            <div className="h-64 w-full animate-pulse rounded-2xl bg-white/[0.02]" />
+          </div>
+        </main>
+        <Footer />
+      </>
+    );
+  }
+
+  if (error || !match) {
+    notFound();
+  }
 
   return (
     <>
@@ -29,9 +70,7 @@ export default function MatchDetailPage({ id }: { id: string }) {
             Kembali
           </Link>
 
-          {/* Header, scoreboard and panels live together: the subtitle changes
-              with the open tab. */}
-          <MatchDetailTabs match={match} />
+          <MatchDetailTabs initialMatch={match} />
         </div>
       </main>
 

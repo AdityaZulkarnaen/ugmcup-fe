@@ -1,7 +1,11 @@
+"use client";
+
+import { useState, useEffect, useCallback } from "react";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
-import { liveMatches } from "@/lib/constants/matches";
 import { MatchTabs } from "./components/MatchTabs";
+import { getMatches } from "@/lib/api/matches";
+import { useGlobalPanitiaRoom } from "@/lib/hooks/useSocket";
 
 /**
  * Pertandingan (matches) page module root.
@@ -9,7 +13,27 @@ import { MatchTabs } from "./components/MatchTabs";
  * The app router renders this from `app/pertandingan/page.tsx`.
  */
 export default function MatchPage() {
-  const liveCount = liveMatches.length;
+  const [ongoingCount, setOngoingCount] = useState<number>(0);
+  const { lastUpdate } = useGlobalPanitiaRoom();
+
+  const fetchOngoingCount = useCallback(async () => {
+    try {
+      const data = await getMatches({ status: "ONGOING" });
+      setOngoingCount(data ? data.length : 0);
+    } catch (err) {
+      console.error("Gagal mengambil jumlah match berlangsung:", err);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchOngoingCount();
+  }, [fetchOngoingCount, lastUpdate]);
+
+  // Polling fallback every 15 seconds
+  useEffect(() => {
+    const interval = setInterval(fetchOngoingCount, 15000);
+    return () => clearInterval(interval);
+  }, [fetchOngoingCount]);
 
   return (
     <>
@@ -22,8 +46,8 @@ export default function MatchPage() {
         {/* Header */}
         <header className="relative mx-auto flex w-full max-w-6xl flex-col items-center px-6 text-center">
           <span className="inline-flex items-center gap-2 rounded-full border border-[#EF9F27]/30 bg-[#EF9F27]/12 px-4 py-1.5 text-xs font-medium text-[#FAC775]">
-            <span className="h-2 w-2 rounded-full bg-[#FB2C36]" />
-            {liveCount} match berlangsung
+            <span className="h-2 w-2 rounded-full bg-[#FB2C36] animate-pulse" />
+            {ongoingCount} match berlangsung
           </span>
 
           {/* "Pertandingan" is one long word: too large a step and it overflows

@@ -80,42 +80,61 @@ function SideRow({
   onHover,
   onSelect,
 }: { side: BracketSide } & HighlightProps) {
-  const participant = side.participantId
-    ? getParticipant(side.participantId)
-    : undefined;
-  const name = participant ? sideName(participant.players) : "TBD";
-  const isActive = Boolean(participant && participant.id === activeId);
+  let name = side.name;
+  let inst = side.inst;
+  let avatar = side.avatar;
+  let participant = undefined;
+
+  if (!name && side.participantId) {
+    participant = getParticipant(side.participantId);
+    if (participant) {
+      name = sideName(participant.players);
+      avatar = participant.avatar;
+      inst = participant.team;
+    }
+  }
+
+  if (!name && name !== "") {
+    name = side.isBye ? "" : "TBD";
+  }
+
+  const isActive = Boolean(
+    side.participantId && side.participantId === activeId
+  );
 
   return (
     <button
       type="button"
-      disabled={!participant}
-      aria-pressed={participant ? isActive : undefined}
-      onPointerEnter={() => onHover?.(participant?.id)}
+      disabled={!side.participantId}
+      aria-pressed={side.participantId ? isActive : undefined}
+      onPointerEnter={() => onHover?.(side.participantId)}
       onPointerLeave={() => onHover?.(undefined)}
-      onFocus={() => onHover?.(participant?.id)}
+      onFocus={() => onHover?.(side.participantId)}
       onBlur={() => onHover?.(undefined)}
-      onClick={() => participant && onSelect?.(participant.id)}
+      onClick={() => side.participantId && onSelect?.(side.participantId)}
       className={`flex w-full items-center gap-2 py-2 pl-3.5 pr-3 text-left transition-colors enabled:hover:bg-white/[0.03] disabled:cursor-default ${
         isActive ? "bg-[#EF9F27]/10" : ""
       }`}
     >
-      {participant && (
-        <ParticipantBadge avatar={participant.avatar} name={name} />
+      {(side.participantId || (name !== "TBD" && name !== "")) && (
+        <ParticipantBadge avatar={avatar} name={name} />
       )}
-      <span
-        className={`min-w-0 flex-1 truncate text-[13px] font-semibold ${
-          !participant
-            ? "italic text-[#6B6B73]"
-            : isActive
-              ? "text-[#FAC775]"
-              : side.winner
-                ? "text-white"
-                : "text-[#7A7A83]"
-        }`}
-      >
-        {name}
-      </span>
+      <div className="min-w-0 flex-1">
+        <span
+          className={`block truncate text-[13px] font-semibold ${
+            (!side.participantId && name === "TBD")
+              ? "italic text-[#6B6B73]"
+              : isActive
+                ? "text-[#FAC775]"
+                : side.winner
+                  ? "text-white"
+                  : "text-[#7A7A83]"
+          }`}
+        >
+          {name}
+        </span>
+
+      </div>
       {side.retired && <RetiredBadge reason={side.retired} />}
       {side.score !== null && (
         <span
@@ -136,6 +155,17 @@ export function BracketMatchCard({
   dimmed,
   ...highlight
 }: { match: BracketMatch } & HighlightProps) {
+  if (match.isByeMatch) {
+    return (
+      <article className="w-full relative overflow-hidden rounded-xl opacity-0 pointer-events-none border border-transparent">
+        <div className="divide-y divide-transparent">
+          <SideRow side={match.home} onPath={onPath} {...highlight} />
+          <SideRow side={match.away} onPath={onPath} {...highlight} />
+        </div>
+      </article>
+    );
+  }
+
   return (
     <article
       className={`relative overflow-hidden rounded-xl border transition-all ${

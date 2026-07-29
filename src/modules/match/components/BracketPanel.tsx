@@ -1,116 +1,328 @@
 "use client";
 
-import { useState } from "react";
-import {
-  bracketAthletes,
-  categoryBrackets,
-  participantTiers,
-  type BracketAthlete,
-  type ParticipantTier,
-} from "@/lib/constants/matches";
+import { useState, useMemo, useEffect } from "react";
+import { DISCIPLINES, LEVELS } from "@/lib/constants";
+import { getBracket } from "@/lib/api/admin";
+import type { BracketNode } from "@/lib/types";
 import { FilterSelect } from "@/components/ui/FilterSelect";
 import { AthleteSearch } from "./AthleteSearch";
 import { BracketBoard } from "./BracketBoard";
+import { type CategoryBracket, type BracketRound, type BracketSide, type BracketMatch } from "@/lib/constants/matches";
 
-/**
- * The bracket tab: entrant level and category filters plus athlete search on
- * top of the board. The statistics page renders `BracketBoard` on its own
- * instead, fixed to the draw of the match being viewed.
- */
-export function BracketPanel() {
-  const [tier, setTier] = useState<ParticipantTier>("universitas");
-  const [categoryId, setCategoryId] = useState(categoryBrackets[0].id);
-  const [pinned, setPinned] = useState<BracketAthlete>();
-
-  /** Only the categories that exist for the chosen entrant level. */
-  const options = categoryBrackets.filter((item) => item.tier === tier);
-  const bracket =
-    options.find((item) => item.id === categoryId) ??
-    options[0] ??
-    categoryBrackets[0];
-
-  /** Picking an athlete jumps to their draw and pins their path. */
-  function selectAthlete(athlete?: BracketAthlete) {
-    setPinned(athlete);
-    if (!athlete) return;
-
-    const target = categoryBrackets.find(
-      (item) => item.id === athlete.categoryId,
-    );
-    if (!target) return;
-    setTier(target.tier);
-    setCategoryId(target.id);
+function mapSide(p: any, t: any, isFirstRound: boolean, matchStatus: string, won: boolean): BracketSide {
+  if (p) {
+    const inst = p.institution?.name;
+    const names = p.athletes?.length > 0
+      ? p.athletes.map((a: any) => a.athlete?.name).filter(Boolean).join(" - ")
+      : undefined;
+    return {
+      participantId: p.id,
+      name: names,
+      inst,
+      avatar: p.avatar,
+      score: matchStatus === "SCHEDULED" ? null : 0,
+      winner: won,
+      retired: matchStatus === "RETIRED" && !won ? "cedera" : undefined
+    };
   }
+  if (t) {
+    const inst = t.institution?.name;
+    return {
+      participantId: t.id,
+      name: inst || "Tim",
+      inst: undefined,
+      avatar: t.avatar,
+      score: matchStatus === "SCHEDULED" ? null : 0,
+      winner: won,
+      retired: matchStatus === "RETIRED" && !won ? "cedera" : undefined
+    };
+  }
+  return {
+    participantId: undefined,
+    isBye: isFirstRound,
+    score: null,
+    winner: false
+  };
+}
 
-  /** Clicking a name in the bracket pins that athlete; clicking again unpins. */
-  function toggleFromBoard(participantId: string) {
-    if (pinned?.participant.id === participantId) {
-      setPinned(undefined);
-      return;
+function buildCategoryBracket(disciplineId: string, nodes: BracketNode[]): CategoryBracket | null {
+  if (!nodes || nodes.length === 0) return null;
+
+  const groupedByRound: Record<string, BracketNode[]> = {};
+  nodes.forEach((node) => {
+    const round = node.match?.roundName ?? "Babak";
+    if (!groupedByRound[round]) groupedByRound[round] = [];
+    groupedByRound[round].push(node);
+  });
+
+  const roundsArray = Object.entries(groupedByRound).sort(
+    (a, b) => b[1].length - a[1].length
+  );
+
+  // 1. Calculate true tree index for all nodes based on nextNodeId
+  const treeIndices = new Map<string, number>();
+
+  // Iterate backwards to establish parent-child relationships
+  for (let rIdx = roundsArray.length - 1; rIdx >= 0; rIdx--) {
+    const roundNodes = roundsArray[rIdx][1];
+
+    // For the last round in our array, just assign sequential indices
+    if (rIdx === roundsArray.length - 1) {
+      // Sort by position just to have a consistent order for the root nodes
+      [...roundNodes].sort((a, b) => a.position - b.position).forEach((node, i) => {
+        treeIndices.set(node.id, i);
+      });
+      continue;
     }
-    setPinned(
-      bracketAthletes.find(
-        (item) =>
-          item.participant.id === participantId &&
-          item.categoryId === bracket.id,
-      ),
-    );
+
+    // For previous rounds, calculate index based on nextNodeId
+    roundNodes.forEach(node => {
+      if (node.nextNodeId && treeIndices.has(node.nextNodeId)) {
+        const parentIdx = treeIndices.get(node.nextNodeId)!;
+        const slotOffset = node.nextSlot === "B" ? 1 : 0;
+        treeIndices.set(node.id, parentIdx * 2 + slotOffset);
+      } else {
+        // Fallback if nextNodeId is missing (shouldn't happen in a valid bracket)
+        treeIndices.set(node.id, node.position);
+      }
+    });
   }
 
-  function changeCategory(id: string) {
-    setCategoryId(id);
-    // A pinned athlete only exists in their own draw.
-    if (pinned && pinned.categoryId !== id) setPinned(undefined);
-  }
+  // Base matches count from the last round
+  const rootMatchesCount = roundsArray[roundsArray.length - 1][1].length || 1;
 
-  function changeTier(next: string) {
-    const nextTier = next as ParticipantTier;
-    setTier(nextTier);
-    setPinned(undefined);
+  const rounds: BracketRound[] = roundsArray.map(([roundName, roundNodes], rIdx) => {
+    const isFirstRound = rIdx === 0;
 
-    // Keep the same discipline when it also runs at the new level.
-    const sameDiscipline = categoryBrackets.find(
-      (item) =>
-        item.tier === nextTier && item.disciplineId === bracket.disciplineId,
-    );
-    const fallback = categoryBrackets.find((item) => item.tier === nextTier);
-    setCategoryId((sameDiscipline ?? fallback ?? bracket).id);
-  }
+    // Expected matches = (root matches count) * 2^(distance from root)
+    const expectedMatches = rootMatchesCount * Math.pow(2, roundsArray.length - 1 - rIdx);
+
+    // Map to BracketMatch, filling in missing or hidden BYE matches at their exact tree index
+    const matches: BracketMatch[] = Array.from({ length: expectedMatches }).map((_, i) => {
+      const node = roundNodes.find((n) => treeIndices.get(n.id) === i);
+
+      if (!node) {
+        return {
+          id: `m-${rIdx}-${i}`,
+          home: { isBye: true, score: null, winner: false },
+          away: { isBye: true, score: null, winner: false },
+          isByeMatch: true,
+        };
+      }
+
+      const match = node.match;
+      const wonA =
+        (!!match?.winnerParticipantId &&
+          match.winnerParticipantId === match.participantAId) ||
+        (!!match?.winnerTeamId && match.winnerTeamId === match.teamAId);
+
+      const wonB =
+        (!!match?.winnerParticipantId &&
+          match.winnerParticipantId === match.participantBId) ||
+        (!!match?.winnerTeamId && match.winnerTeamId === match.teamBId);
+
+      // Score from sets
+      const sets = match?.sets ?? [];
+      const scoreA = sets.length > 0 ? sets[sets.length - 1].scoreA : 0;
+      const scoreB = sets.length > 0 ? sets[sets.length - 1].scoreB : 0;
+
+      const homeSide = mapSide(match?.participantA, match?.teamA, isFirstRound, match?.status || "SCHEDULED", wonA);
+      const awaySide = mapSide(match?.participantB, match?.teamB, isFirstRound, match?.status || "SCHEDULED", wonB);
+
+      if (match?.status !== "SCHEDULED") {
+        if (homeSide.score !== null) homeSide.score = scoreA;
+        if (awaySide.score !== null) awaySide.score = scoreB;
+      }
+
+      return {
+        id: `m-${rIdx}-${i}`,
+        home: homeSide,
+        away: awaySide,
+        isByeMatch: homeSide.isBye || awaySide.isBye,
+      };
+    });
+
+    return {
+      id: `r-${rIdx}`,
+      label: roundName,
+      matches,
+    };
+  });
+
+  return {
+    id: disciplineId,
+    disciplineId: disciplineId,
+    label: disciplineId,
+    tier: "universitas",
+    seeds: [],
+    rounds,
+  };
+}
+
+interface BracketPanelProps {
+  initialDisciplineId?: string;
+  initialLevel?: string;
+  highlightParticipantId?: string;
+}
+
+export function BracketPanel({
+  initialDisciplineId,
+  initialLevel,
+  highlightParticipantId,
+}: BracketPanelProps = {}) {
+  const [level, setLevel] = useState(initialLevel || "univ");
+
+  const availableDisciplines = useMemo(() => {
+    return DISCIPLINES.filter((d) => d.level === level);
+  }, [level]);
+
+  const [disciplineId, setDisciplineId] = useState(
+    initialDisciplineId || availableDisciplines[0]?.id || ""
+  );
+
+  const [pinnedId, setPinnedId] = useState<string | undefined>(
+    highlightParticipantId
+  );
+
+  useEffect(() => {
+    if (initialDisciplineId) {
+      setDisciplineId(initialDisciplineId);
+      const disc = DISCIPLINES.find((d) => d.id === initialDisciplineId);
+      if (disc && disc.level) {
+        setLevel(disc.level);
+      }
+    }
+  }, [initialDisciplineId]);
+
+  useEffect(() => {
+    if (highlightParticipantId) {
+      setPinnedId(highlightParticipantId);
+    }
+  }, [highlightParticipantId]);
+
+  useEffect(() => {
+    if (
+      !initialDisciplineId &&
+      availableDisciplines.length > 0 &&
+      !availableDisciplines.some((d) => d.id === disciplineId)
+    ) {
+      setDisciplineId(availableDisciplines[0].id);
+      setPinnedId(undefined);
+    }
+  }, [availableDisciplines, disciplineId, initialDisciplineId]);
+
+  const [bracketNodes, setBracketNodes] = useState<BracketNode[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (!disciplineId) return;
+    let isMounted = true;
+    async function load() {
+      setLoading(true);
+      try {
+        const data = await getBracket(disciplineId);
+        if (isMounted) setBracketNodes(data || []);
+      } catch {
+        if (isMounted) setBracketNodes([]);
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    }
+    load();
+    return () => {
+      isMounted = false;
+    };
+  }, [disciplineId]);
+
+  const categoryBracket = useMemo(() => buildCategoryBracket(disciplineId, bracketNodes), [disciplineId, bracketNodes]);
+
+  const currentDiscObj = DISCIPLINES.find((d) => d.id === disciplineId);
+  const currentLevelObj = LEVELS.find((l) => l.value === level);
+  const categoryHeaderLabel = `BAGAN ${currentDiscObj?.name?.toUpperCase() || currentDiscObj?.label?.toUpperCase() || disciplineId.toUpperCase()} · ${currentLevelObj?.label?.toUpperCase() || level.toUpperCase()}`;
+
+  const searchOptions = useMemo(() => {
+    if (!categoryBracket || categoryBracket.rounds.length === 0) return [];
+
+    // Extract unique participants from all rounds
+    const optionsMap = new Map<string, { id: string; name: string; inst?: string; }>();
+    categoryBracket.rounds.forEach((round) => {
+      round.matches.forEach((match) => {
+        if (match.home.participantId && match.home.name && match.home.name !== "BYE") {
+          optionsMap.set(match.home.participantId, {
+            id: match.home.participantId,
+            name: match.home.name,
+            inst: match.home.inst,
+          });
+        }
+        if (match.away.participantId && match.away.name && match.away.name !== "BYE") {
+          optionsMap.set(match.away.participantId, {
+            id: match.away.participantId,
+            name: match.away.name,
+            inst: match.away.inst,
+          });
+        }
+      });
+    });
+    return Array.from(optionsMap.values());
+  }, [categoryBracket]);
 
   return (
     <div className="flex flex-col gap-5">
-      {/* Level + category beside the search; the search gets the widest share */}
+      {/* Level + Category Filter + Search */}
       <div className="flex flex-wrap items-center gap-2.5">
         <FilterSelect
-          options={participantTiers}
-          value={tier}
-          onChange={changeTier}
-          label="Filter jenjang bracket"
+          options={LEVELS.map((l) => ({ id: l.value, label: l.label }))}
+          value={level}
+          onChange={(val) => {
+            setLevel(val);
+            setPinnedId(undefined);
+          }}
+          label="Filter jenjang"
           accent="gold"
           className="min-w-0 flex-1 basis-[45%] md:basis-2/12"
         />
         <FilterSelect
-          options={options.map(({ id, label }) => ({ id, label }))}
-          value={bracket.id}
-          onChange={changeCategory}
-          label="Filter kategori bracket"
+          options={availableDisciplines.map((d) => ({ id: d.id, label: d.label }))}
+          value={disciplineId}
+          onChange={(val) => {
+            setDisciplineId(val);
+            setPinnedId(undefined);
+          }}
+          label="Filter kategori"
           accent="violet"
           className="min-w-0 flex-1 basis-[45%] md:basis-2/12"
         />
         <AthleteSearch
-          selected={pinned}
-          onSelect={selectAthlete}
+          options={searchOptions}
+          selectedId={pinnedId}
+          onSelect={setPinnedId}
           className="min-w-0 flex-1 basis-full md:basis-4/12"
         />
       </div>
 
-      {/* Remounting on category or pin resets the mobile pager to the right round */}
-      <BracketBoard
-        key={`${bracket.id}-${pinned?.participant.id ?? ""}`}
-        bracket={bracket}
-        pinnedId={pinned?.participant.id}
-        onSelect={toggleFromBoard}
-      />
+      {loading ? (
+        <div className="h-64 w-full animate-pulse rounded-2xl border border-white/[0.06] bg-white/[0.02]" />
+      ) : categoryBracket ? (
+        <div className="overflow-x-auto rounded-2xl border border-white/[0.06] bg-white/[0.02] p-6 shadow-[0_1px_0_rgba(255,255,255,0.03)_inset]">
+          <div className="mb-4 text-xs font-bold uppercase tracking-wider text-[#8A8A93]">
+            {categoryHeaderLabel}
+          </div>
+          <BracketBoard
+            key={disciplineId}
+            bracket={categoryBracket}
+            interactive={true}
+            pinnedId={pinnedId}
+            onSelect={setPinnedId}
+          />
+        </div>
+      ) : (
+        <div className="flex min-h-40 flex-col items-center justify-center rounded-2xl border border-dashed border-white/10 bg-white/[0.01] p-10 text-center text-sm text-[#7A7A83]">
+          <p className="font-semibold text-white">Bagan bracket belum tersedia</p>
+          <p className="mt-1 text-xs text-[#6B6B73]">
+            Panitia belum menyusun bracket fase gugur untuk kategori ini.
+          </p>
+        </div>
+      )}
     </div>
   );
 }

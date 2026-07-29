@@ -456,14 +456,14 @@ function ScoringPanel({
 
   let athleteNamesA =
     (match.participantA?.athletes?.length ?? 0) > 0
-      ? match.participantA?.athletes?.map((a: any) => a.athlete?.name).join(" & ")
+      ? match.participantA?.athletes?.map((a: any) => a.athlete?.name).join(" - ")
       : null;
 
   if (!athleteNamesA && parentMatch && match.slotType) {
     const assignedSlot = match.slotType.replace(/_[12]$/, "");
     const members = parentMatch.teamA?.members?.filter((m: any) => m.assignedSlot === assignedSlot);
     if (members && members.length > 0) {
-      athleteNamesA = members.map((m: any) => m.athlete?.name).join(" & ");
+      athleteNamesA = members.map((m: any) => m.athlete?.name).join(" - ");
     }
   }
 
@@ -479,14 +479,14 @@ function ScoringPanel({
 
   let athleteNamesB =
     (match.participantB?.athletes?.length ?? 0) > 0
-      ? match.participantB?.athletes?.map((a: any) => a.athlete?.name).join(" & ")
+      ? match.participantB?.athletes?.map((a: any) => a.athlete?.name).join(" - ")
       : null;
 
   if (!athleteNamesB && parentMatch && match.slotType) {
     const assignedSlot = match.slotType.replace(/_[12]$/, "");
     const members = parentMatch.teamB?.members?.filter((m: any) => m.assignedSlot === assignedSlot);
     if (members && members.length > 0) {
-      athleteNamesB = members.map((m: any) => m.athlete?.name).join(" & ");
+      athleteNamesB = members.map((m: any) => m.athlete?.name).join(" - ");
     }
   }
 
@@ -843,7 +843,7 @@ export function MatchAktifSection() {
 
   const labelFor = (m: Match) => {
     const getPName = (p: any) =>
-      p?.athletes?.length > 0 ? p.athletes.map((a: any) => a.athlete?.name).join(" & ") : null;
+      p?.athletes?.length > 0 ? p.athletes.map((a: any) => a.athlete?.name).join(" - ") : null;
     const instA = m.participantA?.institution?.name ?? m.teamA?.institution?.name ?? "Tim A";
     const nameA = getPName(m.participantA) ? `${getPName(m.participantA)} (${instA})` : instA;
 
@@ -944,12 +944,12 @@ export function MatchAktifSection() {
                           selected.teamA?.members
                             ?.filter((m: any) => m.assignedSlot === assignedSlot)
                             .map((m: any) => m.athlete?.name)
-                            .join(" & ") || "-";
+                            .join(" - ") || "-";
                         const teamBAthletes =
                           selected.teamB?.members
                             ?.filter((m: any) => m.assignedSlot === assignedSlot)
                             .map((m: any) => m.athlete?.name)
-                            .join(" & ") || "-";
+                            .join(" - ") || "-";
                         const slotLabel = (child.slotType || "Tunggal/Ganda")
                           .replace(/_/g, " ")
                           .replace(/ 1$/, "")

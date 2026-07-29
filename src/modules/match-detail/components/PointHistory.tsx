@@ -1,170 +1,250 @@
 "use client";
 
-import { useState } from "react";
-import {
-  buildRallyRows,
-  sideName,
-  type MatchDetail,
-  type RallyRow,
-} from "@/lib/constants/matches";
-import  ShuttleIcon  from "../../../../public/images/match/ShuttleIcon.svg";
-import Image from "next/image";
+import { useEffect, useState } from "react";
+import { getMatchHistory } from "@/lib/api/matches";
+import type { Match, MatchHistoryEntry } from "@/lib/types";
+import { getMatchSideDetails } from "./MatchScoreboard";
 
-/**
- * Lead badge. The colour is about the direction of the lead, not about which
- * side holds it: teal while it grows, red once the trailing side starts closing
- * the gap.
- */
-function LeadBadge({ margin, chased }: { margin: number; chased: boolean }) {
-  return (
-    <span
-      className={`rounded-md border px-1.5 py-0.5 text-[10px] font-bold leading-none tabular-nums ${
-        chased
-          ? "border-[#FB2C36]/35 bg-[#FB2C36]/15 text-[#FF8A90]"
-          : "border-[#02F5D4]/35 bg-[#02F5D4]/15 text-[#5CFCE7]"
-      }`}
-    >
-      +{margin}
-    </span>
-  );
+function formatTimer(seconds: number | null) {
+  if (seconds === null || seconds === undefined) return null;
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  return `${m < 10 ? "0" : ""}${m}:${s < 10 ? "0" : ""}${s}`;
 }
 
-/**
- * One recorded rally: the badge sits on the side that is ahead and shows by how
- * much, the shuttlecock on the side that served, and the score in the middle
- * with the point just won lit. A level score leaves both badges off.
- */
-function RallyLine({ row }: { row: RallyRow }) {
-  const scoredHome = row.scorer === "home";
-  const lead = row.lead;
+export function PointHistory({ match, parentMatch }: { match: Match; parentMatch?: Match }) {
+  const [history, setHistory] = useState<MatchHistoryEntry[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [activeSet, setActiveSet] = useState<number>(1);
 
-  return (
-    <div className="px-3 py-2.5 odd:bg-white/[0.015] sm:px-4">
-      {/* Capped and centred: the three groups stay together as the panel widens */}
-      <div className="mx-auto grid w-full max-w-xs grid-cols-[1fr_auto_1fr] items-center gap-3">
-        <div className="flex items-center justify-end gap-2">
-          {lead?.side === "home" && (
-            <LeadBadge margin={lead.margin} chased={lead.chased} />
-          )}
-          {row.server === "home" && (
-            <Image src={ShuttleIcon} alt="Shuttle Icon" />
-          )}
-        </div>
+  const { nameA, nameB } = getMatchSideDetails(match, parentMatch);
 
-        <p className="flex items-baseline gap-1.5 text-sm font-bold tabular-nums">
-          <span className={scoredHome ? "text-[#02F5D4]" : "text-white"}>
-            {row.home}
-          </span>
-          <span className="text-[#5A5A63]">–</span>
-          <span className={!scoredHome ? "text-[#02F5D4]" : "text-white"}>
-            {row.away}
-          </span>
-        </p>
+  useEffect(() => {
+    let isMounted = true;
+    async function load() {
+      try {
+        const data = await getMatchHistory(match.id);
+        if (isMounted) {
+          setHistory(data || []);
+        }
+      } catch (err) {
+        console.error("Gagal mengambil riwayat poin:", err);
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    }
+    load();
+    return () => {
+      isMounted = false;
+    };
+  }, [match.id]);
 
-        <div className="flex items-center justify-start gap-2">
-          {row.server === "away" && (
-            <Image src={ShuttleIcon} alt="Shuttle Icon" />
-          )}
-          {lead?.side === "away" && (
-            <LeadBadge margin={lead.margin} chased={lead.chased} />
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function LegendItem({ children }: { children: React.ReactNode }) {
-  return (
-    <span className="flex items-center gap-1.5 text-[11px] text-[#7A7A83]">
-      {children}
-    </span>
-  );
-}
-
-/**
- * "Sejarah Pertandingan": the rally-by-rally log the admin dashboard records
- * live, one set at a time.
- */
-export function PointHistory({ match }: { match: MatchDetail }) {
-  const [set, setSet] = useState(0);
-
-  if (match.history.length === 0) {
+  if (loading) {
     return (
-      <div className="flex min-h-40 items-center justify-center rounded-xl border border-dashed border-white/10 bg-white/[0.01] p-10 text-center text-sm text-[#7A7A83]">
-        Riwayat poin belum dicatat untuk pertandingan ini.
+      <div className="flex flex-col gap-3 p-4">
+        {[1, 2, 3].map((i) => (
+          <div
+            key={i}
+            className="h-12 w-full animate-pulse rounded-lg border border-white/[0.06] bg-white/[0.02]"
+          />
+        ))}
       </div>
     );
   }
 
-  const current = match.history[Math.min(set, match.history.length - 1)];
-  const rows = buildRallyRows(current);
+  if (history.length === 0) {
+    return (
+      <div className="flex min-h-40 items-center justify-center rounded-xl border border-dashed border-white/10 bg-white/[0.01] p-10 text-center text-sm text-[#7A7A83]">
+        Riwayat perolehan poin belum dicatat untuk pertandingan ini.
+      </div>
+    );
+  }
+
+  // Get set numbers present in history
+  const setNumbers = Array.from(new Set(history.map((h) => h.setNumber || 1))).sort(
+    (a, b) => a - b
+  );
+
+  const filteredHistory = history.filter(
+    (h) => (h.setNumber || 1) === activeSet
+  );
 
   return (
     <div className="flex flex-col gap-4">
       {/* Set selector */}
       <div className="flex flex-wrap justify-center gap-2">
-        {match.history.map((_, index) => {
-          const isActive = index === set;
+        {setNumbers.map((setNum) => {
+          const isActive = setNum === activeSet;
           return (
             <button
-              key={index}
+              key={setNum}
               type="button"
               aria-pressed={isActive}
-              onClick={() => setSet(index)}
-              className={`rounded-full border px-4 py-1.5 text-xs font-semibold transition-colors ${
-                isActive
-                  ? "border-[#C79A3B]/50 bg-[#C79A3B]/15 text-[#E3B24D]"
-                  : "border-white/[0.06] bg-white/[0.03] text-[#8A8A93] hover:text-white"
-              }`}
+              onClick={() => setActiveSet(setNum)}
+              className={`rounded-full border px-4 py-1.5 text-xs font-semibold transition-colors ${isActive
+                ? "border-[#C79A3B]/50 bg-[#C79A3B]/15 text-[#E3B24D]"
+                : "border-white/[0.06] bg-white/[0.03] text-[#8A8A93] hover:text-white"
+                }`}
             >
-              Set {index + 1}
+              Set {setNum}
             </button>
           );
         })}
       </div>
 
       <h3 className="text-center text-[13px] font-bold uppercase tracking-wider text-[#E3B24D]">
-        Poin demi poin — Set {set + 1}
+        POIN DEMI POIN — SET {activeSet}
       </h3>
 
       <div className="overflow-hidden rounded-xl border border-white/[0.06] bg-white/[0.01]">
-        {/* Which side each column belongs to */}
-        <div className="flex items-center justify-between gap-3 border-b border-white/[0.06] bg-white/[0.02] px-3 py-2 text-[11px] font-bold text-white sm:px-4">
-          <span className="min-w-0 truncate">
-            {sideName(match.home.players)}
-          </span>
-          <span className="min-w-0 truncate text-right">
-            {sideName(match.away.players)}
-          </span>
+        {/* Header */}
+        <div className="flex items-center justify-between border-b border-white/[0.06] bg-white/[0.02] px-6 py-2.5 text-[11px] font-bold text-white">
+          <span className="min-w-0 truncate">{nameA}</span>
+          <span className="min-w-0 truncate text-right">{nameB}</span>
         </div>
 
         <div className="divide-y divide-white/[0.04]">
-          {rows.map((row, index) => (
-            <RallyLine key={index} row={row} />
-          ))}
+          {filteredHistory.map((item, index) => {
+            const timerFormatted = formatTimer(item.elapsedSeconds);
+            const isUndone = item.action === "UNDO_SCORE" || item.isUndone;
+
+            const prevItem = index > 0 ? filteredHistory[index - 1] : null;
+            const prevA = prevItem ? (prevItem.scoreA ?? 0) : 0;
+            const prevB = prevItem ? (prevItem.scoreB ?? 0) : 0;
+            const currA = item.scoreA ?? 0;
+            const currB = item.scoreB ?? 0;
+
+            const scoredByA = currA > prevA;
+            const scoredByB = currB > prevB;
+
+            // Determine who served for this point:
+            // The server is whoever SCORED the previous point (index - 1).
+            // For first point (index === 0), no shuttlecock icon is shown!
+            let serverSide: "A" | "B" | null = null;
+            if (index > 0 && prevItem) {
+              const prevPrevItem = index > 1 ? filteredHistory[index - 2] : null;
+              const ppA = prevPrevItem ? (prevPrevItem.scoreA ?? 0) : 0;
+              const ppB = prevPrevItem ? (prevPrevItem.scoreB ?? 0) : 0;
+              if (prevA > ppA) {
+                serverSide = "A";
+              } else if (prevB > ppB) {
+                serverSide = "B";
+              }
+            }
+
+            // Score difference pill calculation (+1, +2, etc.)
+            const diff = Math.abs(currA - currB);
+            let showPillA = false;
+            let showPillB = false;
+            const pillText = `+${diff}`;
+            let isGreenPill = true;
+
+            if (diff > 0) {
+              if (currA > currB) {
+                showPillA = true;
+                // Green if A scored (expanding lead), Red if B scored (closing gap)
+                isGreenPill = scoredByA;
+              } else {
+                showPillB = true;
+                // Green if B scored (expanding lead), Red if A scored (closing gap)
+                isGreenPill = scoredByB;
+              }
+            }
+
+            return (
+              <div
+                key={item.id}
+                className={`px-4 py-2.5 transition-colors ${isUndone
+                  ? "bg-red-500/5 opacity-60 line-through"
+                  : "odd:bg-white/[0.015]"
+                  }`}
+              >
+                <div className="mx-auto flex w-full max-w-md items-center justify-center gap-3">
+                  {/* Left Side (Side A) */}
+                  <div className="flex flex-1 items-center justify-end gap-2 min-w-0">
+                    {showPillA && (
+                      <span
+                        className={`rounded-md px-2 text-[10px] font-bold ${isGreenPill
+                          ? "border border-[#34E5A6]/40 bg-[#0D3B38] text-[#34E5A6]"
+                          : "border border-[#FF4D6D]/40 bg-[#3E1A24] text-[#FF4D6D]"
+                          }`}
+                      >
+                        {pillText}
+                      </span>
+                    )}
+                    {serverSide === "A" && (
+                      <img
+                        src="/images/match/ShuttleIcon.svg"
+                        className="h-4 w-4 shrink-0"
+                        alt="Pemegang servis"
+                      />
+                    )}
+                    <span
+                      className={`text-sm font-bold tabular-nums text-white`}
+                    >
+                      {currA}
+                    </span>
+                  </div>
+
+                  {/* Center: Small gray timer replacing '-' */}
+                  <span className="shrink-0 text-[10px] font-mono font-bold text-[#7A7A83]">
+                    {timerFormatted || "00:00"}
+                  </span>
+
+                  {/* Right Side (Side B) */}
+                  <div className="flex flex-1 items-center justify-start gap-2 min-w-0">
+                    <span
+                      className={`text-sm font-bold tabular-nums text-white`}
+                    >
+                      {currB}
+                    </span>
+                    {serverSide === "B" && (
+                      <img
+                        src="/images/match/ShuttleIcon.svg"
+                        className="h-4 w-4 shrink-0"
+                        alt="Pemegang servis"
+                      />
+                    )}
+                    {showPillB && (
+                      <span
+                        className={`rounded-md px-2 text-[10px] font-bold ${isGreenPill
+                          ? "border border-[#34E5A6]/40 bg-[#0D3B38] text-[#34E5A6]"
+                          : "border border-[#FF4D6D]/40 bg-[#3E1A24] text-[#FF4D6D]"
+                          }`}
+                      >
+                        {pillText}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
 
       {/* Legend */}
-      <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
-        <LegendItem>
-          <LeadBadge margin={2} chased={false} />
-          Keunggulan poin bertambah
-        </LegendItem>
-        <LegendItem>
-          <LeadBadge margin={1} chased />
-          Keunggulan mulai dikejar
-        </LegendItem>
-        <LegendItem>
-          <Image src={ShuttleIcon} alt="Shuttle Icon" />
-          Pemegang servis
-        </LegendItem>
+      <div className="flex flex-wrap items-center justify-start gap-6 pt-2 text-xs text-[#8A8A93]">
+        <div className="flex items-center gap-2">
+          <span className="rounded-md border border-[#34E5A6]/40 bg-[#0D3B38] px-2 py-0.5 text-[10px] font-bold text-[#34E5A6]">
+            +2
+          </span>
+          <span>Keunggulan poin bertambah</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="rounded-md border border-[#FF4D6D]/40 bg-[#3E1A24] px-2 py-0.5 text-[10px] font-bold text-[#FF4D6D]">
+            +1
+          </span>
+          <span>Keunggulan mulai dikejar</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <img src="/images/match/ShuttleIcon.svg" className="h-4 w-4" alt="Pemegang servis" />
+          <span>Pemegang servis</span>
+        </div>
       </div>
 
-      <p className="text-[11px] leading-relaxed text-[#6B6B73]">
-        Badge menempel pada pihak yang unggul dan menunjukkan selisih poin saat
-        itu — kosong di kedua sisi berarti skor sedang imbang.
+      <p className="text-start text-xs text-[#6B6B73]">
+        Catatan waktu berdasarkan detik timer saat poin ditambahkan oleh panitia.
       </p>
     </div>
   );

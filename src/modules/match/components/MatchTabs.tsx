@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { liveMatches, matchTabs } from "@/lib/constants/matches";
-import { LiveScoreCard } from "./LiveScoreCard";
+import { matchTabs } from "@/lib/constants/matches";
+import { LiveScorePanel } from "./LiveScorePanel";
 import { SchedulePanel } from "./SchedulePanel";
 import { BracketPanel } from "./BracketPanel";
 import { StandingsPanel } from "./StandingsPanel";
@@ -20,8 +20,6 @@ export function MatchTabs() {
       >
         {matchTabs.map((tab) => {
           const isActive = tab.id === active;
-          const isLive = tab.id === "livescore" && liveMatches.length > 0;
-          const isKlasemen = tab.id === "klasemen" && liveMatches.length > 0;
           return (
             <button
               key={tab.id}
@@ -39,14 +37,20 @@ export function MatchTabs() {
                   isActive ? "text-[#FAC775]" : "text-[#8A8A93]"
                 }`}
               >
-                {isActive && isLive && (
-                  <span className="h-2 w-2 rounded-full bg-red-500" />
+                {isActive && tab.id === "livescore" && (
+                  <span className="h-2 w-2 rounded-full bg-red-500 animate-pulse" />
                 )}
                 {tab.label.toUpperCase()}
               </span>
-              <span className={`text-xs text-[#6B6B73] ${
-                  isActive ? "text-[#FAC775]" : "text-[#8A8A93]"
-                } ${isKlasemen ? "flex" : "hidden"}`}>{tab.caption}</span>
+              {tab.caption ? (
+                <span
+                  className={`text-xs text-[#6B6B73] ${
+                    isActive ? "text-[#FAC775]" : "text-[#8A8A93]"
+                  }`}
+                >
+                  {tab.caption}
+                </span>
+              ) : null}
             </button>
           );
         })}
@@ -55,11 +59,7 @@ export function MatchTabs() {
       {/* Panel */}
       <div className="mt-6">
         {active === "livescore" ? (
-          <div className="flex flex-col gap-5">
-            {liveMatches.map((match) => (
-              <LiveScoreCard key={match.id} match={match} />
-            ))}
-          </div>
+          <LiveScorePanel />
         ) : active === "jadwal" ? (
           <SchedulePanel />
         ) : active === "bracket" ? (

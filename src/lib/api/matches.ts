@@ -1,5 +1,5 @@
 import { apiRequest } from "./client";
-import type { Match, MatchStatus } from "@/lib/types";
+import type { Match, MatchStatus, MatchHistoryEntry } from "@/lib/types";
 
 // ================== READ ==================
 
@@ -21,6 +21,9 @@ export const getMatches = (filters?: {
 };
 
 export const getMatch = (id: string) => apiRequest<Match>(`/matches/${id}`);
+
+export const getMatchHistory = (id: string) =>
+  apiRequest<MatchHistoryEntry[]>(`/matches/${id}/history`);
 
 // ================== WRITE (admin/panitia) ==================
 
