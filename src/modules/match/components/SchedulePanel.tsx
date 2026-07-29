@@ -7,7 +7,11 @@ import { DISCIPLINES, LEVELS } from "@/lib/constants";
 import { FilterSelect } from "@/components/ui/FilterSelect";
 import { ScheduleRow } from "./ScheduleRow";
 
-export function SchedulePanel() {
+interface SchedulePanelProps {
+  isLight?: boolean;
+}
+
+export function SchedulePanel({ isLight = false }: SchedulePanelProps) {
   const [allMatches, setAllMatches] = useState<Match[]>([]);
   const [loading, setLoading] = useState(true);
   const [day, setDay] = useState("all");
@@ -160,7 +164,10 @@ export function SchedulePanel() {
           accent="gold"
           accented={day !== "all"}
           className="min-w-0 flex-1 sm:max-w-56"
-          optionLabel={(option) => option.label}
+          optionLabel={(option) =>
+            option.id === "all" ? "Semua Hari" : option.label
+          }
+          isLight={isLight}
         />
         <FilterSelect
           options={categoryOptions}
@@ -170,7 +177,10 @@ export function SchedulePanel() {
           accent="violet"
           accented={category !== "all"}
           className="min-w-0 flex-1 sm:max-w-56"
-          optionLabel={(option) => option.label}
+          optionLabel={(option) =>
+            option.id === "all" ? "Semua Kategori" : option.label
+          }
+          isLight={isLight}
         />
         <FilterSelect
           options={levelOptions}
@@ -180,6 +190,7 @@ export function SchedulePanel() {
           accent="gold"
           accented={level !== "all"}
           className="col-span-2 min-w-0 flex-1 sm:col-span-1 sm:max-w-56"
+          isLight={isLight}
         />
       </div>
 
@@ -187,11 +198,17 @@ export function SchedulePanel() {
       {filteredMatches.length > 0 ? (
         <div className="flex flex-col gap-2.5">
           {filteredMatches.map((match) => (
-            <ScheduleRow key={match.id} match={match} />
+            <ScheduleRow key={match.id} match={match} isLight={isLight} />
           ))}
         </div>
       ) : (
-        <div className="flex min-h-40 items-center justify-center rounded-2xl border border-dashed border-white/10 bg-white/[0.01] p-10 text-center text-sm text-[#7A7A83]">
+        <div
+          className={`flex min-h-40 items-center justify-center rounded-2xl border border-dashed p-10 text-center text-sm ${
+            isLight
+              ? "border-[rgba(0,0,0,0.08)] bg-[rgba(0,0,0,0.02)] text-[rgba(26,22,43,0.4)]"
+              : "border-white/10 bg-white/[0.01] text-[#7A7A83]"
+          }`}
+        >
           Tidak ada pertandingan untuk filter ini.
         </div>
       )}

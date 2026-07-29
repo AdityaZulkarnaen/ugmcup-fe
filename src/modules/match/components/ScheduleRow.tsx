@@ -4,9 +4,10 @@ import { CheckIcon, ChevronIcon, CourtIcon } from "@/components/ui/icons";
 
 interface ScheduleRowProps {
   match: Match;
+  isLight?: boolean;
 }
 
-const statusBadge: Record<MatchStatus, { label: string; className: string }> = {
+const statusBadgeDark: Record<MatchStatus, { label: string; className: string }> = {
   ONGOING: {
     label: "LIVE",
     className: "border-[#FB2C36]/40 bg-[#FB2C36]/15 text-[#FF8A90]",
@@ -25,38 +26,80 @@ const statusBadge: Record<MatchStatus, { label: string; className: string }> = {
   },
 };
 
+const statusBadgeLight: Record<MatchStatus, { label: string; className: string }> = {
+  ONGOING: {
+    label: "LIVE",
+    className: "border-[#FB2C36]/30 bg-[#FB2C36]/08 text-[#FB2C36]",
+  },
+  SCHEDULED: {
+    label: "MENDATANG",
+    className: "border-[#8b5cf6]/30 bg-[#8b5cf6]/08 text-[#8b5cf6]",
+  },
+  FINISHED: {
+    label: "SELESAI",
+    className: "border-[rgba(0,0,0,0.08)] bg-[rgba(0,0,0,0.03)] text-[#808080]",
+  },
+  RETIRED: {
+    label: "RETIRED",
+    className: "border-[rgba(0,0,0,0.08)] bg-[rgba(0,0,0,0.03)] text-[#808080]",
+  },
+};
+
 function SideName({
   name,
   subName,
   won,
   align,
+  isLight = false,
 }: {
   name: string;
   subName?: string;
   won: boolean;
   align: "left" | "right";
+  isLight?: boolean;
 }) {
   return (
     <div
-      className={`flex min-w-0 flex-col ${align === "right" ? "items-start sm:items-end text-left sm:text-right" : "items-start text-left"
-        }`}
+      className={`flex min-w-0 flex-col ${
+        align === "right" ? "items-start sm:items-end text-left sm:text-right" : "items-start text-left"
+      }`}
     >
       <p
-        className={`flex items-center gap-1.5 text-sm font-bold leading-tight ${won ? "text-[#34E5A6]" : "text-white"
-          }`}
+        className={`flex items-center gap-1.5 text-sm font-bold leading-tight ${
+          won
+            ? isLight
+              ? "text-[#8b5cf6]"
+              : "text-[#34E5A6]"
+            : isLight
+              ? "text-[#1a162b]"
+              : "text-white"
+        }`}
       >
-        {won && align === "right" && <CheckIcon className="shrink-0 text-[#34E5A6]" />}
+        {won && align === "right" && (
+          <CheckIcon
+            className={`shrink-0 ${isLight ? "text-[#8b5cf6]" : "text-[#34E5A6]"}`}
+          />
+        )}
         <span className="truncate">{name}</span>
-        {won && align === "left" && <CheckIcon className="shrink-0 text-[#34E5A6]" />}
+        {won && align === "left" && (
+          <CheckIcon
+            className={`shrink-0 ${isLight ? "text-[#8b5cf6]" : "text-[#34E5A6]"}`}
+          />
+        )}
       </p>
-      {subName && <span className="truncate text-[11px] text-[#7A7A83]">{subName}</span>}
+      {subName && (
+        <span className={`truncate text-[11px] ${isLight ? "text-[rgba(26,22,43,0.4)]" : "text-[#7A7A83]"}`}>
+          {subName}
+        </span>
+      )}
     </div>
   );
 }
 
-export function ScheduleRow({ match }: ScheduleRowProps) {
+export function ScheduleRow({ match, isLight = false }: ScheduleRowProps) {
   const isTeamMatch = match.matchType === "TEAM";
-  const badge = statusBadge[match.status] || statusBadge.SCHEDULED;
+  const badgeMap = isLight ? statusBadgeLight : statusBadgeDark;
+  const badge = badgeMap[match.status] || badgeMap.SCHEDULED;
   const isLive = match.status === "ONGOING";
 
   // Time format
@@ -143,7 +186,11 @@ export function ScheduleRow({ match }: ScheduleRowProps) {
     <Link
       href={`/pertandingan/${match.id}`}
       aria-label={`Statistik ${nameA} vs ${nameB}`}
-      className="group relative block overflow-hidden rounded-xl border border-white/[0.06] bg-white/[0.02] py-3 pl-4 pr-3 transition-all hover:border-white/30 hover:bg-white/[0.04] active:scale-[0.995] active:border-white/30 active:bg-white/[0.05] sm:py-3.5 sm:pl-6 sm:pr-4"
+      className={`group relative block overflow-hidden rounded-xl border py-3 pl-4 pr-3 transition-all sm:py-3.5 sm:pl-6 sm:pr-4 ${
+        isLight
+          ? "border-[rgba(0,0,0,0.08)] bg-white hover:border-[rgba(0,0,0,0.15)] hover:shadow-[0px_2px_8px_0px_rgba(0,0,0,0.06)]"
+          : "border-white/[0.06] bg-white/[0.02] hover:border-white/30 hover:bg-white/[0.04] active:scale-[0.995] active:border-white/30 active:bg-white/[0.05]"
+      }`}
     >
       {isLive && (
         <span className="absolute inset-y-0 left-0 w-[3px] bg-[#FB2C36]" />
@@ -151,23 +198,45 @@ export function ScheduleRow({ match }: ScheduleRowProps) {
 
       <div className="flex items-center gap-3 sm:gap-4">
         {/* Time */}
-        <span className="hidden w-12 shrink-0 text-sm font-bold tabular-nums text-white sm:block">
+        <span
+          className={`hidden w-12 shrink-0 text-sm font-bold tabular-nums sm:block ${
+            isLight ? "text-[#1a162b]" : "text-white"
+          }`}
+        >
           {timeStr}
         </span>
 
         {/* Meta + players */}
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-            <span className="text-sm font-bold tabular-nums text-white sm:hidden">
+            <span
+              className={`text-sm font-bold tabular-nums sm:hidden ${
+                isLight ? "text-[#1a162b]" : "text-white"
+              }`}
+            >
               {timeStr}
             </span>
-            <span className="rounded-full border border-[#C79A3B]/40 bg-[#C79A3B]/[0.08] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[#E3B24D]">
+            <span
+              className={`rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${
+                isLight
+                  ? "border-[#fee685] bg-[#fffbeb] text-[#bb4d00]"
+                  : "border-[#C79A3B]/40 bg-[#C79A3B]/[0.08] text-[#E3B24D]"
+              }`}
+            >
               {match.discipline?.name || (isTeamMatch ? "Beregu" : "Badminton")}
             </span>
-            <span className="text-[11px] font-medium text-[#7A7A83]">
+            <span
+              className={`text-[11px] font-medium ${
+                isLight ? "text-[rgba(26,22,43,0.4)]" : "text-[#7A7A83]"
+              }`}
+            >
               {match.roundName || match.stage}
             </span>
-            <span className="flex items-center gap-1 text-[11px] text-[#7A7A83]">
+            <span
+              className={`flex items-center gap-1 text-[11px] ${
+                isLight ? "text-[rgba(26,22,43,0.4)]" : "text-[#7A7A83]"
+              }`}
+            >
               <CourtIcon />
               {match.courtNumber ? `Lapangan ${match.courtNumber}` : "TBA"}
             </span>
@@ -176,29 +245,44 @@ export function ScheduleRow({ match }: ScheduleRowProps) {
 
           {/* Names */}
           <div className="mt-1.5 flex flex-col gap-1 sm:grid sm:grid-cols-[1fr_auto_1fr] sm:items-center sm:gap-3">
-            <SideName name={nameA} subName={isTeamMatch ? undefined : subA} won={wonA} align="left" />
+            <SideName name={nameA} subName={isTeamMatch ? undefined : subA} won={wonA} align="left" isLight={isLight} />
 
             <div className="order-last flex items-center gap-2 sm:order-none sm:flex-col sm:gap-0">
-              <span className="hidden text-[11px] font-medium text-[#5A5A63] sm:block">
+              <span
+                className={`hidden text-[11px] font-medium sm:block ${
+                  isLight ? "text-[rgba(26,22,43,0.25)]" : "text-[#5A5A63]"
+                }`}
+              >
                 vs
               </span>
               {setScoreSummary && (
-                <span className="text-[10px] font-medium tabular-nums text-[#FAC775] sm:mt-0.5">
+                <span
+                  className={`text-[10px] font-medium tabular-nums sm:mt-0.5 ${
+                    isLight ? "text-[rgba(26,22,43,0.35)]" : "text-[#FAC775]"
+                  }`}
+                >
                   {setScoreSummary}
                 </span>
               )}
             </div>
 
-            <SideName name={nameB} subName={isTeamMatch ? undefined : subB} won={wonB} align="right" />
+            <SideName name={nameB} subName={isTeamMatch ? undefined : subB} won={wonB} align="right" isLight={isLight} />
           </div>
         </div>
 
-        {/* Status */}
+        {/* Status column */}
         <div className="hidden w-28 shrink-0 justify-end sm:flex">
           {statusPill}
         </div>
 
-        <ChevronIcon className="shrink-0 text-[#5A5A63] transition-all group-hover:translate-x-0.5 group-hover:text-[#E3B24D]" />
+        {/* Chevron */}
+        <ChevronIcon
+          className={`shrink-0 transition-all ${
+            isLight
+              ? "text-[rgba(26,22,43,0.25)] group-hover:translate-x-0.5 group-hover:text-[#8b5cf6]"
+              : "text-[#5A5A63] group-hover:translate-x-0.5 group-hover:text-[#E3B24D]"
+          }`}
+        />
       </div>
     </Link>
   );

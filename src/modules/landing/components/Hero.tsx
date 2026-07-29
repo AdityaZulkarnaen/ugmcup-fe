@@ -3,12 +3,16 @@ import { Navbar } from "@/components/layout/Navbar";
 import { Button } from "@/components/ui/Button";
 import { ArrowIcon } from "@/components/ui/icons";
 import { SponsorRow } from "./SponsorRow";
+import { HeroShuttles } from "./HeroShuttles";
 
 /**
- * The decorative layer of the hero — halos and shuttlecocks, all absolutely
- * positioned. Every knob lives in `position`: unprefixed classes are the phone
- * placement, `sm:` ones are the desktop placement this section has always had.
- * Nudging a piece is a one-line edit here and moves nothing else.
+ * The still half of the hero decoration — the halos. Every knob lives in
+ * `position`: unprefixed classes are the phone placement, `sm:` ones are the
+ * desktop placement this section has always had. Nudging a piece is a one-line
+ * edit here and moves nothing else.
+ *
+ * The shuttlecocks moved to `<HeroShuttles>`, which flies them in and keeps
+ * them on their path as the page scrolls.
  */
 const decorations = [
   {
@@ -26,28 +30,6 @@ const decorations = [
       "bottom-0 -right-59 translate-y-140 h-300 w-300 sm:-right-100 sm:translate-y-270 sm:h-488 sm:w-488",
     fit: "object-contain",
     sizes: "(max-width: 640px) 400px, 1952px",
-  },
-  {
-    id: "cock-left",
-    src: "/images/hero/cock2.png",
-    position: "-left-20 top-42 h-70 w-70 sm:-left-28 sm:top-36 sm:h-132 sm:w-132",
-    fit: "object-contain",
-    sizes: "(max-width: 640px) 160px, 528px",
-  },
-  {
-    id: "cock-right",
-    src: "/images/hero/cock1.png",
-    position: "-right-28 -rotate-12 sm:rotate-0 top-12 h-80 w-80 sm:-right-36 sm:top-10 sm:h-144 sm:w-144",
-    fit: "object-contain",
-    sizes: "(max-width: 640px) 144px, 576px",
-  },
-  {
-    id: "cock-bottom",
-    src: "/images/hero/cock3.png",
-    position:
-      "bottom-0 translate-y-10 -right-20 h-65 w-65 sm:-bottom-52 sm:right-32 sm:h-120 sm:w-120 -rotate-12 sm:rotate-0",
-    fit: "object-contain",
-    sizes: "(max-width: 640px) 64px, 480px",
   },
 ];
 
@@ -68,6 +50,8 @@ export function Hero() {
           />
         </div>
       ))}
+
+      <HeroShuttles />
 
       <Navbar />
 

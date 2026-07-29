@@ -20,6 +20,7 @@ export interface HighlightProps {
   dimmed?: boolean;
   onHover?: (participantId?: string) => void;
   onSelect?: (participantId: string) => void;
+  isLight?: boolean;
 }
 
 /**
@@ -77,6 +78,7 @@ function RetiredBadge({ reason }: { reason: RetirementReason }) {
 function SideRow({
   side,
   activeId,
+  isLight,
   onHover,
   onSelect,
 }: { side: BracketSide } & HighlightProps) {
@@ -111,35 +113,36 @@ function SideRow({
       onPointerLeave={() => onHover?.(undefined)}
       onFocus={() => onHover?.(side.participantId)}
       onBlur={() => onHover?.(undefined)}
-      onClick={() => side.participantId && onSelect?.(side.participantId)}
-      className={`flex w-full items-center gap-2 py-2 pl-3.5 pr-3 text-left transition-colors enabled:hover:bg-white/[0.03] disabled:cursor-default ${
-        isActive ? "bg-[#EF9F27]/10" : ""
+      onClick={() => (side.participantId || participant?.id) && onSelect?.(side.participantId || participant!.id)}
+      className={`flex w-full items-center gap-2 py-2 pl-3.5 pr-3 text-left transition-colors disabled:cursor-default ${
+        isLight
+          ? `enabled:hover:bg-[rgba(0,0,0,0.02)] ${isActive ? "bg-[#fffbeb]" : ""}`
+          : `enabled:hover:bg-white/[0.03] ${isActive ? "bg-[#EF9F27]/10" : ""}`
       }`}
     >
       {(side.participantId || (name !== "TBD" && name !== "")) && (
         <ParticipantBadge avatar={avatar} name={name} />
       )}
-      <div className="min-w-0 flex-1">
-        <span
-          className={`block truncate text-[13px] font-semibold ${
-            (!side.participantId && name === "TBD")
-              ? "italic text-[#6B6B73]"
-              : isActive
-                ? "text-[#FAC775]"
-                : side.winner
-                  ? "text-white"
-                  : "text-[#7A7A83]"
-          }`}
-        >
-          {name}
-        </span>
-
-      </div>
+      <span
+        className={`min-w-0 flex-1 truncate text-[13px] font-semibold ${
+          (!side.participantId && name === "TBD")
+            ? isLight ? "italic text-[rgba(26,22,43,0.3)]" : "italic text-[#6B6B73]"
+            : isActive
+              ? isLight ? "text-[#bb4d00]" : "text-[#FAC775]"
+              : side.winner
+                ? isLight ? "text-[#1a162b]" : "text-white"
+                : isLight ? "text-[rgba(26,22,43,0.4)]" : "text-[#7A7A83]"
+        }`}
+      >
+        {name}
+      </span>
       {side.retired && <RetiredBadge reason={side.retired} />}
       {side.score !== null && (
         <span
           className={`shrink-0 text-[13px] font-bold tabular-nums ${
-            side.winner ? "text-[#02F5D4]" : "text-[#5A5A63]"
+            side.winner
+              ? isLight ? "text-[#8b5cf6]" : "text-[#02F5D4]"
+              : isLight ? "text-[rgba(26,22,43,0.25)]" : "text-[#5A5A63]"
           }`}
         >
           {side.score}
@@ -153,6 +156,7 @@ export function BracketMatchCard({
   match,
   onPath,
   dimmed,
+  isLight,
   ...highlight
 }: { match: BracketMatch } & HighlightProps) {
   if (match.isByeMatch) {
@@ -171,12 +175,14 @@ export function BracketMatchCard({
       className={`relative overflow-hidden rounded-xl border transition-all ${
         onPath
           ? "border-[#EF9F27]/60 bg-[#EF9F27]/[0.06] shadow-[0_0_12px_-2px_rgba(239,159,39,0.35)]"
-          : "border-white/[0.06] bg-white/[0.02] hover:border-white/15"
+          : isLight
+            ? "border-[rgba(0,0,0,0.08)] bg-white hover:border-[rgba(0,0,0,0.15)]"
+            : "border-white/[0.06] bg-white/[0.02] hover:border-white/15"
       } ${dimmed ? "opacity-35" : ""}`}
     >
-      <div className="divide-y divide-white/[0.04]">
-        <SideRow side={match.home} onPath={onPath} {...highlight} />
-        <SideRow side={match.away} onPath={onPath} {...highlight} />
+      <div className={`divide-y ${isLight ? "divide-[rgba(0,0,0,0.05)]" : "divide-white/[0.04]"}`}>
+        <SideRow side={match.home} onPath={onPath} isLight={isLight} {...highlight} />
+        <SideRow side={match.away} onPath={onPath} isLight={isLight} {...highlight} />
       </div>
     </article>
   );
@@ -187,22 +193,27 @@ export function BracketChampionCard({
   name,
   onPath,
   dimmed,
+  isLight,
 }: {
   label: string;
   name: string;
 } & HighlightProps) {
   return (
     <div
-      className={`rounded-lg border bg-linear-to-b from-[#4A3A1E] to-[#2B2114] px-4 py-3 text-center transition-all ${
-        onPath
-          ? "border-[#EF9F27] shadow-[0_0_12px_-2px_rgba(239,159,39,0.45)]"
-          : "border-[#C79A3B]/45"
+      className={`rounded-lg border px-4 py-3 text-center transition-all ${
+        isLight
+          ? onPath
+            ? "border-[#EF9F27] bg-gradient-to-b from-[#fffbeb] to-[#fff9e0] shadow-[0_0_12px_-2px_rgba(239,159,39,0.3)]"
+            : "border-[#fee685] bg-gradient-to-b from-[#fffdf7] to-[#fffbeb]"
+          : onPath
+            ? "border-[#EF9F27] bg-linear-to-b from-[#4A3A1E] to-[#2B2114] shadow-[0_0_12px_-2px_rgba(239,159,39,0.45)]"
+            : "border-[#C79A3B]/45 bg-linear-to-b from-[#4A3A1E] to-[#2B2114]"
       } ${dimmed ? "opacity-35" : ""}`}
     >
-      <p className="text-xs font-bold uppercase tracking-widest text-[#F0C97A]">
+      <p className={`text-xs font-bold uppercase tracking-widest ${isLight ? "text-[#bb4d00]" : "text-[#F0C97A]"}`}>
         {label}
       </p>
-      <p className="mt-0.5 text-sm font-semibold italic text-[#B9A87F]">
+      <p className={`mt-0.5 text-sm font-semibold italic ${isLight ? "text-[#1a162b]" : "text-[#B9A87F]"}`}>
         {name}
       </p>
     </div>

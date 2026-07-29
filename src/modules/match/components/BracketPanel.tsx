@@ -163,12 +163,14 @@ interface BracketPanelProps {
   initialDisciplineId?: string;
   initialLevel?: string;
   highlightParticipantId?: string;
+  isLight?: boolean;
 }
 
 export function BracketPanel({
   initialDisciplineId,
   initialLevel,
   highlightParticipantId,
+  isLight = false,
 }: BracketPanelProps = {}) {
   const [level, setLevel] = useState(initialLevel || "univ");
 
@@ -280,6 +282,7 @@ export function BracketPanel({
           label="Filter jenjang"
           accent="gold"
           className="min-w-0 flex-1 basis-[45%] md:basis-2/12"
+          isLight={isLight}
         />
         <FilterSelect
           options={availableDisciplines.map((d) => ({ id: d.id, label: d.label }))}
@@ -291,20 +294,22 @@ export function BracketPanel({
           label="Filter kategori"
           accent="violet"
           className="min-w-0 flex-1 basis-[45%] md:basis-2/12"
+          isLight={isLight}
         />
         <AthleteSearch
           options={searchOptions}
           selectedId={pinnedId}
           onSelect={setPinnedId}
           className="min-w-0 flex-1 basis-full md:basis-4/12"
+          isLight={isLight}
         />
       </div>
 
       {loading ? (
-        <div className="h-64 w-full animate-pulse rounded-2xl border border-white/[0.06] bg-white/[0.02]" />
+        <div className={`h-64 w-full animate-pulse rounded-2xl border ${isLight ? "border-[rgba(0,0,0,0.08)] bg-white" : "border-white/[0.06] bg-white/[0.02]"}`} />
       ) : categoryBracket ? (
-        <div className="overflow-x-auto rounded-2xl border border-white/[0.06] bg-white/[0.02] p-6 shadow-[0_1px_0_rgba(255,255,255,0.03)_inset]">
-          <div className="mb-4 text-xs font-bold uppercase tracking-wider text-[#8A8A93]">
+        <div className={`overflow-x-auto rounded-2xl border p-6 ${isLight ? "border-[rgba(0,0,0,0.08)] bg-white shadow-sm" : "border-white/[0.06] bg-white/[0.02] shadow-[0_1px_0_rgba(255,255,255,0.03)_inset]"}`}>
+          <div className={`mb-4 text-xs font-bold uppercase tracking-wider ${isLight ? "text-[rgba(26,22,43,0.5)]" : "text-[#8A8A93]"}`}>
             {categoryHeaderLabel}
           </div>
           <BracketBoard
@@ -313,12 +318,13 @@ export function BracketPanel({
             interactive={true}
             pinnedId={pinnedId}
             onSelect={setPinnedId}
+            isLight={isLight}
           />
         </div>
       ) : (
-        <div className="flex min-h-40 flex-col items-center justify-center rounded-2xl border border-dashed border-white/10 bg-white/[0.01] p-10 text-center text-sm text-[#7A7A83]">
-          <p className="font-semibold text-white">Bagan bracket belum tersedia</p>
-          <p className="mt-1 text-xs text-[#6B6B73]">
+        <div className={`flex min-h-40 flex-col items-center justify-center rounded-2xl border border-dashed p-10 text-center text-sm ${isLight ? "border-[rgba(0,0,0,0.12)] bg-[rgba(0,0,0,0.01)] text-[rgba(26,22,43,0.5)]" : "border-white/10 bg-white/[0.01] text-[#7A7A83]"}`}>
+          <p className={`font-semibold ${isLight ? "text-[#1a162b]" : "text-white"}`}>Bagan bracket belum tersedia</p>
+          <p className={`mt-1 text-xs ${isLight ? "text-[rgba(26,22,43,0.4)]" : "text-[#6B6B73]"}`}>
             Panitia belum menyusun bracket fase gugur untuk kategori ini.
           </p>
         </div>

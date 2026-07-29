@@ -17,7 +17,8 @@ const roundLabel =
   "text-[11px] font-bold uppercase tracking-wider text-[#E3B24D]";
 
 const connector = "absolute";
-const connectorIdle = "bg-white/12";
+const connectorIdleDark = "bg-white/12";
+const connectorIdleLight = "bg-[rgba(0,0,0,0.08)]";
 const connectorLit = "bg-[#EF9F27]";
 
 /** Column slot keys: match ids, or the round id for the champion column. */
@@ -42,18 +43,20 @@ export function pageOfDeepestRound(
 function RoundCard({
   round,
   index,
+  isLight,
   ...highlight
-}: { round: BracketRound; index: number } & HighlightProps) {
+}: { round: BracketRound; index: number; isLight: boolean } & HighlightProps) {
   if (round.champion) {
     return (
       <BracketChampionCard
         label={round.champion.label}
         name={round.champion.name}
+        isLight={isLight}
         {...highlight}
       />
     );
   }
-  return <BracketMatchCard match={round.matches[index]} {...highlight} />;
+  return <BracketMatchCard match={round.matches[index]} isLight={isLight} {...highlight} />;
 }
 
 /**
@@ -73,6 +76,7 @@ function RoundColumn({
   isOnPath,
   hasPath,
   isByeMatch,
+  isLight,
   ...highlight
 }: {
   round: BracketRound;
@@ -84,16 +88,18 @@ function RoundColumn({
   isOnPath: (key?: string) => boolean;
   hasPath: boolean;
   isByeMatch: (key?: string) => boolean;
+  isLight: boolean;
 } & HighlightProps) {
   /** Two feeders per slot means the incoming line forks; 1-to-1 stays straight. */
   const forked = feederKeys.length === keys.length * 2;
+  const connectorIdle = isLight ? connectorIdleLight : connectorIdleDark;
 
   return (
     <div className="flex h-full flex-col">
       {/* Label with a rule running out to the edge of the column */}
       <div className="mb-3 flex items-center gap-3">
-        <p className={roundLabel}>{round.label}</p>
-        <span className="h-px flex-1 bg-white/12" />
+        <p className={isLight ? "text-[11px] font-bold uppercase tracking-wider text-[#bb4d00]" : roundLabel}>{round.label}</p>
+        <span className={`h-px flex-1 ${isLight ? "bg-[rgba(0,0,0,0.08)]" : "bg-white/12"}`} />
       </div>
 
       <div className="flex flex-1 flex-col">
@@ -153,6 +159,7 @@ function RoundColumn({
                   index={i}
                   onPath={onPath}
                   dimmed={hasPath && !onPath}
+                  isLight={isLight}
                   {...highlight}
                 />
               </div>
@@ -176,6 +183,7 @@ export function BracketBoard({
   pinnedId,
   onSelect,
   interactive = true,
+  isLight = false,
 }: {
   bracket: CategoryBracket;
   /** Participant whose path stays lit. */
@@ -183,6 +191,7 @@ export function BracketBoard({
   /** Called when a name is clicked; omit to make names non-clickable. */
   onSelect?: (participantId: string) => void;
   interactive?: boolean;
+  isLight?: boolean;
 }) {
   const [hovered, setHovered] = useState<string>();
   const [page, setPage] = useState(() =>
@@ -249,6 +258,7 @@ export function BracketBoard({
               isOnPath={isOnPath}
               hasPath={hasPath}
               isByeMatch={isByeMatch}
+              isLight={isLight}
               {...highlight}
             />
           ))}
@@ -263,14 +273,14 @@ export function BracketBoard({
             onClick={() => setPage((p) => Math.max(0, p - 1))}
             disabled={page === 0}
             aria-label="Babak sebelumnya"
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-white/[0.08] bg-white/[0.02] text-[#8A8A93] transition-colors enabled:hover:border-white/20 enabled:hover:text-white disabled:opacity-30"
+            className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full border transition-colors disabled:opacity-30 ${isLight ? "border-[rgba(0,0,0,0.08)] bg-white text-[#808080] enabled:hover:border-[rgba(0,0,0,0.15)] enabled:hover:text-[#1a162b]" : "border-white/[0.08] bg-white/[0.02] text-[#8A8A93] enabled:hover:border-white/20 enabled:hover:text-white"}`}
           >
             <ChevronIcon className="rotate-180" />
           </button>
 
           <div className="text-center">
-            <p className={roundLabel}>{current.round.label}</p>
-            <p className="mt-0.5 text-[11px] text-[#6B6B73]">
+            <p className={isLight ? "text-[11px] font-bold uppercase tracking-wider text-[#bb4d00]" : roundLabel}>{current.round.label}</p>
+            <p className={`mt-0.5 text-[11px] ${isLight ? "text-[rgba(26,22,43,0.4)]" : "text-[#6B6B73]"}`}>
               Babak {page + 1} dari {columns.length}
             </p>
           </div>
@@ -280,7 +290,7 @@ export function BracketBoard({
             onClick={() => setPage((p) => Math.min(lastPage, p + 1))}
             disabled={page === lastPage}
             aria-label="Babak selanjutnya"
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-white/[0.08] bg-white/[0.02] text-[#8A8A93] transition-colors enabled:hover:border-white/20 enabled:hover:text-white disabled:opacity-30"
+            className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full border transition-colors disabled:opacity-30 ${isLight ? "border-[rgba(0,0,0,0.08)] bg-white text-[#808080] enabled:hover:border-[rgba(0,0,0,0.15)] enabled:hover:text-[#1a162b]" : "border-white/[0.08] bg-white/[0.02] text-[#8A8A93] enabled:hover:border-white/20 enabled:hover:text-white"}`}
           >
             <ChevronIcon />
           </button>
@@ -318,6 +328,7 @@ export function BracketBoard({
                 index={i}
                 onPath={onPath}
                 dimmed={hasPath && !onPath}
+                isLight={isLight}
                 {...highlight}
               />
             );

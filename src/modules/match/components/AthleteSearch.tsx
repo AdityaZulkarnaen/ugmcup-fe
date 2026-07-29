@@ -13,11 +13,13 @@ export function AthleteSearch({
   selectedId,
   onSelect,
   className = "w-full sm:max-w-xs",
+  isLight = false,
 }: {
   options: SearchOption[];
   selectedId?: string;
   onSelect: (id?: string) => void;
   className?: string;
+  isLight?: boolean;
 }) {
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
@@ -83,12 +85,20 @@ export function AthleteSearch({
       <div
         className={`flex items-center gap-2 rounded-full border px-4 py-2 transition-colors ${
           selectedOption
-            ? "border-[#EF9F27]/40 bg-[#EF9F27]/10"
-            : "border-white/[0.08] bg-white/[0.02] focus-within:border-white/20"
+            ? isLight
+              ? "border-[#fee685] bg-[#fffbeb]"
+              : "border-[#EF9F27]/40 bg-[#EF9F27]/10"
+            : isLight
+              ? "border-[rgba(0,0,0,0.08)] bg-[rgba(0,0,0,0.02)] focus-within:border-[rgba(0,0,0,0.15)]"
+              : "border-white/[0.08] bg-white/[0.02] focus-within:border-white/20"
         }`}
       >
         <SearchIcon
-          className={`shrink-0 ${selectedOption ? "text-[#FAC775]" : "text-[#6B6B73]"}`}
+          className={`shrink-0 ${
+            selectedOption
+              ? isLight ? "text-[#bb4d00]" : "text-[#FAC775]"
+              : isLight ? "text-[rgba(26,22,43,0.3)]" : "text-[#6B6B73]"
+          }`}
         />
         <input
           ref={inputRef}
@@ -105,8 +115,10 @@ export function AthleteSearch({
             if (selectedOption) onSelect(undefined);
           }}
           onFocus={() => setOpen(true)}
-          className={`min-w-0 flex-1 bg-transparent text-xs font-medium outline-none placeholder:text-[#6B6B73] [&::-webkit-search-cancel-button]:hidden ${
-            selectedOption ? "text-[#FAC775]" : "text-white"
+          className={`min-w-0 flex-1 bg-transparent text-xs font-medium outline-none [&::-webkit-search-cancel-button]:hidden ${
+            selectedOption
+              ? isLight ? "text-[#bb4d00] placeholder:text-[#bb4d00]/50" : "text-[#FAC775] placeholder:text-[#6B6B73]"
+              : isLight ? "text-[#1a162b] placeholder:text-[rgba(26,22,43,0.35)]" : "text-white placeholder:text-[#6B6B73]"
           }`}
         />
         {value !== "" && (
@@ -114,7 +126,9 @@ export function AthleteSearch({
             type="button"
             onClick={clear}
             aria-label="Hapus pencarian"
-            className="shrink-0 text-[#8A8A93] transition-colors hover:text-white"
+            className={`shrink-0 transition-colors ${
+              isLight ? "text-[#808080] hover:text-[#1a162b]" : "text-[#8A8A93] hover:text-white"
+            }`}
           >
             <CloseIcon />
           </button>
@@ -126,10 +140,14 @@ export function AthleteSearch({
           id="athlete-search-results"
           role="listbox"
           aria-label="Hasil pencarian atlet"
-          className="scrollbar-thumb-only absolute left-0 top-full z-30 mt-2 flex max-h-72 w-full flex-col gap-0.5 overflow-y-auto rounded-2xl border border-white/10 bg-[#1B1730] p-1.5 shadow-xl shadow-black/40"
+          className={`scrollbar-thumb-only absolute left-0 top-full z-30 mt-2 flex max-h-72 w-full flex-col gap-0.5 overflow-y-auto rounded-2xl border p-1.5 shadow-xl ${
+            isLight
+              ? "border-[rgba(0,0,0,0.08)] bg-white shadow-[0px_4px_16px_0px_rgba(0,0,0,0.1)]"
+              : "border-white/10 bg-[#1B1730] shadow-black/40"
+          }`}
         >
           {results.length === 0 ? (
-            <p className="px-3 py-2.5 text-xs text-[#6B6B73]">
+            <p className={`px-3 py-2.5 text-xs ${isLight ? "text-[rgba(26,22,43,0.4)]" : "text-[#6B6B73]"}`}>
               Atlet tidak ditemukan.
             </p>
           ) : (
@@ -140,14 +158,18 @@ export function AthleteSearch({
                 role="option"
                 aria-selected={false}
                 onClick={() => pick(option)}
-                className="flex flex-col gap-0.5 rounded-xl px-3 py-2 text-left transition-colors hover:bg-white/[0.04] focus:bg-white/[0.04] focus:outline-none"
+                className={`flex flex-col gap-0.5 rounded-xl px-3 py-2 text-left transition-colors focus:outline-none ${
+                  isLight
+                    ? "hover:bg-[rgba(0,0,0,0.03)] focus:bg-[rgba(0,0,0,0.03)]"
+                    : "hover:bg-white/[0.04] focus:bg-white/[0.04]"
+                }`}
               >
-                <span className="truncate text-xs font-semibold text-white">
+                <span className={`truncate text-xs font-semibold ${isLight ? "text-[#1a162b]" : "text-white"}`}>
                   {option.name}
                 </span>
-                {option.inst && (
-                  <span className="truncate text-[11px] text-[#7A7A83]">
-                    {option.inst}
+                {(option.categoryLabel || option.inst) && (
+                  <span className={`truncate text-[11px] ${isLight ? "text-[rgba(26,22,43,0.4)]" : "text-[#7A7A83]"}`}>
+                    {option.categoryLabel ? `${option.categoryLabel}${option.inst ? ` · ${option.inst}` : ""}` : option.inst}
                   </span>
                 )}
               </button>
