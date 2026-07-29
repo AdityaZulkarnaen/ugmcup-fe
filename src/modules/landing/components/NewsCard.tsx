@@ -7,7 +7,7 @@ interface NewsCardProps {
 
 export function NewsCard({ item }: NewsCardProps) {
   return (
-    <a href={item.href} className="flex flex-col text-left">
+    <a href={item.href} className="flex flex-col text-left hover:scale-105 ease-in-out duration-300 text-[#0B0B0F] hover:text-[#8B5CF6]">
       <div className="relative aspect-35/36 w-full overflow-hidden rounded-2xl bg-neutral-200">
         <Image
           src={item.image}
@@ -22,7 +22,7 @@ export function NewsCard({ item }: NewsCardProps) {
       </div>
 
       <p className="mt-4 text-xs text-[#6B6B73]">{item.date}</p>
-      <h3 className="mt-2 text-lg font-black italic leading-snug text-[#0B0B0F]">
+      <h3 className="mt-2 text-lg font-black italic leading-snug ">
         {item.title}
       </h3>
     </a>

@@ -111,7 +111,15 @@ export function GallerySlider() {
   }
 
   return (
-    <div className="mt-4">
+    // Slider, busur, dan tombolnya muncul sebagai satu blok: kartu-kartunya
+    // sudah punya transisi miring/meredup sendiri, jadi reveal-nya ditaruh di
+    // pembungkus supaya tidak saling menimpa.
+    <div
+      data-aos="fade-up"
+      data-aos-delay="220"
+      data-aos-duration="800"
+      className="mt-4"
+    >
       {/*
         Padding kiri-kanan menyisakan tepat setengah layar dikurangi setengah
         kartu, jadi kartu pertama dan terakhir pun bisa berhenti di tengah.

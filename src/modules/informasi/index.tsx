@@ -69,9 +69,17 @@ const ARTICLES: Article[] = [
   },
 ];
 
-function InfoCard({ article }: { article: Article }) {
+function InfoCard({ article, index }: { article: Article; index: number }) {
   return (
-    <a href="#" className="flex flex-col text-left">
+    <a
+      href="#"
+      // Cards cascade left to right across a row. Staggering on the column
+      // rather than the flat index keeps the last row from waiting on a delay
+      // it inherited from the rows above it.
+      data-aos="fade-up"
+      data-aos-delay={`${(index % 3) * 110}`}
+      className="flex flex-col text-left"
+    >
       <div className="relative aspect-35/36 w-full overflow-hidden rounded-[1.8rem] bg-neutral-200 shadow-[0_14px_32px_rgba(17,17,17,0.05)]">
         <Image
           src={article.image}
@@ -103,21 +111,39 @@ export function InformasiPage() {
       <Navbar forceInverted />
 
       <section className="mx-auto flex w-[87.5%] max-w-7xl flex-col items-center pt-28 text-center sm:pt-32 lg:pt-36">
-        <p className="text-sm font-medium text-[#6B6B73] sm:text-base">
+        <p
+          data-aos="fade-down"
+          className="text-sm font-medium text-[#6B6B73] sm:text-base"
+        >
           Pusat informasi UGM CUP 2026
         </p>
 
-        <h1 className="mt-4 max-w-5xl text-[clamp(3.2rem,6vw,5.7rem)] font-black italic leading-[0.9] tracking-[-0.06em] text-[#0B0B0F] sm:mt-5">
+        <h1
+          data-aos="fade-up"
+          data-aos-delay="100"
+          data-aos-duration="800"
+          className="mt-4 max-w-5xl text-[clamp(3.2rem,6vw,5.7rem)] font-black italic leading-[0.9] tracking-[-0.06em] text-[#0B0B0F] sm:mt-5"
+        >
           Tetap <span className="text-[#8352D9]">Update,</span>
           <br />
           <span className="text-[#8352D9]">Jangan</span> Ketinggalan!
         </h1>
 
-        <p className="mt-8 text-sm font-black italic text-[#0B0B0F] sm:mt-10 sm:text-base">
+        <p
+          data-aos="fade-up"
+          data-aos-delay="240"
+          className="mt-8 text-sm font-black italic text-[#0B0B0F] sm:mt-10 sm:text-base"
+        >
           Filter by kategori
         </p>
 
-        <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
+        {/* The reveal rides on the row, not the pills: `[data-aos]` owns the
+            transition and would swallow their own colour transition. */}
+        <div
+          data-aos="fade-up"
+          data-aos-delay="330"
+          className="mt-4 flex flex-wrap items-center justify-center gap-2"
+        >
           {FILTERS.map((filter) => {
             const isActive = activeFilter === filter;
             return (
@@ -140,8 +166,8 @@ export function InformasiPage() {
 
       <section className="mx-auto w-[87.5%] max-w-7xl pb-20 pt-10 sm:pb-24 sm:pt-14">
         <div className="grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 xl:grid-cols-3">
-          {ARTICLES.map((article) => (
-            <InfoCard key={article.id} article={article} />
+          {ARTICLES.map((article, index) => (
+            <InfoCard key={article.id} article={article} index={index} />
           ))}
         </div>
       </section>
