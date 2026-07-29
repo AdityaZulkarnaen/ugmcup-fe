@@ -516,7 +516,17 @@ export interface BracketMatch {
   id: string;
   home: BracketSide;
   away: BracketSide;
+  /**
+   * A walkover: one side is empty, so the other advances without playing. The
+   * card still renders — hiding it is what makes the next round look like it
+   * came from nowhere.
+   */
   isByeMatch?: boolean;
+  /**
+   * Padding for a tree position no match was ever drawn into. Nothing happened
+   * here, so the slot holds its height and draws no connectors.
+   */
+  isEmptySlot?: boolean;
 }
 
 export interface BracketRound {

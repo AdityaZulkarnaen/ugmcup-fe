@@ -16,9 +16,18 @@ import {
 const roundLabel =
   "text-[11px] font-bold uppercase tracking-wider text-[#34E5A6]";
 
+/**
+ * Connector segments.
+ *
+ * These are 2px, not 1px. Slot heights are the column height divided by the
+ * round's slot count, so the 25%/50%/75% offsets almost never land on whole
+ * pixels — and a 1px hairline on a fractional offset gets antialiased into a
+ * dotted grey smear. Two pixels always covers a full device pixel, so the line
+ * stays solid wherever it falls.
+ */
 const connector = "absolute";
-const connectorIdleDark = "bg-white/12";
-const connectorIdleLight = "bg-[rgba(0,0,0,0.08)]";
+const connectorIdleDark = "bg-white/22";
+const connectorIdleLight = "bg-[rgba(0,0,0,0.16)]";
 const connectorLit = "bg-[#02F5D4]";
 
 /** Column slot keys: match ids, or the round id for the champion column. */
@@ -75,7 +84,7 @@ function RoundColumn({
   nextKeys,
   isOnPath,
   hasPath,
-  isByeMatch,
+  isEmptySlot,
   isLight,
   ...highlight
 }: {
@@ -87,7 +96,8 @@ function RoundColumn({
   nextKeys: string[];
   isOnPath: (key?: string) => boolean;
   hasPath: boolean;
-  isByeMatch: (key?: string) => boolean;
+  /** True for a tree position that holds no match at all. */
+  isEmptySlot: (key?: string) => boolean;
   isLight: boolean;
 } & HighlightProps) {
   /** Two feeders per slot means the incoming line forks; 1-to-1 stays straight. */
@@ -110,6 +120,17 @@ function RoundColumn({
           const upperLit = onPath && isOnPath(upperFeeder);
           const lowerLit = onPath && isOnPath(lowerFeeder);
 
+          /**
+           * A branch is drawn when something real sits at its far end. Byes
+           * count — a walkover has a card and feeds this slot — but a tree
+           * position nothing was drawn into has nowhere for the line to land.
+           */
+          const upperFeeds = Boolean(upperFeeder) && !isEmptySlot(upperFeeder);
+          const lowerFeeds = Boolean(lowerFeeder) && !isEmptySlot(lowerFeeder);
+          const hasIncoming = forked
+            ? upperFeeds || lowerFeeds
+            : feederKeys.length > 0 && upperFeeds;
+
           /** The slot this one feeds, so the outgoing stub can be lit too. */
           const nextKey =
             nextKeys.length > 0
@@ -120,35 +141,34 @@ function RoundColumn({
           return (
             <div key={key} className="relative flex flex-1 items-center py-1">
               {/* Incoming elbow from the previous round */}
-              {feederKeys.length > 0 && (
+              {hasIncoming && (
                 <>
                   {forked && (
                     <>
-                      {!isByeMatch(upperFeeder) && (
+                      {upperFeeds && (
                         <span
-                          className={`${connector} -left-1.5 top-1/4 bottom-1/2 w-px ${upperLit ? connectorLit : connectorIdle}`}
+                          className={`${connector} -left-1.5 top-1/4 bottom-1/2 w-0.5 ${upperLit ? connectorLit : connectorIdle}`}
                         />
                       )}
-                      {!isByeMatch(lowerFeeder) && (
+                      {lowerFeeds && (
                         <span
-                          className={`${connector} -left-1.5 top-1/2 bottom-1/4 w-px ${lowerLit ? connectorLit : connectorIdle}`}
+                          className={`${connector} -left-1.5 top-1/2 bottom-1/4 w-0.5 ${lowerLit ? connectorLit : connectorIdle}`}
                         />
                       )}
                     </>
                   )}
-                  {(!isByeMatch(upperFeeder) || !isByeMatch(lowerFeeder)) && (
-                    <span
-                      className={`${connector} -left-1.5 top-1/2 h-px w-1.5 ${upperLit || lowerLit ? connectorLit : connectorIdle
-                        }`}
-                    />
-                  )}
+                  <span
+                    className={`${connector} -left-1.5 top-1/2 h-0.5 w-1.5 -translate-y-1/2 ${
+                      upperLit || lowerLit ? connectorLit : connectorIdle
+                    }`}
+                  />
                 </>
               )}
 
               {/* Stub out towards the next round */}
-              {nextKeys.length > 0 && !isByeMatch(key) && (
+              {nextKeys.length > 0 && !isEmptySlot(key) && (
                 <span
-                  className={`${connector} -right-1.5 top-1/2 h-px w-1.5 ${outLit ? connectorLit : connectorIdle}`}
+                  className={`${connector} -right-1.5 top-1/2 h-0.5 w-1.5 -translate-y-1/2 ${outLit ? connectorLit : connectorIdle}`}
                 />
               )}
 
@@ -212,11 +232,11 @@ export function BracketBoard({
   const hasPath = path.size > 0;
   const isOnPath = (key?: string) => (key ? path.has(key) : false);
 
-  const isByeMatch = (key?: string) => {
+  const isEmptySlot = (key?: string) => {
     if (!key) return false;
     for (const round of bracket.rounds) {
-      const match = round.matches.find(m => m.id === key);
-      if (match?.isByeMatch) return true;
+      const match = round.matches.find((m) => m.id === key);
+      if (match) return Boolean(match.isEmptySlot);
     }
     return false;
   };
@@ -257,7 +277,7 @@ export function BracketBoard({
               nextKeys={i === lastPage ? [] : columns[i + 1].keys}
               isOnPath={isOnPath}
               hasPath={hasPath}
-              isByeMatch={isByeMatch}
+              isEmptySlot={isEmptySlot}
               isLight={isLight}
               {...highlight}
             />
@@ -325,8 +345,11 @@ export function BracketBoard({
           })}
         </div>
 
+        {/* No connectors to keep aligned here, so empty tree positions are
+            dropped outright rather than left as blank gaps in the list. */}
         <div className="mt-4 flex flex-col gap-2.5">
           {current.keys.map((key, i) => {
+            if (isEmptySlot(key)) return null;
             const onPath = path.has(key);
             return (
               <RoundCard

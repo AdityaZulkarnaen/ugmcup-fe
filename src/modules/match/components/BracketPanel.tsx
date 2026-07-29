@@ -109,6 +109,7 @@ function buildCategoryBracket(disciplineId: string, nodes: BracketNode[]): Categ
           home: { isBye: true, score: null, winner: false },
           away: { isBye: true, score: null, winner: false },
           isByeMatch: true,
+          isEmptySlot: true,
         };
       }
 

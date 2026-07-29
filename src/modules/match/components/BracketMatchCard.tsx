@@ -96,9 +96,12 @@ function SideRow({
     }
   }
 
+  // An empty side is either a walkover ("BYE") or a slot still waiting on the
+  // round before it ("TBD"). Both are placeholders: no badge, muted italic.
   if (!name && name !== "") {
-    name = side.isBye ? "" : "TBD";
+    name = side.isBye ? "BYE" : "TBD";
   }
+  const isPlaceholder = !side.participantId && (name === "TBD" || name === "BYE");
 
   const isActive = Boolean(
     side.participantId && side.participantId === activeId
@@ -120,12 +123,12 @@ function SideRow({
           : `enabled:hover:bg-white/[0.03] ${isActive ? "bg-[#02F5D4]/10" : ""}`
       }`}
     >
-      {(side.participantId || (name !== "TBD" && name !== "")) && (
+      {!isPlaceholder && name !== "" && (
         <ParticipantBadge avatar={avatar} name={name} />
       )}
       <span
         className={`min-w-0 flex-1 truncate text-[13px] font-semibold ${
-          (!side.participantId && name === "TBD")
+          isPlaceholder
             ? isLight ? "italic text-[rgba(26,22,43,0.3)]" : "italic text-[#6B6B73]"
             : isActive
               ? isLight ? "text-[#6C47D1]" : "text-[#5CFCE7]"
@@ -159,9 +162,14 @@ export function BracketMatchCard({
   isLight,
   ...highlight
 }: { match: BracketMatch } & HighlightProps) {
-  if (match.isByeMatch) {
+  // Nothing was ever drawn into this tree position. It keeps its height so the
+  // rounds stay aligned, but there is no card and no line to anywhere.
+  if (match.isEmptySlot) {
     return (
-      <article className="w-full relative overflow-hidden rounded-xl opacity-0 pointer-events-none border border-transparent">
+      <article
+        aria-hidden
+        className="pointer-events-none w-full overflow-hidden rounded-xl border border-transparent opacity-0"
+      >
         <div className="divide-y divide-transparent">
           <SideRow side={match.home} onPath={onPath} {...highlight} />
           <SideRow side={match.away} onPath={onPath} {...highlight} />
@@ -175,9 +183,15 @@ export function BracketMatchCard({
       className={`relative overflow-hidden rounded-xl border transition-all ${
         onPath
           ? "border-[#02F5D4]/60 bg-[#02F5D4]/6 shadow-[0_0_12px_-2px_rgba(2,245,212,0.35)]"
-          : isLight
-            ? "border-[rgba(0,0,0,0.08)] bg-white hover:border-[rgba(0,0,0,0.15)]"
-            : "border-white/[0.06] bg-white/[0.02] hover:border-white/15"
+          : match.isByeMatch
+            ? // A walkover is real but uncontested — dashed, so it reads as
+              // "advanced without playing" rather than a fixture.
+              isLight
+              ? "border-dashed border-[rgba(0,0,0,0.12)] bg-[rgba(0,0,0,0.015)]"
+              : "border-dashed border-white/12 bg-white/[0.015]"
+            : isLight
+              ? "border-[rgba(0,0,0,0.08)] bg-white hover:border-[rgba(0,0,0,0.15)]"
+              : "border-white/[0.06] bg-white/[0.02] hover:border-white/15"
       } ${dimmed ? "opacity-35" : ""}`}
     >
       <div className={`divide-y ${isLight ? "divide-[rgba(0,0,0,0.05)]" : "divide-white/[0.04]"}`}>
