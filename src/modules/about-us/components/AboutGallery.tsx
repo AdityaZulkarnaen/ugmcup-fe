@@ -24,6 +24,7 @@ export function AboutGallery() {
         `scrollbar-none` alone only sets scrollbar-width, which older iOS Safari
         ignores — the webkit rule covers it.
       */}
+      {/* deploy */}
       <div
         ref={trackRef}
         className="scrollbar-none flex snap-x snap-mandatory gap-5 overflow-x-auto px-[6.25%] pb-2 [&::-webkit-scrollbar]:hidden"

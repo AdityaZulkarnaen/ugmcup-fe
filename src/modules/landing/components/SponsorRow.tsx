@@ -13,8 +13,17 @@ export function SponsorRow({ className, dark, fast }: SponsorRowProps) {
   const loop = [...sponsors, ...sponsors];
 
   return (
-    <div className={`marquee-mask overflow-hidden ${className ?? ""}`}>
-      <div className={`flex items-center ${fast ? "animate-marquee-fast sm:animate-marquee" : "animate-marquee"}`}>
+    // Pindahkan AOS hanya di wrapper luar
+    <div
+      data-aos="fade-up"
+      data-aos-delay="260"
+      data-aos-duration="1200"
+      className={`marquee-mask overflow-hidden ${className ?? ""}`}
+    >
+      {/* Hapus data-aos dari div marquee ini */}
+      <div
+        className={`flex items-center ${fast ? "animate-marquee-fast sm:animate-marquee" : "animate-marquee"}`}
+      >
         {loop.map((sponsor, index) => (
           <SponsorLogo
             key={`${sponsor.id}-${index}`}
