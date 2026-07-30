@@ -13,25 +13,25 @@ import { navLinks } from "@/lib/constants/navigation";
 const decorations = [
   {
     id: "halo-top",
-    src: "/images/hero/halo-top.png",
+    src: "/images/landing/halo-top.png",
     position: "top-0 -left-40 h-300 w-300 sm:h-360 sm:w-360",
     priority: true,
   },
   {
     id: "halo-bottom",
-    src: "/images/hero/halo-bottom.png",
+    src: "/images/landing/halo-bottom.png",
     position:
       "bottom-0 -right-59 translate-y-140 h-300 w-300 sm:-right-100 sm:translate-y-270 sm:h-488 sm:w-488",
   },
   {
     id: "cock-left",
-    src: "/images/hero/cock2.png",
+    src: "/images/landing/cock2.png",
     position:
       "-left-16 top-40 h-56 w-56 -rotate-12 sm:-left-24 sm:top-32 sm:h-120 sm:w-120 sm:rotate-0",
   },
   {
     id: "cock-right",
-    src: "/images/hero/cock1.png",
+    src: "/images/landing/cock1.png",
     position:
       "-right-20 top-16 h-60 w-60 -rotate-12 sm:-right-32 sm:top-12 sm:h-132 sm:w-132 sm:rotate-0",
   },
@@ -122,7 +122,7 @@ export default function NotFoundPage() {
         {/* Every other destination, so a wrong URL is one tap from the right one */}
         <div
           className="mt-2 flex flex-col items-center gap-3 animate-fade-in"
-          // style={{ animationDelay: "1.5s" }}
+        // style={{ animationDelay: "1.5s" }}
         >
           <p className="text-xs uppercase tracking-[0.2em] text-white/40">
             Atau kunjungi

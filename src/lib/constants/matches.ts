@@ -1232,8 +1232,8 @@ export interface MatchTab {
 }
 
 export const matchTabs: MatchTab[] = [
-  { id: "livescore", label: "Live Score", caption: "" },
-  { id: "jadwal", label: "Jadwal", caption: "" },
-  { id: "bracket", label: "Bracket", caption: "" },
+  { id: "jadwal", label: "Match", caption: "" },
+  { id: "draw", label: "Draw", caption: "" },
+  { id: "player", label: "Player", caption: "" },
   { id: "klasemen", label: "Klasemen Beregu", caption: "" },
 ];
