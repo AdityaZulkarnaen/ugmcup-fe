@@ -5,6 +5,7 @@ import { DISCIPLINES, LEVELS } from "@/lib/constants";
 import { getBracket } from "@/lib/api/admin";
 import type { BracketNode } from "@/lib/types";
 import { FilterSelect } from "@/components/ui/FilterSelect";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { AthleteSearch } from "./AthleteSearch";
 import { SkeletonPanel } from "@/components/ui/Skeleton";
 import { BracketBoardSkeleton } from "./MatchSkeletons";
@@ -332,12 +333,11 @@ export function BracketPanel({
           />
         </div>
       ) : (
-        <div className={`flex min-h-40 flex-col items-center justify-center rounded-2xl border border-dashed p-10 text-center text-sm ${isLight ? "border-[rgba(0,0,0,0.12)] bg-[rgba(0,0,0,0.01)] text-[rgba(26,22,43,0.5)]" : "border-white/10 bg-white/[0.01] text-[#7A7A83]"}`}>
-          <p className={`font-semibold ${isLight ? "text-[#1a162b]" : "text-white"}`}>Bagan bracket belum tersedia</p>
-          <p className={`mt-1 text-xs ${isLight ? "text-[rgba(26,22,43,0.4)]" : "text-[#6B6B73]"}`}>
-            Panitia belum menyusun bracket fase gugur untuk kategori ini.
-          </p>
-        </div>
+        <EmptyState
+          title="Bagan bracket belum tersedia"
+          description="Panitia belum menyusun bracket fase gugur untuk kategori ini."
+          isLight={isLight}
+        />
       )}
     </div>
   );

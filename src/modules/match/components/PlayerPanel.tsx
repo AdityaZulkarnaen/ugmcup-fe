@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo } from "react";
 import { getAthletes } from "@/lib/api/admin";
 import { getMatches } from "@/lib/api/matches";
 import type { Athlete, Match } from "@/lib/types";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { Search, ChevronLeft, ChevronRight } from "lucide-react";
 
 const PAGE_SIZE = 10;
@@ -153,6 +154,8 @@ export function PlayerPanel({ isLight = false }: PlayerPanelProps) {
     });
   }, [statsList, search, levelFilter]);
 
+  const hasActiveFilter = search.trim() !== "" || levelFilter !== "ALL";
+
   const totalPages = Math.max(1, Math.ceil(filteredStats.length / PAGE_SIZE));
   const safePage = Math.min(page, totalPages);
   const pageStart = (safePage - 1) * PAGE_SIZE;
@@ -234,174 +237,173 @@ export function PlayerPanel({ isLight = false }: PlayerPanelProps) {
       </div>
 
       {/* Stats Table */}
-      <div
-        className={`rounded-2xl border overflow-hidden ${isLight
-          ? "border-black/10 bg-white"
-          : "border-white/10 bg-white/[0.02]"
-          }`}
-      >
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm">
-            <thead>
-              <tr
-                className={`border-b text-xs font-semibold uppercase tracking-wider ${isLight
-                  ? "border-black/10 bg-black/5 text-gray-600"
-                  : "border-white/10 bg-white/5 text-gray-400"
+      {filteredStats.length === 0 ? (
+        <EmptyState
+          title="Statistik pemain belum tersedia"
+          description={
+            hasActiveFilter
+              ? "Tidak ada atlet yang cocok dengan pencarian atau filter yang dipilih."
+              : "Statistik akan muncul setelah pertandingan pertama selesai dimainkan."
+          }
+          isLight={isLight}
+        />
+      ) : (
+        <div
+          className={`rounded-2xl border overflow-hidden ${isLight
+            ? "border-black/10 bg-white"
+            : "border-white/10 bg-white/[0.02]"
+            }`}
+        >
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-sm">
+              <thead>
+                <tr
+                  className={`border-b text-xs font-semibold uppercase tracking-wider ${isLight
+                    ? "border-black/10 bg-black/5 text-gray-600"
+                    : "border-white/10 bg-white/5 text-gray-400"
+                    }`}
+                >
+                  <th className="py-3 px-3 w-14 text-center whitespace-nowrap">Rank</th>
+                  <th className="py-3 px-4 min-w-[180px]">Atlet & Institusi</th>
+                  <th className="py-3 px-2 w-16 text-center whitespace-nowrap">Win</th>
+                  <th className="py-3 px-2 w-16 text-center whitespace-nowrap">Lose</th>
+                  <th className="py-3 px-4 w-44 text-center whitespace-nowrap">Total Poin</th>
+                </tr>
+              </thead>
+              <tbody
+                className={`divide-y ${isLight ? "divide-black/5" : "divide-white/5"
                   }`}
               >
-                <th className="py-3 px-3 w-14 text-center whitespace-nowrap">Rank</th>
-                <th className="py-3 px-4 min-w-[180px]">Atlet & Institusi</th>
-                <th className="py-3 px-2 w-16 text-center whitespace-nowrap">Win</th>
-                <th className="py-3 px-2 w-16 text-center whitespace-nowrap">Lose</th>
-                <th className="py-3 px-4 w-44 text-center whitespace-nowrap">Total Poin</th>
-              </tr>
-            </thead>
-            <tbody
-              className={`divide-y ${isLight ? "divide-black/5" : "divide-white/5"
-                }`}
-            >
-              {pagedStats.length === 0 ? (
-                <tr>
-                  <td
-                    colSpan={5}
-                    className={`py-8 text-center text-sm ${
-                      isLight ? "text-[rgba(26,22,43,0.45)]" : "text-[#7A7A83]"
-                    }`}
-                  >
-                    Tidak ada statistik pemain ditemukan
-                  </td>
-                </tr>
-              ) : (
-                pagedStats.map((st, i) => {
-                  const idx = pageStart + i;
-                  const isTop1 = idx === 0 && st.win > 0;
-                  const isTop2 = idx === 1 && st.win > 0;
-                  const isTop3 = idx === 2 && st.win > 0;
+                {pagedStats.map((st, i) => {
+                    const idx = pageStart + i;
+                    const isTop1 = idx === 0 && st.win > 0;
+                    const isTop2 = idx === 1 && st.win > 0;
+                    const isTop3 = idx === 2 && st.win > 0;
 
-                  return (
-                    <tr
-                      key={st.athlete.id}
-                      className={`transition ${
-                        isLight ? "hover:bg-black/3" : "hover:bg-white/5"
-                      }`}
-                    >
-                      <td className="py-3.5 px-3 w-14 text-center font-bold text-sm whitespace-nowrap">
-                        {isTop1 ? (
-                          <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-amber-400/20 text-amber-500 font-extrabold text-xs">
-                            1
-                          </span>
-                        ) : isTop2 ? (
-                          <span
-                            className={`inline-flex items-center justify-center w-7 h-7 rounded-full bg-slate-400/20 font-extrabold text-xs ${
-                              isLight ? "text-slate-600" : "text-slate-300"
-                            }`}
-                          >
-                            2
-                          </span>
-                        ) : isTop3 ? (
-                          <span
-                            className={`inline-flex items-center justify-center w-7 h-7 rounded-full bg-amber-700/20 font-extrabold text-xs ${
-                              isLight ? "text-amber-700" : "text-amber-500"
-                            }`}
-                          >
-                            3
-                          </span>
-                        ) : (
-                          <span
-                            className={
-                              isLight
-                                ? "text-[rgba(26,22,43,0.5)]"
-                                : "text-[#6B6B73]"
-                            }
-                          >
-                            {idx + 1}
-                          </span>
-                        )}
-                      </td>
-
-                      <td className="py-3.5 px-4 min-w-[180px]">
-                        <div className="flex items-center gap-2 mb-0.5">
-                          <span
-                            className={`font-semibold ${
-                              isLight ? "text-[#1a162b]" : "text-white"
-                            }`}
-                          >
-                            {st.athlete.name}
-                          </span>
-                          {st.athlete.isSeeded && (
+                    return (
+                      <tr
+                        key={st.athlete.id}
+                        className={`transition ${
+                          isLight ? "hover:bg-black/3" : "hover:bg-white/5"
+                        }`}
+                      >
+                        <td className="py-3.5 px-3 w-14 text-center font-bold text-sm whitespace-nowrap">
+                          {isTop1 ? (
+                            <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-amber-400/20 text-amber-500 font-extrabold text-xs">
+                              1
+                            </span>
+                          ) : isTop2 ? (
                             <span
-                              className={`rounded-md px-1.5 py-0.5 mb-1 text-[10px] font-bold uppercase tracking-wider ${
-                                isLight
-                                  ? "bg-purple-500/12 text-[#6C47D1]"
-                                  : "bg-purple-500/20 text-purple-400"
+                              className={`inline-flex items-center justify-center w-7 h-7 rounded-full bg-slate-400/20 font-extrabold text-xs ${
+                                isLight ? "text-slate-600" : "text-slate-300"
                               }`}
                             >
-                              Unggulan
+                              2
+                            </span>
+                          ) : isTop3 ? (
+                            <span
+                              className={`inline-flex items-center justify-center w-7 h-7 rounded-full bg-amber-700/20 font-extrabold text-xs ${
+                                isLight ? "text-amber-700" : "text-amber-500"
+                              }`}
+                            >
+                              3
+                            </span>
+                          ) : (
+                            <span
+                              className={
+                                isLight
+                                  ? "text-[rgba(26,22,43,0.5)]"
+                                  : "text-[#6B6B73]"
+                              }
+                            >
+                              {idx + 1}
                             </span>
                           )}
-                        </div>
-                        <div
-                          className={`text-xs ${
-                            isLight
-                              ? "text-[rgba(26,22,43,0.55)]"
-                              : "text-[#7A7A83]"
-                          }`}
-                        >
-                          {st.athlete.institution?.name || "—"}
-                        </div>
-                      </td>
+                        </td>
 
-                      <td
-                        className={`py-3.5 px-2 w-16 text-center font-bold whitespace-nowrap ${
-                          isLight ? "text-emerald-600" : "text-emerald-400"
-                        }`}
-                      >
-                        {st.win}
-                      </td>
-
-                      <td
-                        className={`py-3.5 px-2 w-16 text-center font-semibold whitespace-nowrap ${
-                          isLight ? "text-[#FB2C36]" : "text-rose-400"
-                        }`}
-                      >
-                        {st.lose}
-                      </td>
-
-                      <td className="py-3.5 px-4 text-center font-bold">
-                        <span
-                          className={`inline-block px-2.5 py-0.5 rounded-full text-xs font-bold ${st.pointDiff > 0
-                            ? isLight
-                              ? "bg-emerald-500/15 text-emerald-700"
-                              : "bg-emerald-500/15 text-emerald-400"
-                            : st.pointDiff < 0
-                              ? isLight
-                                ? "bg-rose-500/12 text-[#FB2C36]"
-                                : "bg-rose-500/15 text-rose-400"
-                              : isLight
-                                ? "bg-black/5 text-[rgba(26,22,43,0.55)]"
-                                : "bg-gray-500/15 text-[#8A8A93]"
+                        <td className="py-3.5 px-4 min-w-[180px]">
+                          <div className="flex items-center gap-2 mb-0.5">
+                            <span
+                              className={`font-semibold ${
+                                isLight ? "text-[#1a162b]" : "text-white"
+                              }`}
+                            >
+                              {st.athlete.name}
+                            </span>
+                            {st.athlete.isSeeded && (
+                              <span
+                                className={`rounded-md px-1.5 py-0.5 mb-1 text-[10px] font-bold uppercase tracking-wider ${
+                                  isLight
+                                    ? "bg-purple-500/12 text-[#6C47D1]"
+                                    : "bg-purple-500/20 text-purple-400"
+                                }`}
+                              >
+                                Unggulan
+                              </span>
+                            )}
+                          </div>
+                          <div
+                            className={`text-xs ${
+                              isLight
+                                ? "text-[rgba(26,22,43,0.55)]"
+                                : "text-[#7A7A83]"
                             }`}
-                        >
-                          {st.pointDiff > 0 ? `+${st.pointDiff}` : st.pointDiff}
-                        </span>
-                        <span
-                          className={`block text-[10px] mt-0.5 ${
-                            isLight
-                              ? "text-[rgba(26,22,43,0.45)]"
-                              : "text-[#6B6B73]"
+                          >
+                            {st.athlete.institution?.name || "—"}
+                          </div>
+                        </td>
+
+                        <td
+                          className={`py-3.5 px-2 w-16 text-center font-bold whitespace-nowrap ${
+                            isLight ? "text-emerald-600" : "text-emerald-400"
                           }`}
                         >
-                          ({st.pointsScored} menang / {st.pointsConceded} kalah)
-                        </span>
-                      </td>
-                    </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
+                          {st.win}
+                        </td>
+
+                        <td
+                          className={`py-3.5 px-2 w-16 text-center font-semibold whitespace-nowrap ${
+                            isLight ? "text-[#FB2C36]" : "text-rose-400"
+                          }`}
+                        >
+                          {st.lose}
+                        </td>
+
+                        <td className="py-3.5 px-4 text-center font-bold">
+                          <span
+                            className={`inline-block px-2.5 py-0.5 rounded-full text-xs font-bold ${st.pointDiff > 0
+                              ? isLight
+                                ? "bg-emerald-500/15 text-emerald-700"
+                                : "bg-emerald-500/15 text-emerald-400"
+                              : st.pointDiff < 0
+                                ? isLight
+                                  ? "bg-rose-500/12 text-[#FB2C36]"
+                                  : "bg-rose-500/15 text-rose-400"
+                                : isLight
+                                  ? "bg-black/5 text-[rgba(26,22,43,0.55)]"
+                                  : "bg-gray-500/15 text-[#8A8A93]"
+                              }`}
+                          >
+                            {st.pointDiff > 0 ? `+${st.pointDiff}` : st.pointDiff}
+                          </span>
+                          <span
+                            className={`block text-[10px] mt-0.5 ${
+                              isLight
+                                ? "text-[rgba(26,22,43,0.45)]"
+                                : "text-[#6B6B73]"
+                            }`}
+                          >
+                            ({st.pointsScored} menang / {st.pointsConceded} kalah)
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+      )}
 
       {/* Pagination */}
       {filteredStats.length > 0 && (

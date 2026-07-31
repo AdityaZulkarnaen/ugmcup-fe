@@ -5,6 +5,7 @@ import { getMatches } from "@/lib/api/matches";
 import type { Match } from "@/lib/types";
 import { DISCIPLINES, LEVELS } from "@/lib/constants";
 import { FilterSelect } from "@/components/ui/FilterSelect";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { ScheduleRow } from "./ScheduleRow";
 import { SkeletonPanel } from "@/components/ui/Skeleton";
 import { FilterBarSkeleton, ScheduleRowSkeleton } from "./MatchSkeletons";
@@ -141,6 +142,8 @@ export function SchedulePanel({ isLight = false }: SchedulePanelProps) {
     });
   }, [allMatches, day, category, level]);
 
+  const hasActiveFilter = day !== "all" || category !== "all" || level !== "all";
+
   if (loading) {
     return (
       <SkeletonPanel label="Memuat jadwal pertandingan…" isLight={isLight} className="gap-5">
@@ -204,15 +207,15 @@ export function SchedulePanel({ isLight = false }: SchedulePanelProps) {
           ))}
         </div>
       ) : (
-        <div
-          className={`flex min-h-40 items-center justify-center rounded-2xl border border-dashed p-10 text-center text-sm ${
-            isLight
-              ? "border-[rgba(0,0,0,0.08)] bg-[rgba(0,0,0,0.02)] text-[rgba(26,22,43,0.4)]"
-              : "border-white/10 bg-white/[0.01] text-[#7A7A83]"
-          }`}
-        >
-          Tidak ada pertandingan untuk filter ini.
-        </div>
+        <EmptyState
+          title="Jadwal pertandingan belum tersedia"
+          description={
+            hasActiveFilter
+              ? "Tidak ada pertandingan yang cocok dengan filter yang dipilih."
+              : "Panitia belum merilis jadwal pertandingan."
+          }
+          isLight={isLight}
+        />
       )}
     </div>
   );

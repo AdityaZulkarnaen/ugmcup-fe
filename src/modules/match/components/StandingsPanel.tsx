@@ -6,6 +6,7 @@ import { DISCIPLINES } from "@/lib/constants";
 import { getStandings } from "@/lib/api/admin";
 import type { Standing } from "@/lib/types";
 import { FilterSelect } from "@/components/ui/FilterSelect";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { SkeletonPanel } from "@/components/ui/Skeleton";
 import { StandingsGroupSkeleton } from "./MatchSkeletons";
 
@@ -302,15 +303,11 @@ export function StandingsPanel({ isLight = false }: StandingsPanelProps) {
           />
         ))
       ) : (
-        <div
-          className={`flex min-h-40 items-center justify-center rounded-2xl border border-dashed p-10 text-center text-sm ${
-            isLight
-              ? "border-[rgba(0,0,0,0.08)] bg-[rgba(0,0,0,0.02)] text-[rgba(26,22,43,0.4)]"
-              : "border-white/10 bg-white/[0.01] text-[#7A7A83]"
-          }`}
-        >
-          Klasemen belum disetup untuk kategori ini.
-        </div>
+        <EmptyState
+          title="Klasemen belum tersedia"
+          description="Panitia belum menyusun klasemen grup untuk kategori ini."
+          isLight={isLight}
+        />
       )}
 
       <p
