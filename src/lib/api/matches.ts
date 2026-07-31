@@ -1,4 +1,5 @@
 import { apiRequest } from "./client";
+import { DUMMY_DATA } from "./dummy";
 import type { Match, MatchStatus, MatchHistoryEntry } from "@/lib/types";
 
 // ================== READ ==================
@@ -19,6 +20,16 @@ export const getMatches = (filters?: {
   const qs = params.toString();
   return apiRequest<Match[]>(`/matches${qs ? `?${qs}` : ""}`);
 };
+
+/**
+ * Daftar pertandingan untuk halaman publik Pertandingan.
+ *
+ * Sengaja dipisah dari `getMatches` supaya data dummy tidak ikut terpakai di
+ * dashboard admin — di sana aksi hapus/selesaikan match harus tetap menunjuk
+ * ID asli. Saklar dummy-nya ada di src/lib/api/dummy.ts.
+ */
+export const getPublicMatches = (): Promise<Match[]> =>
+  DUMMY_DATA.matches ? Promise.resolve(DUMMY_DATA.matches) : getMatches();
 
 export const getMatch = (id: string) => apiRequest<Match>(`/matches/${id}`);
 

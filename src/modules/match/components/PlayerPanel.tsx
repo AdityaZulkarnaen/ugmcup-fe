@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from "react";
 import { getAthletes } from "@/lib/api/admin";
-import { getMatches } from "@/lib/api/matches";
+import { getPublicMatches } from "@/lib/api/matches";
 import { cacheKeys } from "@/lib/api/cache";
 import { useCachedQuery } from "@/lib/hooks/useCachedQuery";
 import type { Athlete, Match } from "@/lib/types";
@@ -34,7 +34,7 @@ export function PlayerPanel({ isLight = false }: PlayerPanelProps) {
     getAthletes()
   );
   const matchesQuery = useCachedQuery<Match[]>(cacheKeys.matches, () =>
-    getMatches()
+    getPublicMatches()
   );
 
   const isLoading = athletesQuery.isLoading || matchesQuery.isLoading;
