@@ -13,7 +13,7 @@ import { Calendar } from "lucide-react";
  * The app router renders this from `app/pertandingan/page.tsx`.
  */
 export default function MatchPage() {
-  const [isLight, setIsLight] = useState(false);
+  const [isLight, setIsLight] = useState(true);
 
   return (
     <>

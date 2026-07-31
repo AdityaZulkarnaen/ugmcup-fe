@@ -20,7 +20,7 @@ export function LiveScoreCta() {
             variant="solid"
             className="px-6 py-3 text-base font-black italic"
           >
-            Lihat Live Score
+            Lihat Pertandingan
             <ArrowIcon />
           </Button>
         </div>

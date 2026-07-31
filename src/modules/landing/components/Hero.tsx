@@ -131,7 +131,7 @@ export function Hero() {
             variant="solid"
             className="px-6 py-3 text-sm sm:px-7 sm:py-3.5 sm:text-base font-black italic"
           >
-            Lihat Live Score
+            Lihat Pertandingan
             <ArrowIcon className="font-black" />
           </Button>
         </div>
