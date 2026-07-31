@@ -131,10 +131,10 @@ export function PlayerPanel({ isLight = false }: PlayerPanelProps) {
       pointDiff: st.pointsScored - st.pointsConceded,
     }));
 
-    // Sort by win DESC, pointDiff DESC, totalMatches DESC
+    // Sort by win DESC, total poin DESC, totalMatches DESC
     return list.sort((a, b) => {
       if (b.win !== a.win) return b.win - a.win;
-      if (b.pointDiff !== a.pointDiff) return b.pointDiff - a.pointDiff;
+      if (b.pointsScored !== a.pointsScored) return b.pointsScored - a.pointsScored;
       return b.totalMatches - a.totalMatches;
     });
   }, [athletes, matches]);
@@ -370,29 +370,13 @@ export function PlayerPanel({ isLight = false }: PlayerPanelProps) {
 
                         <td className="py-3.5 px-4 text-center font-bold">
                           <span
-                            className={`inline-block px-2.5 py-0.5 rounded-full text-xs font-bold ${st.pointDiff > 0
-                              ? isLight
-                                ? "bg-emerald-500/15 text-emerald-700"
-                                : "bg-emerald-500/15 text-emerald-400"
-                              : st.pointDiff < 0
-                                ? isLight
-                                  ? "bg-rose-500/12 text-[#FB2C36]"
-                                  : "bg-rose-500/15 text-rose-400"
-                                : isLight
-                                  ? "bg-black/5 text-[rgba(26,22,43,0.55)]"
-                                  : "bg-gray-500/15 text-[#8A8A93]"
-                              }`}
-                          >
-                            {st.pointDiff > 0 ? `+${st.pointDiff}` : st.pointDiff}
-                          </span>
-                          <span
-                            className={`block text-[10px] mt-0.5 ${
+                            className={`inline-block px-2.5 py-0.5 rounded-full text-xs font-bold ${
                               isLight
-                                ? "text-[rgba(26,22,43,0.45)]"
-                                : "text-[#6B6B73]"
+                                ? "bg-[#6C47D1]/10 text-[#6C47D1]"
+                                : "bg-[#8b5cf6]/15 text-purple-300"
                             }`}
                           >
-                            ({st.pointsScored} menang / {st.pointsConceded} kalah)
+                            {st.pointsScored}
                           </span>
                         </td>
                       </tr>

@@ -337,6 +337,30 @@ export function MatchSection() {
             {finishForm.status === "FINISHED" && (
               <div className="rounded-xl border border-gray-200 bg-gray-50 p-4">
                 <h4 className="mb-3 text-sm font-semibold text-gray-700">Skor Akhir (Per Set)</h4>
+                {(() => {
+                  const nameA = selectedMatch.participantA
+                    ? (selectedMatch.participantA.athletes?.map((a: any) => a.athlete.name).filter(Boolean).join(" / ") || selectedMatch.participantA.institution?.name || "Peserta A")
+                    : (selectedMatch.teamA?.institution?.name || "Peserta A");
+                  const instA = selectedMatch.participantA?.institution?.name ?? "";
+                  const nameB = selectedMatch.participantB
+                    ? (selectedMatch.participantB.athletes?.map((a: any) => a.athlete.name).filter(Boolean).join(" / ") || selectedMatch.participantB.institution?.name || "Peserta B")
+                    : (selectedMatch.teamB?.institution?.name || "Peserta B");
+                  const instB = selectedMatch.participantB?.institution?.name ?? "";
+                  return (
+                    <div className="mb-3 flex items-center gap-3">
+                      <span className="w-12 shrink-0" />
+                      <div className="min-w-0 flex-1 text-center">
+                        <p className="truncate text-sm font-semibold text-gray-800">{nameA}</p>
+                        {instA && <p className="truncate text-xs text-gray-500">{instA}</p>}
+                      </div>
+                      <span className="text-transparent">-</span>
+                      <div className="min-w-0 flex-1 text-center">
+                        <p className="truncate text-sm font-semibold text-gray-800">{nameB}</p>
+                        {instB && <p className="truncate text-xs text-gray-500">{instB}</p>}
+                      </div>
+                    </div>
+                  );
+                })()}
                 <div className="flex flex-col gap-3">
                   {[0, 1, 2].map(idx => (
                     <div key={idx} className="flex items-center gap-3">

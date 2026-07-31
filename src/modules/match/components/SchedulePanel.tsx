@@ -261,7 +261,7 @@ export function SchedulePanel({ isLight = false }: SchedulePanelProps) {
                     isLight ? "text-[rgba(26,22,43,0.35)]" : "text-[#6B6B73]"
                   }`}
                 >
-                  {group.matches.length} partai
+                  {group.matches.length} match
                 </span>
               </div>
 
