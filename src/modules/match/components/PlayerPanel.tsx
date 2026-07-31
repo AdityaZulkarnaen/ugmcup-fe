@@ -4,7 +4,9 @@ import { useState, useEffect, useMemo } from "react";
 import { getAthletes } from "@/lib/api/admin";
 import { getMatches } from "@/lib/api/matches";
 import type { Athlete, Match } from "@/lib/types";
-import { Search } from "lucide-react";
+import { Search, ChevronLeft, ChevronRight } from "lucide-react";
+
+const PAGE_SIZE = 10;
 
 interface PlayerStats {
   athlete: Athlete;
@@ -26,6 +28,7 @@ export function PlayerPanel({ isLight = false }: PlayerPanelProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [levelFilter, setLevelFilter] = useState<string>("ALL");
+  const [page, setPage] = useState(1);
 
   useEffect(() => {
     async function loadData() {
@@ -150,9 +153,29 @@ export function PlayerPanel({ isLight = false }: PlayerPanelProps) {
     });
   }, [statsList, search, levelFilter]);
 
+  const totalPages = Math.max(1, Math.ceil(filteredStats.length / PAGE_SIZE));
+  const safePage = Math.min(page, totalPages);
+  const pageStart = (safePage - 1) * PAGE_SIZE;
+  const pagedStats = filteredStats.slice(pageStart, pageStart + PAGE_SIZE);
+
+  // Deret nomor halaman dengan elipsis: 1 … 4 5 6 … 12
+  const pageItems = useMemo(() => {
+    return Array.from({ length: totalPages }, (_, i) => i + 1)
+      .filter((p) => p === 1 || p === totalPages || Math.abs(p - safePage) <= 1)
+      .reduce<(number | "ellipsis")[]>((acc, p, idx, arr) => {
+        if (idx > 0 && p - (arr[idx - 1] as number) > 1) acc.push("ellipsis");
+        acc.push(p);
+        return acc;
+      }, []);
+  }, [totalPages, safePage]);
+
   if (isLoading) {
     return (
-      <div className="py-12 text-center text-sm opacity-60">
+      <div
+        className={`py-12 text-center text-sm ${
+          isLight ? "text-[rgba(26,22,43,0.5)]" : "text-[#7A7A83]"
+        }`}
+      >
         Memuat statistik pemain...
       </div>
     );
@@ -163,12 +186,19 @@ export function PlayerPanel({ isLight = false }: PlayerPanelProps) {
       {/* Search & Filter Header */}
       <div className="flex flex-col sm:flex-row gap-3 items-center justify-between">
         <div className="relative w-full sm:w-72">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 opacity-40" />
+          <Search
+            className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${
+              isLight ? "text-[rgba(26,22,43,0.4)]" : "text-[#7A7A83]"
+            }`}
+          />
           <input
             type="text"
             placeholder="Cari nama atlet atau institusi..."
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setPage(1);
+            }}
             className={`w-full rounded-xl pl-9 pr-4 py-2 text-sm outline-none transition ${isLight
               ? "bg-black/5 text-gray-900 focus:bg-black/10"
               : "bg-white/5 text-white focus:bg-white/10"
@@ -184,7 +214,10 @@ export function PlayerPanel({ isLight = false }: PlayerPanelProps) {
           ].map((item) => (
             <button
               key={item.id}
-              onClick={() => setLevelFilter(item.id)}
+              onClick={() => {
+                setLevelFilter(item.id);
+                setPage(1);
+              }}
               className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition ${levelFilter === item.id
                 ? isLight
                   ? "bg-[#6C47D1] text-white shadow-sm"
@@ -227,17 +260,20 @@ export function PlayerPanel({ isLight = false }: PlayerPanelProps) {
               className={`divide-y ${isLight ? "divide-black/5" : "divide-white/5"
                 }`}
             >
-              {filteredStats.length === 0 ? (
+              {pagedStats.length === 0 ? (
                 <tr>
                   <td
                     colSpan={5}
-                    className="py-8 text-center text-sm opacity-50"
+                    className={`py-8 text-center text-sm ${
+                      isLight ? "text-[rgba(26,22,43,0.45)]" : "text-[#7A7A83]"
+                    }`}
                   >
                     Tidak ada statistik pemain ditemukan
                   </td>
                 </tr>
               ) : (
-                filteredStats.map((st, idx) => {
+                pagedStats.map((st, i) => {
+                  const idx = pageStart + i;
                   const isTop1 = idx === 0 && st.win > 0;
                   const isTop2 = idx === 1 && st.win > 0;
                   const isTop3 = idx === 2 && st.win > 0;
@@ -245,7 +281,9 @@ export function PlayerPanel({ isLight = false }: PlayerPanelProps) {
                   return (
                     <tr
                       key={st.athlete.id}
-                      className={`transition hover:bg-black/5 dark:hover:bg-white/5`}
+                      className={`transition ${
+                        isLight ? "hover:bg-black/3" : "hover:bg-white/5"
+                      }`}
                     >
                       <td className="py-3.5 px-3 w-14 text-center font-bold text-sm whitespace-nowrap">
                         {isTop1 ? (
@@ -253,52 +291,106 @@ export function PlayerPanel({ isLight = false }: PlayerPanelProps) {
                             1
                           </span>
                         ) : isTop2 ? (
-                          <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-slate-300/20 text-slate-400 font-extrabold text-xs">
+                          <span
+                            className={`inline-flex items-center justify-center w-7 h-7 rounded-full bg-slate-400/20 font-extrabold text-xs ${
+                              isLight ? "text-slate-600" : "text-slate-300"
+                            }`}
+                          >
                             2
                           </span>
                         ) : isTop3 ? (
-                          <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-amber-700/20 text-amber-700 font-extrabold text-xs">
+                          <span
+                            className={`inline-flex items-center justify-center w-7 h-7 rounded-full bg-amber-700/20 font-extrabold text-xs ${
+                              isLight ? "text-amber-700" : "text-amber-500"
+                            }`}
+                          >
                             3
                           </span>
                         ) : (
-                          <span className="opacity-60">{idx + 1}</span>
+                          <span
+                            className={
+                              isLight
+                                ? "text-[rgba(26,22,43,0.5)]"
+                                : "text-[#6B6B73]"
+                            }
+                          >
+                            {idx + 1}
+                          </span>
                         )}
                       </td>
 
                       <td className="py-3.5 px-4 min-w-[180px]">
                         <div className="flex items-center gap-2 mb-0.5">
-                          <span className="font-semibold">{st.athlete.name}</span>
+                          <span
+                            className={`font-semibold ${
+                              isLight ? "text-[#1a162b]" : "text-white"
+                            }`}
+                          >
+                            {st.athlete.name}
+                          </span>
                           {st.athlete.isSeeded && (
-                            <span className="rounded-md bg-purple-500/20 px-1.5 py-0.5 mb-1 text-[10px] font-bold text-purple-400 uppercase tracking-wider">
+                            <span
+                              className={`rounded-md px-1.5 py-0.5 mb-1 text-[10px] font-bold uppercase tracking-wider ${
+                                isLight
+                                  ? "bg-purple-500/12 text-[#6C47D1]"
+                                  : "bg-purple-500/20 text-purple-400"
+                              }`}
+                            >
                               Unggulan
                             </span>
                           )}
                         </div>
-                        <div className="text-xs opacity-60">
+                        <div
+                          className={`text-xs ${
+                            isLight
+                              ? "text-[rgba(26,22,43,0.55)]"
+                              : "text-[#7A7A83]"
+                          }`}
+                        >
                           {st.athlete.institution?.name || "—"}
                         </div>
                       </td>
 
-                      <td className="py-3.5 px-2 w-16 text-center font-bold text-emerald-500 whitespace-nowrap">
+                      <td
+                        className={`py-3.5 px-2 w-16 text-center font-bold whitespace-nowrap ${
+                          isLight ? "text-emerald-600" : "text-emerald-400"
+                        }`}
+                      >
                         {st.win}
                       </td>
 
-                      <td className="py-3.5 px-2 w-16 text-center font-semibold text-rose-400 whitespace-nowrap">
+                      <td
+                        className={`py-3.5 px-2 w-16 text-center font-semibold whitespace-nowrap ${
+                          isLight ? "text-[#FB2C36]" : "text-rose-400"
+                        }`}
+                      >
                         {st.lose}
                       </td>
 
                       <td className="py-3.5 px-4 text-center font-bold">
                         <span
                           className={`inline-block px-2.5 py-0.5 rounded-full text-xs font-bold ${st.pointDiff > 0
-                            ? "bg-emerald-500/15 text-emerald-500"
+                            ? isLight
+                              ? "bg-emerald-500/15 text-emerald-700"
+                              : "bg-emerald-500/15 text-emerald-400"
                             : st.pointDiff < 0
-                              ? "bg-rose-500/15 text-rose-400"
-                              : "bg-gray-500/15 opacity-60"
+                              ? isLight
+                                ? "bg-rose-500/12 text-[#FB2C36]"
+                                : "bg-rose-500/15 text-rose-400"
+                              : isLight
+                                ? "bg-black/5 text-[rgba(26,22,43,0.55)]"
+                                : "bg-gray-500/15 text-[#8A8A93]"
                             }`}
                         >
                           {st.pointDiff > 0 ? `+${st.pointDiff}` : st.pointDiff}
                         </span>
-                        <span className="block text-[10px] opacity-40 mt-0.5">
+                        <span
+                          className={`block text-[10px] mt-0.5 ${
+                            isLight
+                              ? "text-[rgba(26,22,43,0.45)]"
+                              : "text-[#6B6B73]"
+                          }`}
+                        >
                           ({st.pointsScored} menang / {st.pointsConceded} kalah)
                         </span>
                       </td>
@@ -310,6 +402,83 @@ export function PlayerPanel({ isLight = false }: PlayerPanelProps) {
           </table>
         </div>
       </div>
+
+      {/* Pagination */}
+      {filteredStats.length > 0 && (
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+          <span
+            className={`text-xs ${
+              isLight ? "text-[rgba(26,22,43,0.5)]" : "text-[#7A7A83]"
+            }`}
+          >
+            Menampilkan {pageStart + 1}–{pageStart + pagedStats.length} dari{" "}
+            {filteredStats.length} atlet
+          </span>
+
+          {totalPages > 1 && (
+            <nav
+              aria-label="Navigasi halaman statistik pemain"
+              className="flex items-center gap-1"
+            >
+              <button
+                type="button"
+                onClick={() => setPage(Math.max(1, safePage - 1))}
+                disabled={safePage === 1}
+                aria-label="Halaman sebelumnya"
+                className={`flex h-8 w-8 items-center justify-center rounded-lg border transition disabled:opacity-40 disabled:cursor-not-allowed ${isLight
+                  ? "border-black/10 text-[#1a162b] hover:enabled:bg-black/5"
+                  : "border-white/10 text-white hover:enabled:bg-white/10"
+                  }`}
+              >
+                <ChevronLeft className="h-3.5 w-3.5" />
+              </button>
+
+              {pageItems.map((p, i) =>
+                p === "ellipsis" ? (
+                  <span
+                    key={`ellipsis-${i}`}
+                    className={`px-1 text-xs ${
+                      isLight ? "text-[rgba(26,22,43,0.4)]" : "text-[#6B6B73]"
+                    }`}
+                  >
+                    …
+                  </span>
+                ) : (
+                  <button
+                    key={p}
+                    type="button"
+                    onClick={() => setPage(p)}
+                    aria-current={p === safePage ? "page" : undefined}
+                    className={`flex h-8 w-8 items-center justify-center rounded-lg border text-xs font-semibold transition ${p === safePage
+                      ? isLight
+                        ? "border-[#6C47D1] bg-[#6C47D1] text-white"
+                        : "border-[#8b5cf6] bg-[#8b5cf6] text-white"
+                      : isLight
+                        ? "border-black/10 text-[rgba(26,22,43,0.7)] hover:bg-black/5"
+                        : "border-white/10 text-[#8A8A93] hover:bg-white/10"
+                      }`}
+                  >
+                    {p}
+                  </button>
+                )
+              )}
+
+              <button
+                type="button"
+                onClick={() => setPage(Math.min(totalPages, safePage + 1))}
+                disabled={safePage === totalPages}
+                aria-label="Halaman berikutnya"
+                className={`flex h-8 w-8 items-center justify-center rounded-lg border transition disabled:opacity-40 disabled:cursor-not-allowed ${isLight
+                  ? "border-black/10 text-[#1a162b] hover:enabled:bg-black/5"
+                  : "border-white/10 text-white hover:enabled:bg-white/10"
+                  }`}
+              >
+                <ChevronRight className="h-3.5 w-3.5" />
+              </button>
+            </nav>
+          )}
+        </div>
+      )}
     </div>
   );
 }
