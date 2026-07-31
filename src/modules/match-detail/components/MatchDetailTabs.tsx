@@ -3,9 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import type { Match } from "@/lib/types";
 import { getMatch } from "@/lib/api/matches";
-import { useMatchRoom, useGlobalPanitiaRoom } from "@/lib/hooks/useSocket";
 import { MatchScoreboard } from "./MatchScoreboard";
-import { PointHistory } from "./PointHistory";
 import { ScoreTable } from "./ScoreTable";
 import { MatchInfo } from "./MatchInfo";
 import { BracketPanel } from "@/modules/match/components/BracketPanel";
@@ -18,7 +16,6 @@ const tabs = [
 
 const subTabs = [
   { id: "ringkasan", label: "Ringkasan" },
-  { id: "sejarah", label: "Sejarah Pertandingan" },
 ];
 
 export function formatSlotLabel(slotType?: string, index?: number): string {
@@ -189,10 +186,6 @@ export function MatchDetailTabs({ initialMatch }: { initialMatch: Match }) {
   // Active match to render detail for
   const activeMatchForDetail = selectedSubMatch || match;
 
-  const { lastScore: activeScore, isFinished: activeFinished } = useMatchRoom(activeMatchForDetail.id);
-  const { lastScore: parentScore, isFinished: parentFinished } = useMatchRoom(match.id);
-  const { lastUpdate } = useGlobalPanitiaRoom();
-
   const refreshMatch = useCallback(async () => {
     try {
       const updated = await getMatch(match.id);
@@ -201,10 +194,6 @@ export function MatchDetailTabs({ initialMatch }: { initialMatch: Match }) {
       console.error("Gagal me-refresh match detail:", e);
     }
   }, [match.id]);
-
-  useEffect(() => {
-    refreshMatch();
-  }, [activeMatchForDetail.id, activeScore, activeFinished, parentScore, parentFinished, lastUpdate, refreshMatch]);
 
   // Polling fallback every 2 seconds to stream real-time updates seamlessly
   useEffect(() => {
@@ -279,11 +268,10 @@ export function MatchDetailTabs({ initialMatch }: { initialMatch: Match }) {
                 role="tab"
                 aria-selected={isActive}
                 onClick={() => setTab(item.id)}
-                className={`-mb-px border-b-2 px-5 py-3.5 text-[13px] font-bold uppercase tracking-wide transition-colors ${
-                  isActive
+                className={`-mb-px border-b-2 px-5 py-3.5 text-[13px] font-bold uppercase tracking-wide transition-colors ${isActive
                     ? "border-[#02F5D4] text-[#34E5A6]"
                     : "border-transparent text-[#6B6B73] hover:text-white"
-                }`}
+                  }`}
               >
                 {item.label}
               </button>
@@ -302,11 +290,10 @@ export function MatchDetailTabs({ initialMatch }: { initialMatch: Match }) {
                   type="button"
                   aria-pressed={isActive}
                   onClick={() => setSubTab(item.id)}
-                  className={`rounded-full border px-4 py-2 text-[11px] font-bold uppercase tracking-wide transition-colors ${
-                    isActive
+                  className={`rounded-full border px-4 py-2 text-[11px] font-bold uppercase tracking-wide transition-colors ${isActive
                       ? "border-[#8B5CF6]/50 bg-[#8B5CF6]/15 text-[#C4B5FD]"
                       : "border-white/[0.06] bg-white/[0.03] text-[#8A8A93] hover:text-white"
-                  }`}
+                    }`}
                 >
                   {item.label}
                 </button>
@@ -357,9 +344,7 @@ export function MatchDetailTabs({ initialMatch }: { initialMatch: Match }) {
             </>
           )}
         </>
-      ) : (
-        <PointHistory match={activeMatchForDetail} parentMatch={match} />
-      )}
+      ) : null}
     </div>
   );
 }

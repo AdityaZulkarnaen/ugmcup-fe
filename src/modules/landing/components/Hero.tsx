@@ -77,7 +77,14 @@ export function Hero() {
         {/* Heading + Sponsor Row Block */}
         <div className="mt-5 sm:mt-6 flex w-fit flex-col items-center">
           <h1 className="flex flex-col w-fit items-center tracking-[-0.02em] font-extrabold italic">
-            {/* Rallyverse */}
+            {/*
+              The page's one h1 read "Rallyverse — Power in every motion", which
+              never names the tournament people actually search for. The pill
+              above says "UGM CUP 2026" but it is a sibling, not part of the
+              heading. This puts the name inside the h1 for crawlers and screen
+              readers while the visible design stays exactly as drawn.
+            */}
+            <span className="sr-only">UGM CUP 2026 — </span>
             <span
               data-aos="blur-in"
               data-aos-delay="120"

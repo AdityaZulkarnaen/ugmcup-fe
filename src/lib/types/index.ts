@@ -15,6 +15,7 @@ export interface Athlete {
   gender: "LAKI_LAKI" | "PEREMPUAN";
   studentId?: string;
   photoUrl?: string;
+  isSeeded?: boolean;
   createdAt: string;
   institution?: Institution;
 }

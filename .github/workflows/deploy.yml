@@ -1,0 +1,166 @@
+name: CI / Deploy
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  # Tombol "Run workflow" di tab Actions, untuk deploy ulang tanpa commit baru.
+  workflow_dispatch:
+
+# Dua push beruntun ke main tidak boleh saling menyalip di tengah rilis.
+# `cancel-in-progress: false` disengaja — membatalkan job deploy yang sedang
+# memindah symlink justru meninggalkan server setengah jalan.
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build & smoke test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      # `npm ci` (bukan `npm install`) karena yang di-commit adalah
+      # package-lock.json — versi terpasang harus persis sama dengan lokal.
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
+
+      # Sengaja TIDAK memblokir deploy. Saat pipeline ini dibuat, `npm run lint`
+      # sudah menghasilkan 115 error yang semuanya sudah ada sebelumnya
+      # (mayoritas `react-hooks/set-state-in-effect` di komponen dashboard).
+      # Kalau dibuat memblokir, deploy pertama langsung gagal dan ujungnya CI
+      # malah dimatikan. Hasilnya tetap tampil di log Actions.
+      #
+      # Setelah tunggakan itu dibersihkan, hapus baris `continue-on-error`
+      # supaya lint benar-benar jadi pagar.
+      - name: Lint
+        run: npm run lint
+        continue-on-error: true
+
+      - name: Build
+        env:
+          # Semua NEXT_PUBLIC_* ditanam ke bundle DI SINI, saat build. Mengubah
+          # nilainya di EC2 tidak akan berpengaruh apa-apa — harus lewat sini
+          # lalu deploy ulang.
+          NEXT_PUBLIC_SITE_URL: ${{ vars.NEXT_PUBLIC_SITE_URL || 'https://ugmcup2026.com' }}
+          NEXT_PUBLIC_API_URL: ${{ vars.NEXT_PUBLIC_API_URL || 'https://ugmcup.up.railway.app' }}
+          NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION: ${{ vars.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION }}
+          NEXT_PUBLIC_BING_SITE_VERIFICATION: ${{ vars.NEXT_PUBLIC_BING_SITE_VERIFICATION }}
+        run: npm run build
+
+      # `output: standalone` sengaja tidak menyalin public/ dan .next/static/,
+      # karena Vercel mengharapkan keduanya dilayani CDN. Kita melayaninya dari
+      # Node, jadi keduanya harus dimasukkan ke dalam bundle.
+      - name: Assemble standalone bundle
+        run: |
+          cp -r public .next/standalone/
+          cp -r .next/static .next/standalone/.next/
+          du -sh .next/standalone
+
+      # Jalankan bundle yang PERSIS akan dikirim ke EC2, dan pastikan ia benar
+      # melayani halaman. Ini menangkap masalah file tracing (dependency yang
+      # tidak ikut tersalin) di sini, bukan di produksi.
+      - name: Smoke test the bundle
+        run: |
+          node .next/standalone/server.js &
+          SERVER_PID=$!
+          trap 'kill $SERVER_PID 2>/dev/null || true' EXIT
+
+          for i in $(seq 1 30); do
+            curl -fsS --max-time 5 -o /dev/null http://127.0.0.1:3000/ && break
+            sleep 2
+          done
+
+          failed=0
+          for path in / /pertandingan /informasi /tentang-kami /dokumentasi \
+                      /robots.txt /sitemap.xml /opengraph-image /images/global/logo.png; do
+            code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 15 "http://127.0.0.1:3000${path}")
+            echo "  ${path} -> ${code}"
+            [ "$code" = "200" ] || failed=1
+          done
+          [ "$failed" = "0" ] || { echo "Smoke test gagal"; exit 1; }
+
+      - name: Package
+        run: tar -czf standalone.tar.gz -C .next/standalone .
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: standalone-bundle
+          path: standalone.tar.gz
+          retention-days: 7
+          # Sudah terkompresi; biarkan Actions tidak mengompresi ulang.
+          compression-level: 0
+
+  deploy:
+    name: Deploy to EC2
+    needs: build
+    # PR hanya diuji, tidak pernah dirilis.
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: standalone-bundle
+
+      - name: Configure SSH
+        env:
+          SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
+          EC2_HOST: ${{ secrets.EC2_HOST }}
+          KNOWN_HOSTS: ${{ secrets.EC2_KNOWN_HOSTS }}
+        run: |
+          mkdir -p ~/.ssh && chmod 700 ~/.ssh
+          echo "$SSH_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+
+          if [ -n "$KNOWN_HOSTS" ]; then
+            # Cara yang benar: host key dipin lewat secret, jadi runner tahu
+            # persis server mana yang sah.
+            echo "$KNOWN_HOSTS" > ~/.ssh/known_hosts
+          else
+            # Fallback supaya deploy pertama tidak buntu. Ini percaya begitu
+            # saja pada kunci yang dijawab server — isi EC2_KNOWN_HOSTS untuk
+            # menutup celah MITM ini (caranya ada di deploy/README.md).
+            echo "::warning::EC2_KNOWN_HOSTS belum diisi; memakai ssh-keyscan (rentan MITM)"
+            ssh-keyscan -H "$EC2_HOST" >> ~/.ssh/known_hosts 2>/dev/null
+          fi
+
+      - name: Upload bundle
+        env:
+          EC2_HOST: ${{ secrets.EC2_HOST }}
+          EC2_USER: ${{ secrets.EC2_USER }}
+        run: |
+          scp -i ~/.ssh/deploy_key standalone.tar.gz \
+            "${EC2_USER}@${EC2_HOST}:/tmp/ugmcup-fe-${{ github.sha }}.tar.gz"
+
+      - name: Release
+        env:
+          EC2_HOST: ${{ secrets.EC2_HOST }}
+          EC2_USER: ${{ secrets.EC2_USER }}
+        run: |
+          # Skrip rilis dikirim dari repo lalu dijalankan, bukan disimpan di
+          # server — supaya versinya selalu ikut commit yang sedang dirilis.
+          ssh -i ~/.ssh/deploy_key "${EC2_USER}@${EC2_HOST}" \
+            "bash -s -- /tmp/ugmcup-fe-${{ github.sha }}.tar.gz ${{ github.sha }}" \
+            < deploy/release.sh
+
+      # Pemeriksaan terakhir lewat internet, bukan dari dalam server: ini
+      # sekaligus membuktikan nginx dan sertifikatnya masih beres.
+      - name: Verify live site
+        run: |
+          code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 20 https://ugmcup2026.com/)
+          echo "https://ugmcup2026.com/ -> $code"
+          [ "$code" = "200" ] || { echo "Situs tidak sehat setelah deploy"; exit 1; }
+
+          # Konsolidasi alamat ikut diuji, supaya tidak diam-diam rusak.
+          redirect=$(curl -s -o /dev/null -w '%{http_code} %{redirect_url}' --max-time 20 https://www.ugmcup2026.com/)
+          echo "https://www.ugmcup2026.com/ -> $redirect"

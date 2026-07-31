@@ -81,53 +81,15 @@ export const updateMatchSchedule = (
     body: JSON.stringify(data),
   });
 
-export const startMatch = (id: string) =>
-  apiRequest<Match>(`/admin/matches/${id}/start`, { method: "PATCH", body: JSON.stringify({}) });
-
 export const finishMatch = (
   id: string,
-  data: { retired?: boolean; winnerId?: string }
+  data: { 
+    status: 'FINISHED' | 'WALK_OVER' | 'RETIRED';
+    winnerId: string;
+    sets?: Array<{ setNumber: number; scoreA: number; scoreB: number }>;
+  }
 ) =>
   apiRequest<Match>(`/admin/matches/${id}/finish`, {
     method: "PATCH",
     body: JSON.stringify(data),
   });
-
-export const updateScore = (
-  id: string,
-  data: {
-    setNumber: number;
-    scoreA: number;
-    scoreB: number;
-    version: number;
-  }
-) =>
-  apiRequest<Match>(`/admin/matches/${id}/score`, {
-    method: "PATCH",
-    body: JSON.stringify(data),
-  });
-
-export const undoScore = (id: string) =>
-  apiRequest<Match>(`/admin/matches/${id}/undo`, {
-    method: "POST",
-    body: JSON.stringify({}),
-  });
-
-export const redoScore = (id: string) =>
-  apiRequest<Match>(`/admin/matches/${id}/redo`, {
-    method: "POST",
-    body: JSON.stringify({}),
-  });
-
-export const updateSetTimer = (
-  id: string,
-  setNumber: number,
-  action: "START" | "PAUSE" | "RESET" | "STOP"
-) =>
-  apiRequest<{ durationSeconds: number; timerStatus: string; timerStartedAt?: string }>(
-    `/admin/matches/${id}/timer`,
-    {
-      method: "POST",
-      body: JSON.stringify({ setNumber, action }),
-    }
-  );

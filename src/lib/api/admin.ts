@@ -26,14 +26,20 @@ export const uploadFile = async (file: File) => {
   });
 
   if (!res.ok) {
-    const error = await res.json();
-    throw new Error(error.message || "Gagal mengunggah file");
+    // Guard against HTML error pages (e.g. 413 from proxy/nginx)
+    const contentType = res.headers.get("content-type") || "";
+    if (contentType.includes("application/json")) {
+      const error = await res.json();
+      throw new Error(error.message || "Gagal mengunggah file");
+    }
+    if (res.status === 413) {
+      throw new Error("File terlalu besar. Maksimum ukuran file adalah 20 MB.");
+    }
+    throw new Error(`Upload gagal (HTTP ${res.status})`);
   }
 
   const data = await res.json();
-  // Ensure we return the absolute URL
-  const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
-  return `${baseUrl}${data.url}`;
+  return data.url as string;
 };
 
 export const getInstitutions = (type?: string) =>

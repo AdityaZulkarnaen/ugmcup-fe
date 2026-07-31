@@ -124,17 +124,22 @@ function buildCategoryBracket(disciplineId: string, nodes: BracketNode[]): Categ
           match.winnerParticipantId === match.participantBId) ||
         (!!match?.winnerTeamId && match.winnerTeamId === match.teamBId);
 
-      // Score from sets
+      // Score from sets (number of sets won)
       const sets = match?.sets ?? [];
-      const scoreA = sets.length > 0 ? sets[sets.length - 1].scoreA : 0;
-      const scoreB = sets.length > 0 ? sets[sets.length - 1].scoreB : 0;
+      let setsWonA = sets.filter(s => s.scoreA > s.scoreB).length;
+      let setsWonB = sets.filter(s => s.scoreB > s.scoreA).length;
+
+      if (match?.status !== "SCHEDULED" && sets.length === 0) {
+        if (wonA) setsWonA = 2;
+        if (wonB) setsWonB = 2;
+      }
 
       const homeSide = mapSide(match?.participantA, match?.teamA, isFirstRound, match?.status || "SCHEDULED", wonA);
       const awaySide = mapSide(match?.participantB, match?.teamB, isFirstRound, match?.status || "SCHEDULED", wonB);
 
       if (match?.status !== "SCHEDULED") {
-        if (homeSide.score !== null) homeSide.score = scoreA;
-        if (awaySide.score !== null) awaySide.score = scoreB;
+        if (homeSide.score !== null) homeSide.score = setsWonA;
+        if (awaySide.score !== null) awaySide.score = setsWonB;
       }
 
       return {

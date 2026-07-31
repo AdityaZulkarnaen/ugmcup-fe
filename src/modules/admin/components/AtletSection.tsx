@@ -23,7 +23,7 @@ export function AtletSection() {
 
   // Form
   const [formType, setFormType] = useState<string>("");
-  const [form, setForm] = useState({ name: "", gender: "LAKI_LAKI" as "LAKI_LAKI" | "PEREMPUAN", institutionId: "", studentId: "" });
+  const [form, setForm] = useState({ name: "", gender: "LAKI_LAKI" as "LAKI_LAKI" | "PEREMPUAN", institutionId: "", studentId: "", isSeeded: false });
 
   // Info
   const [athleteInfo, setAthleteInfo] = useState<any>(null);
@@ -48,7 +48,8 @@ export function AtletSection() {
         name: form.name, 
         gender: form.gender, 
         institutionId: form.institutionId, 
-        studentId: form.studentId || undefined 
+        studentId: form.studentId || undefined,
+        isSeeded: form.isSeeded
       };
 
       if (editId) {
@@ -59,7 +60,7 @@ export function AtletSection() {
 
       setModalOpen(false);
       setEditId(null);
-      setForm({ name: "", gender: "LAKI_LAKI", institutionId: "", studentId: "" });
+      setForm({ name: "", gender: "LAKI_LAKI", institutionId: "", studentId: "", isSeeded: false });
       setFormType("");
       await load();
     } catch (e) { setError(e instanceof Error ? e.message : "Gagal menyimpan"); }
@@ -74,7 +75,8 @@ export function AtletSection() {
       name: row.name, 
       gender: row.gender, 
       institutionId: row.institutionId, 
-      studentId: row.studentId || "" 
+      studentId: row.studentId || "",
+      isSeeded: row.isSeeded || false
     });
     setModalOpen(true);
   }
@@ -104,7 +106,7 @@ export function AtletSection() {
       <PageHeader
         title="Atlet"
         subtitle="Kelola atlet dari setiap institusi peserta"
-        action={<AddButton onClick={() => { setEditId(null); setFormType(""); setForm({ name: "", gender: "LAKI_LAKI", institutionId: "", studentId: "" }); setModalOpen(true); }} label="Tambah Atlet" />}
+        action={<AddButton onClick={() => { setEditId(null); setFormType(""); setForm({ name: "", gender: "LAKI_LAKI", institutionId: "", studentId: "", isSeeded: false }); setModalOpen(true); }} label="Tambah Atlet" />}
       />
 
       <div className="mb-4 flex items-center justify-between gap-4 flex-wrap">
@@ -138,7 +140,12 @@ export function AtletSection() {
         data={data}
         emptyText="Belum ada atlet terdaftar"
         columns={[
-          { key: "name", header: "Nama Atlet" },
+          { key: "name", header: "Nama Atlet", render: (row) => (
+            <div className="flex items-center gap-2">
+              <span>{row.name}</span>
+              {row.isSeeded && <span className="rounded bg-purple-100 px-1.5 py-0.5 text-[10px] font-bold text-purple-700">UNGGULAN</span>}
+            </div>
+          )},
           {
             key: "gender",
             header: "Gender",
@@ -217,6 +224,19 @@ export function AtletSection() {
         <FormField label="NIM/NIS (opsional)">
           <DashInput value={form.studentId} onChange={(v) => setForm((f) => ({ ...f, studentId: v }))} placeholder="Nomor induk mahasiswa/siswa" />
         </FormField>
+        
+        <div className="flex items-center mt-2">
+          <input
+            id="isSeeded"
+            type="checkbox"
+            checked={form.isSeeded}
+            onChange={(e) => setForm((f) => ({ ...f, isSeeded: e.target.checked }))}
+            className="w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 rounded focus:ring-purple-500"
+          />
+          <label htmlFor="isSeeded" className="ml-2 text-sm font-medium text-gray-900">
+            Tandai sebagai Pemain Unggulan (Seeded)
+          </label>
+        </div>
       </Modal>
 
       {/* MODAL INFO PERLOMBAAN */}

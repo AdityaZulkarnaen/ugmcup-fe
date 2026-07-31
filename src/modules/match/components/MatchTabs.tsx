@@ -2,9 +2,9 @@
 
 import { useState } from "react";
 import { matchTabs } from "@/lib/constants/matches";
-import { LiveScorePanel } from "./LiveScorePanel";
 import { SchedulePanel } from "./SchedulePanel";
 import { BracketPanel } from "./BracketPanel";
+import { PlayerPanel } from "./PlayerPanel";
 import { StandingsPanel } from "./StandingsPanel";
 
 interface MatchTabsProps {
@@ -57,12 +57,6 @@ export function MatchTabs({ isLight = false }: MatchTabsProps) {
                         : "text-[#8A8A93]"
                 }`}
               >
-                {isActive && tab.id === "livescore" && (
-                  <span className="relative flex h-2.5 w-2.5">
-                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#FB2C36] opacity-60" />
-                    <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-[#FB2C36]" />
-                  </span>
-                )}
                 {tab.label.toUpperCase()}
               </span>
 
@@ -89,12 +83,12 @@ export function MatchTabs({ isLight = false }: MatchTabsProps) {
 
       {/* Panel */}
       <div className="mt-4">
-        {active === "livescore" ? (
-          <LiveScorePanel isLight={isLight} />
-        ) : active === "jadwal" ? (
+        {active === "jadwal" ? (
           <SchedulePanel isLight={isLight} />
-        ) : active === "bracket" ? (
+        ) : active === "draw" ? (
           <BracketPanel isLight={isLight} />
+        ) : active === "player" ? (
+          <PlayerPanel isLight={isLight} />
         ) : (
           <StandingsPanel isLight={isLight} />
         )}

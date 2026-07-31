@@ -57,7 +57,7 @@ export function AdminHome() {
             ["Daftarkan Atlet", "dari setiap institusi"],
             ["Buat Peserta/Tim", "yang akan berlomba (individu atau beregu)"],
             ["Buat Jadwal Pertandingan", "dan tentukan waktu serta lapangan"],
-            ["Mulai Match & Update Skor", "secara real-time melalui menu Match Aktif"],
+            ["Input Skor Akhir", "melalui menu Match setelah pertandingan selesai"],
             ["Setup Bracket", "fase gugur setelah grup selesai"],
           ].map(([bold, rest], i) => (
             <li key={i} className="flex items-start gap-2">
