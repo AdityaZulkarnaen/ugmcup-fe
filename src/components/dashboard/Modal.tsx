@@ -53,7 +53,9 @@ export function Modal({ isOpen, onClose, title, children, footer, size = "md" }:
         </div>
 
         {/* Body */}
-        <div className="max-h-[60vh] overflow-y-auto px-6 py-5">{children}</div>
+        {/* data-lenis-prevent: biarkan isi form/modal di-scroll wheel secara native,
+            tanpa direbut oleh Lenis (smooth scroll root). */}
+        <div className="max-h-[60vh] overflow-y-auto px-6 py-5" data-lenis-prevent>{children}</div>
 
         {/* Footer */}
         {footer && (

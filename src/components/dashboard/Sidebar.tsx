@@ -70,7 +70,7 @@ export function Sidebar({
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 overflow-y-auto px-2 py-3">
+      <nav className="flex-1 overflow-y-auto px-2 py-3" data-lenis-prevent>
         {items.map((item) => {
           const isActive = activeKey === item.key;
           return (

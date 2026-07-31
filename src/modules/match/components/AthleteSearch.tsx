@@ -140,6 +140,7 @@ export function AthleteSearch({
           id="athlete-search-results"
           role="listbox"
           aria-label="Hasil pencarian atlet"
+          data-lenis-prevent
           className={`scrollbar-thumb-only absolute left-0 top-full z-30 mt-2 flex max-h-72 w-full flex-col gap-0.5 overflow-y-auto rounded-2xl border p-1.5 shadow-xl ${
             isLight
               ? "border-[rgba(0,0,0,0.08)] bg-white shadow-[0px_4px_16px_0px_rgba(0,0,0,0.1)]"

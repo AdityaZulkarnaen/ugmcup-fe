@@ -60,7 +60,9 @@ export function DashboardLayout({
         </header>
 
         {/* Content */}
-        <main className="flex-1 overflow-y-auto">
+        {/* data-lenis-prevent: lepaskan area ini dari Lenis (smooth scroll root)
+            supaya wheel/touch men-scroll konten dashboard, bukan window. */}
+        <main className="flex-1 overflow-y-auto" data-lenis-prevent>
           <div className="min-h-full">{children}</div>
         </main>
       </div>
