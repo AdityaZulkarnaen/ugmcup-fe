@@ -37,7 +37,7 @@ const shuttles: Shuttle[] = [
   {
     id: "cock-left",
     src: "/images/landing/cock2.png",
-    position: "-left-20 top-42 h-70 w-70 sm:-left-28 sm:top-36 sm:h-132 sm:w-132",
+    position: "-left-20 top-42 h-70 w-70 sm:-left-48 sm:top-36 sm:h-132 sm:w-132",
     sizes: "(max-width: 640px) 160px, 528px",
     // Lifted from below the left edge, still climbing when it settles.
     entry: { from: { x: -420, y: 560 }, via: { x: -210, y: 190 }, rotation: -42 },
@@ -48,7 +48,7 @@ const shuttles: Shuttle[] = [
     id: "cock-right",
     src: "/images/landing/cock1.png",
     position:
-      "-right-28 -rotate-12 sm:rotate-0 top-12 h-80 w-80 sm:-right-36 sm:top-10 sm:h-144 sm:w-144",
+      "-right-28 -rotate-12 sm:rotate-0 top-12 h-80 w-80 sm:-right-56 sm:top-2 sm:h-144 sm:w-144",
     sizes: "(max-width: 640px) 144px, 576px",
     // A smash dropping in from above the right corner, on its way down.
     entry: { from: { x: 400, y: 240 }, via: { x: 180, y: 100 }, rotation: 0 },

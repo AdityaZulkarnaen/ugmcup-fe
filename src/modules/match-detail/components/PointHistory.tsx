@@ -163,11 +163,10 @@ export function PointHistory({ match, parentMatch }: { match: Match; parentMatch
                 setActiveSet(setNum);
                 setUserSelectedSet(true);
               }}
-              className={`rounded-full border px-4 py-1.5 text-xs font-semibold transition-colors ${
-                isActive
+              className={`rounded-full border px-4 py-1.5 text-xs font-semibold transition-colors ${isActive
                   ? "border-[#8B5CF6]/50 bg-[#8B5CF6]/15 text-[#C4B5FD]"
                   : "border-white/[0.06] bg-white/[0.03] text-[#8A8A93] hover:text-white"
-              }`}
+                }`}
             >
               Set {setNum}
             </button>
@@ -195,11 +194,10 @@ export function PointHistory({ match, parentMatch }: { match: Match; parentMatch
                 <div className="flex flex-1 items-center justify-end gap-2 min-w-0">
                   {item.showPillA && (
                     <span
-                      className={`rounded-md px-2 text-[10px] font-bold ${
-                        item.isGreenPill
+                      className={`rounded-md px-2 text-[10px] font-bold ${item.isGreenPill
                           ? "border border-[#34E5A6]/40 bg-[#0D3B38] text-[#34E5A6]"
                           : "border border-[#FF4D6D]/40 bg-[#3E1A24] text-[#FF4D6D]"
-                      }`}
+                        }`}
                     >
                       {item.pillText}
                     </span>
@@ -233,11 +231,10 @@ export function PointHistory({ match, parentMatch }: { match: Match; parentMatch
                   )}
                   {item.showPillB && (
                     <span
-                      className={`rounded-md px-2 text-[10px] font-bold ${
-                        item.isGreenPill
+                      className={`rounded-md px-2 text-[10px] font-bold ${item.isGreenPill
                           ? "border border-[#34E5A6]/40 bg-[#0D3B38] text-[#34E5A6]"
                           : "border border-[#FF4D6D]/40 bg-[#3E1A24] text-[#FF4D6D]"
-                      }`}
+                        }`}
                     >
                       {item.pillText}
                     </span>

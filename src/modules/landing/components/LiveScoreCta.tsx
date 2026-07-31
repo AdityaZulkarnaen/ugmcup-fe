@@ -8,13 +8,13 @@ export function LiveScoreCta() {
         <h2
           data-aos="fade-up"
           data-aos-duration="800"
-          className="max-w-8xl text-4xl font-black italic leading-[1.1] sm:text-7xl"
+          className="max-w-8xl text-4xl font-black italic leading-tight sm:text-7xl sm:leading-[70px]"
         >
           Dapatkan akses instan ke seluruh pertandingan!
         </h2>
 
         {/* Wrapper carries the reveal so the button keeps its own transitions */}
-        <div data-aos="zoom-in" data-aos-delay="220" className="mt-10">
+        <div data-aos="zoom-in" data-aos-delay="220" className="mt-14">
           <Button
             href="/pertandingan"
             variant="solid"

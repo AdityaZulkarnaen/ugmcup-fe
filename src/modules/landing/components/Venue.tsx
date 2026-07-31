@@ -10,7 +10,7 @@ import { tournamentVenue } from "@/lib/constants/matches";
  */
 export function Venue() {
   return (
-    <section className="overflow-hidden bg-[#ffffff] py-24 text-center text-[#0B0B0F] sm:py-28">
+    <section className="overflow-hidden bg-[#ffffff] pt-24 text-center text-[#0B0B0F] sm:pt-28">
       <div className="mx-auto flex w-[87.5%] flex-col items-center">
         <p
           data-aos="fade-down"
@@ -47,13 +47,13 @@ export function Venue() {
         data-aos="fade-up"
         data-aos-delay="0"
         data-aos-duration="900"
-        className="mt-12 flex justify-center sm:mt-16"
+        className="mt-12 flex justify-center sm:mt-20"
       >
         <Image
           src="/images/landing/venue.svg"
           alt=""
           width={1440}
-          height={554}
+          height={600}
           className="h-[aut min-w-[420px] sm:w-full sm:min-w-[820px] max-w-none"
         />
       </div>
