@@ -176,6 +176,12 @@ export const setupBracket = (data: {
     body: JSON.stringify(data),
   });
 
+export const deleteBracket = (disciplineId: string) =>
+  apiRequest<{ message: string; deletedMatches: number }>(
+    `/admin/brackets/${disciplineId}`,
+    { method: "DELETE" }
+  );
+
 export const reassignBracketNode = (
   nodeId: string,
   data: { participantAId?: string | null; participantBId?: string | null; teamAId?: string | null; teamBId?: string | null }

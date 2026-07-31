@@ -5,8 +5,8 @@ import { DataTable } from "@/components/dashboard/DataTable";
 import { PageHeader, FormField, DashInput, DashSelect } from "@/components/dashboard/PageHeader";
 import { Modal, ModalCancelButton, ModalSubmitButton } from "@/components/dashboard/Modal";
 import { LEVELS, getDisciplinesByLevel, DISCIPLINES } from "@/lib/constants";
-import { CheckCircle } from "lucide-react";
-import { getMatches, deleteMatch, updateMatchSchedule, finishMatch } from "@/lib/api/matches";
+import { CheckCircle, ArrowLeftRight } from "lucide-react";
+import { getMatches, deleteMatch, updateMatchSchedule, finishMatch, swapMatchSides } from "@/lib/api/matches";
 import type { Match, MatchStatus } from "@/lib/types";
 
 const STATUS_STYLE: Record<MatchStatus | "WALK_OVER", { bg: string; color: string }> = {
@@ -84,6 +84,18 @@ export function MatchSection() {
     await deleteMatch(id); await load(false);
   }
 
+  async function handleSwapSides() {
+    if (!editForm.id) return;
+    setIsSaving(true); setError("");
+    try {
+      const updated = await swapMatchSides(editForm.id);
+      setSelectedMatch(updated);
+      setData(prev => prev.map(m => m.id === updated.id ? updated : m));
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Gagal menukar posisi peserta");
+    } finally { setIsSaving(false); }
+  }
+
   function openEditModal(match: Match) {
     let localTime = "";
     if (match.scheduledTime) {
@@ -91,6 +103,7 @@ export function MatchSection() {
       const offset = d.getTimezoneOffset() * 60000;
       localTime = new Date(d.getTime() - offset).toISOString().slice(0, 16);
     }
+    setSelectedMatch(match);
     setEditForm({ id: match.id, courtNumber: match.courtNumber ? String(match.courtNumber) : "", scheduledTime: localTime });
     setEditModalOpen(true);
   }
@@ -227,6 +240,37 @@ export function MatchSection() {
           <FormField label="No. Lapangan"><DashInput value={editForm.courtNumber} onChange={(v) => setEditForm(f => ({ ...f, courtNumber: v }))} placeholder="1" type="number" /></FormField>
           <FormField label="Jadwal (tanggal & waktu)"><DashInput value={editForm.scheduledTime} onChange={(v) => setEditForm(f => ({ ...f, scheduledTime: v }))} type="datetime-local" /></FormField>
         </div>
+
+        {selectedMatch && selectedMatch.id === editForm.id && !["FINISHED", "RETIRED", "WALK_OVER"].includes(selectedMatch.status) && (() => {
+          const nameA = selectedMatch.participantA
+            ? (selectedMatch.participantA.athletes?.map((a: any) => a.athlete.name).filter(Boolean).join(" / ") || selectedMatch.participantA.institution?.name || "Peserta A")
+            : (selectedMatch.teamA?.institution?.name || (selectedMatch.participantAId || selectedMatch.teamAId ? "Tim A" : "BYE / Kosong"));
+          const nameB = selectedMatch.participantB
+            ? (selectedMatch.participantB.athletes?.map((a: any) => a.athlete.name).filter(Boolean).join(" / ") || selectedMatch.participantB.institution?.name || "Peserta B")
+            : (selectedMatch.teamB?.institution?.name || (selectedMatch.participantBId || selectedMatch.teamBId ? "Tim B" : "BYE / Kosong"));
+          return (
+            <div className="mt-4 rounded-xl border border-gray-200 bg-gray-50 p-4">
+              <h4 className="mb-3 text-sm font-semibold text-gray-700">Tukar Posisi Peserta</h4>
+              <div className="flex items-center gap-3">
+                <div className="min-w-0 flex-1 rounded-lg border border-gray-200 bg-white px-3 py-2">
+                  <p className="text-[10px] font-bold uppercase text-gray-400">Posisi A</p>
+                  <p className="truncate text-sm font-semibold text-gray-800">{nameA}</p>
+                </div>
+                <button onClick={handleSwapSides} disabled={isSaving}
+                  className="flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-semibold text-white transition hover:opacity-90 disabled:opacity-60"
+                  style={{ background: "#6C47D1" }}
+                  title="Tukar posisi A dan B">
+                  <ArrowLeftRight size={14} /> Tukar
+                </button>
+                <div className="min-w-0 flex-1 rounded-lg border border-gray-200 bg-white px-3 py-2">
+                  <p className="text-[10px] font-bold uppercase text-gray-400">Posisi B</p>
+                  <p className="truncate text-sm font-semibold text-gray-800">{nameB}</p>
+                </div>
+              </div>
+              <p className="mt-2 text-xs text-gray-500">*Hanya menukar posisi A ↔ B, tidak mengubah peserta.</p>
+            </div>
+          );
+        })()}
       </Modal>
 
       <Modal isOpen={finishModalOpen} onClose={() => { setFinishModalOpen(false); setError(""); }} title="Input Hasil Pertandingan" size="lg"

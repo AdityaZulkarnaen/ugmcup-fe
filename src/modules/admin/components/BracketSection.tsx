@@ -1,10 +1,10 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { PageHeader, FormField, DashSelect } from "@/components/dashboard/PageHeader";
 import { Modal, ModalCancelButton, ModalSubmitButton } from "@/components/dashboard/Modal";
-import { getBracket, setupBracket, getParticipants, getTeams, reassignBracketNode } from "@/lib/api/admin";
+import { getBracket, setupBracket, deleteBracket, getParticipants, getTeams, reassignBracketNode } from "@/lib/api/admin";
 import { LEVELS, getDisciplinesByLevel, DISCIPLINES } from "@/lib/constants";
 import type { BracketNode, Participant, Team } from "@/lib/types";
-import { GitMerge, Edit } from "lucide-react";
+import { GitMerge, Edit, Trash2 } from "lucide-react";
 
 export function BracketSection() {
   const [filterLevel, setFilterLevel] = useState(LEVELS[0].value);
@@ -25,7 +25,7 @@ export function BracketSection() {
 
   const [slotAId, setSlotAId] = useState<string>("");
   const [slotBId, setSlotBId] = useState<string>("");
-  const [setupFilter, setSetupFilter] = useState<string>("ALL");
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const [lines, setLines] = useState<{startX: number, startY: number, endX: number, endY: number}[]>([]);
@@ -135,6 +135,18 @@ export function BracketSection() {
       await loadBracket();
     } catch (e) { setError(e instanceof Error ? e.message : "Gagal setup bracket"); }
     finally { setIsSaving(false); }
+  }
+
+  async function handleDeleteBracket() {
+    if (!selectedDisc) return;
+    if (!confirm("Hapus bracket ini? Semua match knockout yang ter-generate ikut terhapus.")) return;
+    setIsDeleting(true); setError("");
+    try {
+      await deleteBracket(selectedDisc);
+      await loadBracket();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Gagal menghapus bracket");
+    } finally { setIsDeleting(false); }
   }
 
   function openEditModal(node: BracketNode) {
@@ -288,13 +300,23 @@ export function BracketSection() {
         subtitle="Visualisasi dan susun urutan bracket secara fleksibel"
         action={
           selectedDisc ? (
-            <button onClick={() => setSetupModalOpen(true)}
-              className="flex items-center rounded-lg px-4 py-2 text-sm font-bold text-white transition-colors"
-              style={{ background: "#6C47D1" }}
-              onMouseEnter={(e) => (e.currentTarget.style.background = "#5b3cae")}
-              onMouseLeave={(e) => (e.currentTarget.style.background = "#6C47D1")}>
-              {bracketNodes.length === 0 ? "Setup Bracket" : "Reset & Buat Ulang Bracket"}
-            </button>
+            bracketNodes.length === 0 ? (
+              <button onClick={() => setSetupModalOpen(true)}
+                className="flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-bold text-white transition-colors"
+                style={{ background: "#6C47D1" }}
+                onMouseEnter={(e) => (e.currentTarget.style.background = "#5b3cae")}
+                onMouseLeave={(e) => (e.currentTarget.style.background = "#6C47D1")}>
+                <GitMerge size={16} /> Buat Bracket
+              </button>
+            ) : (
+              <button onClick={handleDeleteBracket} disabled={isDeleting}
+                className="flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-bold text-white transition-colors disabled:opacity-60"
+                style={{ background: "#DC2626" }}
+                onMouseEnter={(e) => (e.currentTarget.style.background = "#B91C1C")}
+                onMouseLeave={(e) => (e.currentTarget.style.background = "#DC2626")}>
+                <Trash2 size={16} /> {isDeleting ? "Menghapus..." : "Hapus Bracket"}
+              </button>
+            )
           ) : undefined
         }
       />
@@ -330,7 +352,7 @@ export function BracketSection() {
         <div className="flex flex-col items-center justify-center py-20 rounded-lg border bg-white" style={{ borderColor: "#E5E7EB" }}>
           <GitMerge className="mb-4 h-12 w-12 text-gray-400" />
           <p className="font-semibold" style={{ color: "#374151" }}>Bracket belum dibuat</p>
-          <p className="text-sm mt-1" style={{ color: "#6B7280" }}>Klik "Setup Bracket" untuk membuat struktur bagan fase gugur.</p>
+          <p className="text-sm mt-1" style={{ color: "#6B7280" }}>Klik "Buat Bracket" untuk membuat struktur bagan fase gugur.</p>
         </div>
       ) : roundsArray.length > 0 ? (
         <div className="overflow-x-auto rounded-xl border bg-[#F8FAFC] p-8" style={{ borderColor: "#E2E8F0" }}>
@@ -438,39 +460,58 @@ export function BracketSection() {
         title="Setup Bracket Knockout" size="md"
         footer={<div><ModalCancelButton onClick={() => { setSetupModalOpen(false); setError(""); setSelectedIds([]); }} /><ModalSubmitButton onClick={handleSetup} isLoading={isSaving} label="Generate Bracket" /></div>}>
         {error && <p className="mb-4 rounded-lg p-3 text-sm bg-red-50 text-red-600 border border-red-200">{error}</p>}
-        <p className="mb-4 text-sm" style={{ color: "#6B7280" }}>Pilih {DISCIPLINES.find(d => d.id === selectedDisc)?.isTeamEvent ? "tim" : "peserta"} yang masuk bracket. Urutan atau slot BYE bisa disesuaikan kembali nanti.</p>
-        
-        <div className="mb-4 flex gap-2">
-          {["ALL", "UNIVERSITAS", "SMA"].map(f => (
-            <button key={f} onClick={() => setSetupFilter(f)}
-              className="rounded-full border px-3 py-1 text-xs font-semibold transition-colors"
-              style={setupFilter === f 
-                ? { background: "#6C47D1", borderColor: "#6C47D1", color: "#fff" } 
-                : { background: "#fff", borderColor: "#E5E7EB", color: "#374151" }}>
-              {f === "ALL" ? "Semua Tingkat" : f === "UNIVERSITAS" ? "Universitas" : "SMA/SMK"}
+        <p className="mb-3 text-sm" style={{ color: "#6B7280" }}>Pilih {DISCIPLINES.find(d => d.id === selectedDisc)?.isTeamEvent ? "tim" : "peserta"} yang masuk bracket. Urutan klik menentukan urutan slot bracket — slot BYE bisa disesuaikan kembali nanti.</p>
+
+        <div className="mb-3 flex items-center justify-between">
+          <span className="rounded-full px-3 py-1 text-xs font-bold" style={{ background: "#F3F0FB", color: "#6C47D1" }}>
+            {selectedIds.length} dipilih
+          </span>
+          {selectedIds.length > 0 && (
+            <button onClick={() => setSelectedIds([])} className="text-xs font-semibold text-gray-400 hover:text-red-500 transition-colors">
+              Kosongkan pilihan
             </button>
-          ))}
+          )}
         </div>
 
-        <div className="space-y-2 max-h-64 overflow-y-auto">
-          {entityList.filter(item => {
-            if (setupFilter === "ALL") return true;
-            const type = "athletes" in item ? (item as Participant).institution?.type : (item as Team).institution?.type;
-            return type === setupFilter;
-          }).map(item => (
-            <label key={item.id} className="flex items-center gap-3 rounded-lg border px-4 py-3 cursor-pointer transition hover:bg-gray-50"
-              style={{ borderColor: "#F3F4F6" }}>
-              <input type="checkbox" checked={selectedIds.includes(item.id)}
-                onChange={e => setSelectedIds(prev => e.target.checked ? [...prev, item.id] : prev.filter(id => id !== item.id))}
-                className="h-4 w-4 rounded" />
-              <span className="text-sm" style={{ color: "#374151" }}>
-                <span className="text-xs font-bold mr-2 text-gray-400">
-                  [{"athletes" in item ? (item as Participant).institution?.type === "UNIVERSITAS" ? "Univ" : "SMA" : (item as Team).institution?.type === "UNIVERSITAS" ? "Univ" : "SMA"}]
+        <div className="space-y-2 max-h-72 overflow-y-auto pr-1" data-lenis-prevent>
+          {entityList.length === 0 ? (
+            <p className="py-8 text-center text-sm text-gray-400">Belum ada peserta terdaftar untuk kategori ini.</p>
+          ) : entityList.map(item => {
+            const order = selectedIds.indexOf(item.id);
+            const isChecked = order !== -1;
+            const isParticipant = "athletes" in item;
+            const p = item as Participant;
+            const names = isParticipant
+              ? (p.athletes?.map(a => a.athlete?.name).filter(Boolean).join(" / ") || p.institution?.name || "Peserta")
+              : ((item as Team).institution?.name ?? "Tim");
+            const subLabel = isParticipant
+              ? (p.institution?.name ?? "Instansi Tanpa Nama")
+              : "Tim Beregu";
+            return (
+              <button key={item.id} type="button"
+                onClick={() => setSelectedIds(prev => isChecked ? prev.filter(id => id !== item.id) : [...prev, item.id])}
+                className="flex w-full items-center gap-3 rounded-lg border px-3 py-2.5 text-left transition-colors"
+                style={isChecked
+                  ? { borderColor: "#6C47D1", background: "#F8F5FF" }
+                  : { borderColor: "#E5E7EB", background: "#fff" }}>
+                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold"
+                  style={isChecked
+                    ? { background: "#6C47D1", color: "#fff" }
+                    : { background: "#F3F4F6", color: "#9CA3AF" }}>
+                  {isChecked ? order + 1 : "·"}
                 </span>
-                {getLabel(item)}
-              </span>
-            </label>
-          ))}
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-sm font-semibold" style={{ color: "#1F2937" }}>{names}</span>
+                  <span className="block truncate text-xs" style={{ color: "#6B7280" }}>{subLabel}</span>
+                </span>
+                {item.seedNumber ? (
+                  <span className="shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold" style={{ background: "#FEF3C7", color: "#92400E" }}>
+                    Seed {item.seedNumber}
+                  </span>
+                ) : null}
+              </button>
+            );
+          })}
         </div>
       </Modal>
 

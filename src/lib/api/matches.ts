@@ -81,6 +81,9 @@ export const updateMatchSchedule = (
     body: JSON.stringify(data),
   });
 
+export const swapMatchSides = (id: string) =>
+  apiRequest<Match>(`/admin/matches/${id}/swap-sides`, { method: "PATCH" });
+
 export const finishMatch = (
   id: string,
   data: { 
