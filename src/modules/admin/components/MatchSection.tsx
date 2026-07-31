@@ -38,7 +38,11 @@ export function MatchSection() {
     status: 'FINISHED' | 'WALK_OVER' | 'RETIRED';
     winnerId: string;
     sets: { setNumber: number; scoreA: number; scoreB: number }[];
-  }>({ id: "", status: "FINISHED", winnerId: "", sets: [] });
+  }>({ id: "", status: "FINISHED", winnerId: "", sets: [
+    { setNumber: 1, scoreA: 0, scoreB: 0 },
+    { setNumber: 2, scoreA: 0, scoreB: 0 },
+    { setNumber: 3, scoreA: 0, scoreB: 0 },
+  ] });
   const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
 
   const load = useCallback(async (showSpinner = true) => {
@@ -340,9 +344,10 @@ export function MatchSection() {
                       <DashInput
                         type="number"
                         placeholder="Skor A"
-                        value={String(finishForm.sets[idx].scoreA)}
+                        value={String(finishForm.sets[idx]?.scoreA ?? 0)}
                         onChange={(v) => {
                           const newSets = [...finishForm.sets];
+                          if (!newSets[idx]) newSets[idx] = { setNumber: idx + 1, scoreA: 0, scoreB: 0 };
                           newSets[idx].scoreA = parseInt(v) || 0;
                           setFinishForm({ ...finishForm, sets: newSets });
                         }}
@@ -351,9 +356,10 @@ export function MatchSection() {
                       <DashInput
                         type="number"
                         placeholder="Skor B"
-                        value={String(finishForm.sets[idx].scoreB)}
+                        value={String(finishForm.sets[idx]?.scoreB ?? 0)}
                         onChange={(v) => {
                           const newSets = [...finishForm.sets];
+                          if (!newSets[idx]) newSets[idx] = { setNumber: idx + 1, scoreA: 0, scoreB: 0 };
                           newSets[idx].scoreB = parseInt(v) || 0;
                           setFinishForm({ ...finishForm, sets: newSets });
                         }}
