@@ -123,8 +123,8 @@ export function Navbar({ variant = "auto", forceInverted = false }: NavbarProps)
                     ${
                       inverted
                         ? isActive
-                          ? "bg-[#f3f4f6] text-[#1a162b]"
-                          : "text-[#99a1af] hover:text-[#1a162b] hover:bg-[#f3f4f6]"
+                          ? "text-[#1a162b]"
+                          : "text-[#99a1af] hover:text-[#1a162b]"
                         : isActive
                           ? "text-[#00F5D4] font-bold"
                           : "text-white/70 hover:text-white"
@@ -143,16 +143,16 @@ export function Navbar({ variant = "auto", forceInverted = false }: NavbarProps)
               /* Figma "Header [Light]" — solid black pill */
               <a
                 href="/pertandingan"
-                className="inline-flex items-center gap-1.5 rounded-full bg-[#1a162b] px-6 py-2 text-xs font-black italic text-white transition-opacity hover:opacity-90"
+                className="inline-flex items-center gap-1.5 rounded-full bg-[#1a162b] px-6 py-3 text-xs font-black italic text-white transition-opacity hover:opacity-90"
               >
                 Live Score
-                <span
+                {/* <span
                   className="text-sm font-black italic leading-none"
                   aria-hidden
                   style={{ fontVariationSettings: '"slnt" -14' }}
                 >
                   →
-                </span>
+                </span> */}
               </a>
             ) : (
               /* Figma "Header [Dark]" — violet-glow outline pill */
@@ -161,19 +161,19 @@ export function Navbar({ variant = "auto", forceInverted = false }: NavbarProps)
                 className={`
                   relative inline-flex items-center gap-1.5 overflow-hidden
                   rounded-full border border-white/50
-                  px-6 py-2 text-xs font-black italic text-[#f4f0ff]
+                  px-6 py-3 text-xs font-black italic text-[#f4f0ff]
                   shadow-[inset_0_0_12px_rgba(255,255,255,0.08),inset_0_-8px_32px_rgba(30,13,73,0.5)]
                   transition-opacity hover:opacity-90
                 `}
               >
                 Live Score
-                <span
+                {/* <span
                   className="text-sm font-black italic leading-none text-white"
                   aria-hidden
                   style={{ fontVariationSettings: '"slnt" -14' }}
                 >
                   →
-                </span>
+                </span> */}
               </a>
             )}
           </div>
@@ -208,7 +208,7 @@ export function Navbar({ variant = "auto", forceInverted = false }: NavbarProps)
           menuOpen ? "translate-x-0" : "pointer-events-none translate-x-full"
         }`}
       >
-        <nav className="flex flex-1 flex-col items-center justify-center gap-2 px-6 text-center">
+        <nav className="flex flex-1 flex-col items-center justify-center gap-4 px-6 text-center">
           {navLinks.map((link) => {
             const isActive = isActiveLink(link.href, pathname);
             return (
@@ -217,7 +217,7 @@ export function Navbar({ variant = "auto", forceInverted = false }: NavbarProps)
                 href={link.href}
                 aria-current={isActive ? "page" : undefined}
                 onClick={() => setMenuOpen(false)}
-                className={`text-3xl font-black italic transition-colors sm:text-4xl ${
+                className={`text-3xl font-black italic tracking-[-0.01em] leading-[40px] sm:text-4xl sm:leading-[48px] transition-colors ${
                   isActive
                     ? "text-[#7C5CFF]"
                     : "text-[#1a162b] hover:text-[#7C5CFF]"
@@ -234,7 +234,7 @@ export function Navbar({ variant = "auto", forceInverted = false }: NavbarProps)
             className="mt-8 inline-flex items-center gap-1.5 rounded-full bg-[#1a162b] px-6 py-3 text-base font-black italic text-white transition-opacity hover:opacity-90"
           >
             Lihat Live Score
-            <ArrowIcon />
+            {/* <ArrowIcon /> */}
           </a>
         </nav>
 

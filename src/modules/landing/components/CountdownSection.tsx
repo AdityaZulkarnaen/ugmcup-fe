@@ -30,10 +30,10 @@ function CountdownDigit({ digit, delay }: { digit: string; delay: number }) {
     <div
       data-aos="flip-up"
       data-aos-delay={`${delay}`}
-      className="relative flex h-24 w-18 items-center justify-center overflow-hidden rounded-[1.25rem] bg-[#8B5AF7] shadow-[0_8px_0_rgba(0,0,0,0.04),0_16px_18px_rgba(78,44,150,0.12)] sm:h-70 sm:w-54 sm:rounded-[1.9rem] md:h-36 md:w-30 md:rounded-[1.75rem]"
+      className="relative flex h-24 w-18 items-center justify-center overflow-hidden rounded-[1.25rem] bg-[#8B5AF7] shadow-[0_8px_4px_rgba(0,0,0,0.02),0_16px_30px_rgba(78,44,150,0.08)] sm:h-70 sm:w-54 sm:rounded-[1.9rem] md:h-36 md:w-30 md:rounded-[1.75rem]"
     >
       <span className="absolute inset-x-0 top-1/2 h-0.5 -translate-y-1/2 bg-[#F5FFB0]" />
-      <span className="relative translate-y-[0.08em] text-[2.8rem] font-black italic leading-none tracking-[-0.06em] text-[#DAFA78] sm:text-[7rem] md:text-[3.75rem]">
+      <span className="relative translate-y-[0.012em] text-[2.8rem] font-black italic leading-none tracking-[-0.06em] text-[#DAFA78] sm:text-[7rem] md:text-[3.75rem]">
         {digit}
       </span>
     </div>

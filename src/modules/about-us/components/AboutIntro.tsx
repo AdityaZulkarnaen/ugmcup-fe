@@ -3,17 +3,17 @@ import { SponsorRow } from "@/modules/landing/components/SponsorRow";
 export function AboutIntro() {
   return (
     <section className="bg-white py-20 text-center text-[#0B0B0F] sm:py-28">
-      <div className="mx-auto flex w-[87.5%] max-w-4xl flex-col items-center">
+      <div className="mx-auto flex w-[87.5%] max-w-[1041px] flex-col items-center">
         <h2
           data-aos="fade-up"
           data-aos-duration="900"
-          className="text-3xl font-black italic leading-[1.15] sm:text-5xl lg:text-6xl"
+          className="text-3xl font-black italic leading-tight tracking-tight sm:text-5xl sm:leading-[1.1] lg:text-[72px] lg:leading-[70px] lg:tracking-[-2.25px]"
         >
-          Kami <span className="text-[#7C5CFF]">menghadirkan</span> panggung
-          kejuaraan <span className="text-[#7C5CFF]">nasional</span> tempat para
+          Kami <span className="text-[#8b5cf6]">menghadirkan</span> panggung
+          kejuaraan <span className="text-[#8b5cf6]">nasional</span> tempat para
           juara muda bertarung demi kehormatan almamater. Kami percaya{" "}
-          <span className="text-[#7C5CFF]">kemenangan</span> sejati lahir dari
-          setiap gerak yang tak kenal menyerah…
+          <span className="text-[#8b5cf6]">kemenangan</span> sejati lahir dari
+          setiap gerak yang tak kenal menyerah...
         </h2>
 
         <p

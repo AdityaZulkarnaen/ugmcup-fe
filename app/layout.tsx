@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Montserrat } from "next/font/google";
 import { ScrollAnimator } from "@/components/layout/ScrollAnimator";
+import { SmoothScroll } from "@/components/layout/SmoothScroll";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { organizationSchema, schemaGraph, websiteSchema } from "@/lib/schema";
 import {
@@ -126,9 +127,12 @@ export default function RootLayout({
             __html: `<style>[data-aos]{opacity:1!important;transform:none!important;filter:none!important}</style>`,
           }}
         />
-        <ScrollAnimator />
-        {children}
+        <SmoothScroll>
+          <ScrollAnimator />
+          {children}
+        </SmoothScroll>
       </body>
     </html>
   );
 }
+

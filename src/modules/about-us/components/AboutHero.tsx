@@ -48,7 +48,7 @@ export function AboutHero() {
           data-aos="blur-in"
           data-aos-delay="120"
           data-aos-duration="900"
-          className="text-5xl font-black italic leading-[0.95] text-white sm:text-8xl lg:text-[8rem]"
+          className="text-5xl font-black italic leading-[0.95] text-white sm:text-7xl md:text-8xl lg:text-[165.6px] lg:leading-[127px] lg:tracking-[-5.4px]"
         >
           Welcome to
           <br />

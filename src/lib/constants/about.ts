@@ -24,21 +24,21 @@ export interface AboutPillar {
 export const aboutPillars: AboutPillar[] = [
   {
     id: "ugm-cup",
-    logo: "/images/global/logo-icon.svg",
+    logo: "/images/global/logo-ugmcup.webp",
     forceWhite: true,
     title: "UGM CUP 2026",
     caption: "Identitas Resmi Turnamen",
   },
   {
     id: "ugm",
-    logo: "/images/global/ugm-icon.svg",
+    logo: "/images/global/logo-ugm.webp",
     title: "Universitas Gadjah Mada",
     caption: "Perguruan Tinggi Naungan",
   },
   {
     id: "ukm",
     // TODO: ganti dengan lambang UKM Bulutangkis UGM begitu asetnya tersedia.
-    logo: "/images/global/ukmungu.svg",
+    logo: "/images/global/logo-ukm.webp",
     title: "UKM Bulutangkis UGM",
     caption: "Pelaksana & Penanggung Jawab Event",
   },
