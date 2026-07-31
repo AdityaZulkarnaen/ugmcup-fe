@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { getPublicMatches } from "@/lib/api/matches";
 import { cacheKeys } from "@/lib/api/cache";
 import { useCachedQuery } from "@/lib/hooks/useCachedQuery";
@@ -8,9 +8,13 @@ import type { Match } from "@/lib/types";
 import { DISCIPLINES, LEVELS } from "@/lib/constants";
 import { FilterSelect } from "@/components/ui/FilterSelect";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { Pagination } from "@/components/ui/Pagination";
 import { ScheduleRow } from "./ScheduleRow";
 import { SkeletonPanel } from "@/components/ui/Skeleton";
 import { FilterBarSkeleton, ScheduleRowSkeleton } from "./MatchSkeletons";
+
+/** Jumlah pertandingan per halaman — grup jam tetap utuh di dalam halaman. */
+const PAGE_SIZE = 12;
 
 interface SchedulePanelProps {
   isLight?: boolean;
@@ -47,6 +51,8 @@ export function SchedulePanel({ isLight = false }: SchedulePanelProps) {
   const [day, setDay] = useState("all");
   const [category, setCategory] = useState("all");
   const [level, setLevel] = useState("all");
+  const [page, setPage] = useState(1);
+  const listTopRef = useRef<HTMLDivElement>(null);
 
   const { data, isLoading: loading } = useCachedQuery<Match[]>(
     cacheKeys.matches,
@@ -147,7 +153,7 @@ export function SchedulePanel({ isLight = false }: SchedulePanelProps) {
   }, [allMatches, day, category, level]);
 
   // Kelompokkan per jam main: satu header waktu, lalu kartu-kartunya di bawah.
-  const timeGroups = useMemo(() => {
+  const allTimeGroups = useMemo(() => {
     const groups = new Map<string, TimeGroup>();
 
     filteredMatches.forEach((match) => {
@@ -171,6 +177,45 @@ export function SchedulePanel({ isLight = false }: SchedulePanelProps) {
     return Array.from(groups.values());
   }, [filteredMatches, day]);
 
+  // Bagi jadi halaman tanpa memotong satu slot jam — jumlah kartu per halaman
+  // boleh sedikit meleset dari PAGE_SIZE demi header waktu yang utuh.
+  const pages = useMemo(() => {
+    const result: TimeGroup[][] = [];
+    let current: TimeGroup[] = [];
+    let count = 0;
+
+    allTimeGroups.forEach((group) => {
+      if (current.length > 0 && count + group.matches.length > PAGE_SIZE) {
+        result.push(current);
+        current = [];
+        count = 0;
+      }
+      current.push(group);
+      count += group.matches.length;
+    });
+
+    if (current.length > 0) result.push(current);
+    return result;
+  }, [allTimeGroups]);
+
+  const totalPages = Math.max(1, pages.length);
+  const safePage = Math.min(page, totalPages);
+  const timeGroups = pages[safePage - 1] ?? [];
+
+  // Nomor kartu pertama di halaman ini — untuk teks "Menampilkan x–y dari z".
+  const pageStart = pages
+    .slice(0, safePage - 1)
+    .reduce((sum, groups) => sum + groups.reduce((n, g) => n + g.matches.length, 0), 0);
+  const pageCount = timeGroups.reduce((n, g) => n + g.matches.length, 0);
+
+  // Ganti filter selalu balik ke halaman pertama supaya hasilnya kelihatan.
+  const resetPage = () => setPage(1);
+
+  const goToPage = (next: number) => {
+    setPage(next);
+    listTopRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
   const hasActiveFilter = day !== "all" || category !== "all" || level !== "all";
 
   if (loading) {
@@ -187,13 +232,16 @@ export function SchedulePanel({ isLight = false }: SchedulePanelProps) {
   }
 
   return (
-    <div className="flex flex-col gap-5">
+    <div ref={listTopRef} className="flex scroll-mt-24 flex-col gap-5">
       {/* Filters */}
       <div className="grid grid-cols-2 gap-2.5 sm:flex">
         <FilterSelect
           options={dayOptions}
           value={day}
-          onChange={setDay}
+          onChange={(value) => {
+            setDay(value);
+            resetPage();
+          }}
           label="Filter hari"
           accent="mint"
           accented={day !== "all"}
@@ -206,7 +254,10 @@ export function SchedulePanel({ isLight = false }: SchedulePanelProps) {
         <FilterSelect
           options={categoryOptions}
           value={category}
-          onChange={setCategory}
+          onChange={(value) => {
+            setCategory(value);
+            resetPage();
+          }}
           label="Filter kategori"
           accent="violet"
           accented={category !== "all"}
@@ -219,7 +270,10 @@ export function SchedulePanel({ isLight = false }: SchedulePanelProps) {
         <FilterSelect
           options={levelOptions}
           value={level}
-          onChange={setLevel}
+          onChange={(value) => {
+            setLevel(value);
+            resetPage();
+          }}
           label="Filter jenjang"
           accent="mint"
           accented={level !== "all"}
@@ -280,6 +334,22 @@ export function SchedulePanel({ isLight = false }: SchedulePanelProps) {
               : "Panitia belum merilis jadwal pertandingan."
           }
           isLight={isLight}
+        />
+      )}
+
+      {filteredMatches.length > 0 && (
+        <Pagination
+          page={safePage}
+          totalPages={totalPages}
+          onPageChange={goToPage}
+          label="Navigasi halaman jadwal pertandingan"
+          isLight={isLight}
+          summary={
+            <>
+              Menampilkan {pageStart + 1}–{pageStart + pageCount} dari{" "}
+              {filteredMatches.length} pertandingan
+            </>
+          }
         />
       )}
     </div>

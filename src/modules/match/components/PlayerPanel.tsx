@@ -7,7 +7,8 @@ import { cacheKeys } from "@/lib/api/cache";
 import { useCachedQuery } from "@/lib/hooks/useCachedQuery";
 import type { Athlete, Match } from "@/lib/types";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { Search, ChevronLeft, ChevronRight } from "lucide-react";
+import { Pagination } from "@/components/ui/Pagination";
+import { Search } from "lucide-react";
 
 const PAGE_SIZE = 10;
 
@@ -159,17 +160,6 @@ export function PlayerPanel({ isLight = false }: PlayerPanelProps) {
   const safePage = Math.min(page, totalPages);
   const pageStart = (safePage - 1) * PAGE_SIZE;
   const pagedStats = filteredStats.slice(pageStart, pageStart + PAGE_SIZE);
-
-  // Deret nomor halaman dengan elipsis: 1 … 4 5 6 … 12
-  const pageItems = useMemo(() => {
-    return Array.from({ length: totalPages }, (_, i) => i + 1)
-      .filter((p) => p === 1 || p === totalPages || Math.abs(p - safePage) <= 1)
-      .reduce<(number | "ellipsis")[]>((acc, p, idx, arr) => {
-        if (idx > 0 && p - (arr[idx - 1] as number) > 1) acc.push("ellipsis");
-        acc.push(p);
-        return acc;
-      }, []);
-  }, [totalPages, safePage]);
 
   if (isLoading) {
     return (
@@ -390,79 +380,19 @@ export function PlayerPanel({ isLight = false }: PlayerPanelProps) {
 
       {/* Pagination */}
       {filteredStats.length > 0 && (
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
-          <span
-            className={`text-xs ${
-              isLight ? "text-[rgba(26,22,43,0.5)]" : "text-[#7A7A83]"
-            }`}
-          >
-            Menampilkan {pageStart + 1}–{pageStart + pagedStats.length} dari{" "}
-            {filteredStats.length} atlet
-          </span>
-
-          {totalPages > 1 && (
-            <nav
-              aria-label="Navigasi halaman statistik pemain"
-              className="flex items-center gap-1"
-            >
-              <button
-                type="button"
-                onClick={() => setPage(Math.max(1, safePage - 1))}
-                disabled={safePage === 1}
-                aria-label="Halaman sebelumnya"
-                className={`flex h-8 w-8 items-center justify-center rounded-lg border transition disabled:opacity-40 disabled:cursor-not-allowed ${isLight
-                  ? "border-black/10 text-[#1a162b] hover:enabled:bg-black/5"
-                  : "border-white/10 text-white hover:enabled:bg-white/10"
-                  }`}
-              >
-                <ChevronLeft className="h-3.5 w-3.5" />
-              </button>
-
-              {pageItems.map((p, i) =>
-                p === "ellipsis" ? (
-                  <span
-                    key={`ellipsis-${i}`}
-                    className={`px-1 text-xs ${
-                      isLight ? "text-[rgba(26,22,43,0.4)]" : "text-[#6B6B73]"
-                    }`}
-                  >
-                    …
-                  </span>
-                ) : (
-                  <button
-                    key={p}
-                    type="button"
-                    onClick={() => setPage(p)}
-                    aria-current={p === safePage ? "page" : undefined}
-                    className={`flex h-8 w-8 items-center justify-center rounded-lg border text-xs font-semibold transition ${p === safePage
-                      ? isLight
-                        ? "border-[#6C47D1] bg-[#6C47D1] text-white"
-                        : "border-[#8b5cf6] bg-[#8b5cf6] text-white"
-                      : isLight
-                        ? "border-black/10 text-[rgba(26,22,43,0.7)] hover:bg-black/5"
-                        : "border-white/10 text-[#8A8A93] hover:bg-white/10"
-                      }`}
-                  >
-                    {p}
-                  </button>
-                )
-              )}
-
-              <button
-                type="button"
-                onClick={() => setPage(Math.min(totalPages, safePage + 1))}
-                disabled={safePage === totalPages}
-                aria-label="Halaman berikutnya"
-                className={`flex h-8 w-8 items-center justify-center rounded-lg border transition disabled:opacity-40 disabled:cursor-not-allowed ${isLight
-                  ? "border-black/10 text-[#1a162b] hover:enabled:bg-black/5"
-                  : "border-white/10 text-white hover:enabled:bg-white/10"
-                  }`}
-              >
-                <ChevronRight className="h-3.5 w-3.5" />
-              </button>
-            </nav>
-          )}
-        </div>
+        <Pagination
+          page={safePage}
+          totalPages={totalPages}
+          onPageChange={setPage}
+          label="Navigasi halaman statistik pemain"
+          isLight={isLight}
+          summary={
+            <>
+              Menampilkan {pageStart + 1}–{pageStart + pagedStats.length} dari{" "}
+              {filteredStats.length} atlet
+            </>
+          }
+        />
       )}
     </div>
   );
