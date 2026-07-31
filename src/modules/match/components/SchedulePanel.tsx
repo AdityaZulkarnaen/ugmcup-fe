@@ -1,10 +1,13 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { getMatches } from "@/lib/api/matches";
+import { useMemo, useState } from "react";
+import { getPublicMatches } from "@/lib/api/matches";
+import { cacheKeys } from "@/lib/api/cache";
+import { useCachedQuery } from "@/lib/hooks/useCachedQuery";
 import type { Match } from "@/lib/types";
 import { DISCIPLINES, LEVELS } from "@/lib/constants";
 import { FilterSelect } from "@/components/ui/FilterSelect";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { ScheduleRow } from "./ScheduleRow";
 import { SkeletonPanel } from "@/components/ui/Skeleton";
 import { FilterBarSkeleton, ScheduleRowSkeleton } from "./MatchSkeletons";
@@ -13,32 +16,43 @@ interface SchedulePanelProps {
   isLight?: boolean;
 }
 
+interface TimeGroup {
+  key: string;
+  timeLabel: string;
+  dateLabel?: string;
+  matches: Match[];
+}
+
+/** Pecah jadwal jadi slot jam lokal — jadi dasar pengelompokan kartu. */
+function toTimeSlot(scheduledTime?: string) {
+  if (!scheduledTime) return null;
+  const date = new Date(scheduledTime);
+  if (Number.isNaN(date.getTime())) return null;
+
+  const hours = String(date.getHours()).padStart(2, "0");
+  const minutes = String(date.getMinutes()).padStart(2, "0");
+
+  return {
+    key: `${date.toDateString()} ${hours}:${minutes}`,
+    timeLabel: `${hours}:${minutes}`,
+    dateLabel: date.toLocaleDateString("id-ID", {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+    }),
+  };
+}
+
 export function SchedulePanel({ isLight = false }: SchedulePanelProps) {
-  const [allMatches, setAllMatches] = useState<Match[]>([]);
-  const [loading, setLoading] = useState(true);
   const [day, setDay] = useState("all");
   const [category, setCategory] = useState("all");
   const [level, setLevel] = useState("all");
 
-  useEffect(() => {
-    let isMounted = true;
-    async function load() {
-      try {
-        const data = await getMatches();
-        if (isMounted) {
-          setAllMatches(data || []);
-        }
-      } catch (err) {
-        console.error("Gagal mengambil jadwal:", err);
-      } finally {
-        if (isMounted) setLoading(false);
-      }
-    }
-    load();
-    return () => {
-      isMounted = false;
-    };
-  }, []);
+  const { data, isLoading: loading } = useCachedQuery<Match[]>(
+    cacheKeys.matches,
+    () => getPublicMatches()
+  );
+  const allMatches = useMemo(() => data ?? [], [data]);
 
   // Compute available unique dates from matches
   const dayOptions = useMemo(() => {
@@ -123,23 +137,41 @@ export function SchedulePanel({ isLight = false }: SchedulePanelProps) {
       return true;
     });
 
+    // Urut kronologis — jam jadi tulang punggung tampilan, lalu nomor lapangan.
     return valid.sort((a, b) => {
-      const getStatusScore = (status: string) => {
-        if (status === "ONGOING") return 0;
-        if (status === "SCHEDULED") return 1;
-        return 2; // FINISHED or RETIRED
-      };
-
-      const scoreA = getStatusScore(a.status);
-      const scoreB = getStatusScore(b.status);
-
-      if (scoreA !== scoreB) return scoreA - scoreB;
-
       const timeA = a.scheduledTime ? new Date(a.scheduledTime).getTime() : Infinity;
       const timeB = b.scheduledTime ? new Date(b.scheduledTime).getTime() : Infinity;
-      return timeA - timeB;
+      if (timeA !== timeB) return timeA - timeB;
+      return (a.courtNumber ?? 99) - (b.courtNumber ?? 99);
     });
   }, [allMatches, day, category, level]);
+
+  // Kelompokkan per jam main: satu header waktu, lalu kartu-kartunya di bawah.
+  const timeGroups = useMemo(() => {
+    const groups = new Map<string, TimeGroup>();
+
+    filteredMatches.forEach((match) => {
+      const slot = toTimeSlot(match.scheduledTime);
+      const key = slot?.key ?? "tba";
+
+      let group = groups.get(key);
+      if (!group) {
+        group = {
+          key,
+          timeLabel: slot?.timeLabel ?? "Waktu menyusul",
+          // Tanggal hanya perlu ditampilkan saat semua hari digabung.
+          dateLabel: day === "all" ? slot?.dateLabel : undefined,
+          matches: [],
+        };
+        groups.set(key, group);
+      }
+      group.matches.push(match);
+    });
+
+    return Array.from(groups.values());
+  }, [filteredMatches, day]);
+
+  const hasActiveFilter = day !== "all" || category !== "all" || level !== "all";
 
   if (loading) {
     return (
@@ -196,23 +228,59 @@ export function SchedulePanel({ isLight = false }: SchedulePanelProps) {
         />
       </div>
 
-      {/* List */}
-      {filteredMatches.length > 0 ? (
-        <div className="flex flex-col gap-2.5">
-          {filteredMatches.map((match) => (
-            <ScheduleRow key={match.id} match={match} isLight={isLight} />
+      {/* List — dikelompokkan per jam main */}
+      {timeGroups.length > 0 ? (
+        <div className="flex flex-col gap-7">
+          {timeGroups.map((group) => (
+            <section key={group.key} className="flex flex-col gap-2.5">
+              {/* Header waktu */}
+              <div className="flex items-baseline gap-3">
+                <h3
+                  className={`text-lg font-extrabold italic tabular-nums leading-none tracking-tight ${
+                    isLight ? "text-[#6C47D1]" : "text-[#34E5A6]"
+                  }`}
+                >
+                  {group.timeLabel}
+                </h3>
+                {group.dateLabel && (
+                  <span
+                    className={`text-[11px] font-medium ${
+                      isLight ? "text-[rgba(26,22,43,0.4)]" : "text-[#7A7A83]"
+                    }`}
+                  >
+                    {group.dateLabel}
+                  </span>
+                )}
+                <span
+                  className={`h-px flex-1 ${
+                    isLight ? "bg-[rgba(0,0,0,0.08)]" : "bg-white/8"
+                  }`}
+                />
+                <span
+                  className={`shrink-0 text-[11px] font-semibold tabular-nums ${
+                    isLight ? "text-[rgba(26,22,43,0.35)]" : "text-[#6B6B73]"
+                  }`}
+                >
+                  {group.matches.length} partai
+                </span>
+              </div>
+
+              {group.matches.map((match) => (
+                <ScheduleRow key={match.id} match={match} isLight={isLight} />
+              ))}
+            </section>
           ))}
         </div>
       ) : (
-        <div
-          className={`flex min-h-40 items-center justify-center rounded-2xl border border-dashed p-10 text-center text-sm ${
-            isLight
-              ? "border-[rgba(0,0,0,0.08)] bg-[rgba(0,0,0,0.02)] text-[rgba(26,22,43,0.4)]"
-              : "border-white/10 bg-white/[0.01] text-[#7A7A83]"
-          }`}
-        >
-          Tidak ada pertandingan untuk filter ini.
-        </div>
+        <EmptyState
+          title="Jadwal pertandingan belum tersedia"
+          description={
+            hasActiveFilter
+              ? "Tidak ada pertandingan yang cocok dengan filter yang dipilih."
+              : "Panitia belum merilis jadwal pertandingan."
+          }
+          isLight={isLight}
+        />
       )}
     </div>
   );

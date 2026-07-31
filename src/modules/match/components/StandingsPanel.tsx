@@ -1,11 +1,14 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useState, useMemo } from "react";
 import Image from "next/image";
 import { DISCIPLINES } from "@/lib/constants";
 import { getStandings } from "@/lib/api/admin";
+import { cacheKeys } from "@/lib/api/cache";
+import { useCachedQuery } from "@/lib/hooks/useCachedQuery";
 import type { Standing } from "@/lib/types";
 import { FilterSelect } from "@/components/ui/FilterSelect";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { SkeletonPanel } from "@/components/ui/Skeleton";
 import { StandingsGroupSkeleton } from "./MatchSkeletons";
 
@@ -238,28 +241,11 @@ export function StandingsPanel({ isLight = false }: StandingsPanelProps) {
   const [disciplineId, setDisciplineId] = useState(
     teamDisciplines[0]?.id || ""
   );
-  const [standings, setStandings] = useState<Standing[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    if (!disciplineId) return;
-    let isMounted = true;
-    async function load() {
-      setLoading(true);
-      try {
-        const data = await getStandings(disciplineId);
-        if (isMounted) setStandings(data || []);
-      } catch (err) {
-        console.error("Gagal mengambil data klasemen:", err);
-      } finally {
-        if (isMounted) setLoading(false);
-      }
-    }
-    load();
-    return () => {
-      isMounted = false;
-    };
-  }, [disciplineId]);
+  const { data, isLoading: loading } = useCachedQuery<Standing[]>(
+    disciplineId ? cacheKeys.standings(disciplineId) : null,
+    () => getStandings(disciplineId)
+  );
+  const standings = useMemo(() => data ?? [], [data]);
 
   // Group standings by groupName
   const groupedStandings = useMemo(() => {
@@ -302,15 +288,11 @@ export function StandingsPanel({ isLight = false }: StandingsPanelProps) {
           />
         ))
       ) : (
-        <div
-          className={`flex min-h-40 items-center justify-center rounded-2xl border border-dashed p-10 text-center text-sm ${
-            isLight
-              ? "border-[rgba(0,0,0,0.08)] bg-[rgba(0,0,0,0.02)] text-[rgba(26,22,43,0.4)]"
-              : "border-white/10 bg-white/[0.01] text-[#7A7A83]"
-          }`}
-        >
-          Klasemen belum disetup untuk kategori ini.
-        </div>
+        <EmptyState
+          title="Klasemen belum tersedia"
+          description="Panitia belum menyusun klasemen grup untuk kategori ini."
+          isLight={isLight}
+        />
       )}
 
       <p

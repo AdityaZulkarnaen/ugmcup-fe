@@ -1,8 +1,10 @@
 import type { StaticImageData } from "next/image";
-// Stand-ins until the event photos land in `public/images/about-us/`.
-import galeri1 from "../../../public/images/news/news-1.webp";
-import galeri2 from "../../../public/images/news/news-2.webp";
-import galeri3 from "../../../public/images/news/news-3.webp";
+import galeri1 from "../../../public/images/about/about1.png";
+import galeri2 from "../../../public/images/about/about2.png";
+import galeri3 from "../../../public/images/about/about3.png";
+import galeri4 from "../../../public/images/about/about4.png";
+import galeri5 from "../../../public/images/about/about5.png";
+import galeri6 from "../../../public/images/about/about6.png";
 
 /**
  * One of the three purple cards under "Di Balik UGM CUP" — the bodies behind
@@ -37,7 +39,6 @@ export const aboutPillars: AboutPillar[] = [
   },
   {
     id: "ukm",
-    // TODO: ganti dengan lambang UKM Bulutangkis UGM begitu asetnya tersedia.
     logo: "/images/global/logo-ukm.webp",
     title: "UKM Bulutangkis UGM",
     caption: "Pelaksana & Penanggung Jawab Event",
@@ -59,23 +60,37 @@ export interface GalleryPhoto {
 
 /**
  * Gallery strip. Photos of any size can be dropped in — add the import and an
- * entry, nothing else needs adjusting. The ones below are stand-ins borrowed
- * from the news set; swap them for the real shots in `public/images/about-us/`.
+ * entry, nothing else needs adjusting.
  */
 export const aboutGallery: GalleryPhoto[] = [
   {
     id: "galeri-1",
     src: galeri1,
-    alt: "Atlet UGM CUP bersiap sebelum pertandingan",
+    alt: "Deskripsi foto 1",
   },
   {
     id: "galeri-2",
     src: galeri2,
-    alt: "Peserta dan panitia UGM CUP di dalam gedung olahraga",
+    alt: "Deskripsi foto 2",
   },
   {
     id: "galeri-3",
     src: galeri3,
-    alt: "Suasana pertandingan UGM CUP",
+    alt: "Deskripsi foto 3",
+  },
+  {
+    id: "galeri-4",
+    src: galeri4,
+    alt: "Deskripsi foto 4",
+  },
+  {
+    id: "galeri-5",
+    src: galeri5,
+    alt: "Deskripsi foto 5",
+  },
+  {
+    id: "galeri-6",
+    src: galeri6,
+    alt: "Deskripsi foto 6",
   },
 ];

@@ -102,19 +102,6 @@ export function ScheduleRow({ match, isLight = false }: ScheduleRowProps) {
   const badge = badgeMap[match.status] || badgeMap.SCHEDULED;
   const isLive = match.status === "ONGOING";
 
-  // Time format
-  let timeStr = "TBA";
-  if (match.scheduledTime) {
-    try {
-      const d = new Date(match.scheduledTime);
-      const hours = String(d.getHours()).padStart(2, "0");
-      const minutes = String(d.getMinutes()).padStart(2, "0");
-      timeStr = `${hours}:${minutes}`;
-    } catch {
-      timeStr = "TBA";
-    }
-  }
-
   // Team / Participant A
   const nameA =
     match.participantA?.institution?.name ||
@@ -197,25 +184,9 @@ export function ScheduleRow({ match, isLight = false }: ScheduleRowProps) {
       )}
 
       <div className="flex items-center gap-3 sm:gap-4">
-        {/* Time */}
-        <span
-          className={`hidden w-12 shrink-0 text-sm font-bold tabular-nums sm:block ${
-            isLight ? "text-[#1a162b]" : "text-white"
-          }`}
-        >
-          {timeStr}
-        </span>
-
-        {/* Meta + players */}
+        {/* Meta + players — jam tidak dicetak di sini, sudah jadi header grup */}
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-            <span
-              className={`text-sm font-bold tabular-nums sm:hidden ${
-                isLight ? "text-[#1a162b]" : "text-white"
-              }`}
-            >
-              {timeStr}
-            </span>
             <span
               className={`rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${
                 isLight

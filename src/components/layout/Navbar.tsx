@@ -145,7 +145,7 @@ export function Navbar({ variant = "auto", forceInverted = false }: NavbarProps)
                 href="/pertandingan"
                 className="inline-flex items-center gap-1.5 rounded-full bg-[#1a162b] px-6 py-3 text-xs font-black italic text-white transition-opacity hover:opacity-90"
               >
-                Live Score
+                Pertandingan
                 {/* <span
                   className="text-sm font-black italic leading-none"
                   aria-hidden
@@ -166,7 +166,7 @@ export function Navbar({ variant = "auto", forceInverted = false }: NavbarProps)
                   transition-opacity hover:opacity-90
                 `}
               >
-                Live Score
+                Pertandingan
                 {/* <span
                   className="text-sm font-black italic leading-none text-white"
                   aria-hidden
@@ -233,7 +233,7 @@ export function Navbar({ variant = "auto", forceInverted = false }: NavbarProps)
             onClick={() => setMenuOpen(false)}
             className="mt-8 inline-flex items-center gap-1.5 rounded-full bg-[#1a162b] px-6 py-3 text-base font-black italic text-white transition-opacity hover:opacity-90"
           >
-            Lihat Live Score
+            Lihat Pertandingan
             {/* <ArrowIcon /> */}
           </a>
         </nav>

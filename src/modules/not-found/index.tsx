@@ -114,7 +114,7 @@ export default function NotFoundPage() {
             variant="outline"
             className="px-6 py-3 text-base font-black italic"
           >
-            Lihat Live Score
+            Lihat Pertandingan
             <ArrowIcon className="font-black" />
           </Button>
         </div>
