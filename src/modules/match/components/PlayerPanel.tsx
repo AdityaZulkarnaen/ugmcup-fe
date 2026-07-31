@@ -1,8 +1,10 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { getAthletes } from "@/lib/api/admin";
 import { getMatches } from "@/lib/api/matches";
+import { cacheKeys } from "@/lib/api/cache";
+import { useCachedQuery } from "@/lib/hooks/useCachedQuery";
 import type { Athlete, Match } from "@/lib/types";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Search, ChevronLeft, ChevronRight } from "lucide-react";
@@ -24,29 +26,20 @@ interface PlayerPanelProps {
 }
 
 export function PlayerPanel({ isLight = false }: PlayerPanelProps) {
-  const [athletes, setAthletes] = useState<Athlete[]>([]);
-  const [matches, setMatches] = useState<Match[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [levelFilter, setLevelFilter] = useState<string>("ALL");
   const [page, setPage] = useState(1);
 
-  useEffect(() => {
-    async function loadData() {
-      setIsLoading(true);
-      try {
-        const [aRes, mRes] = await Promise.all([
-          getAthletes(),
-          getMatches(),
-        ]);
-        setAthletes(aRes || []);
-        setMatches(mRes || []);
-      } finally {
-        setIsLoading(false);
-      }
-    }
-    loadData();
-  }, []);
+  const athletesQuery = useCachedQuery<Athlete[]>(cacheKeys.athletes, () =>
+    getAthletes()
+  );
+  const matchesQuery = useCachedQuery<Match[]>(cacheKeys.matches, () =>
+    getMatches()
+  );
+
+  const isLoading = athletesQuery.isLoading || matchesQuery.isLoading;
+  const athletes = useMemo(() => athletesQuery.data ?? [], [athletesQuery.data]);
+  const matches = useMemo(() => matchesQuery.data ?? [], [matchesQuery.data]);
 
   const statsList = useMemo(() => {
     // Map athleteId -> Stats

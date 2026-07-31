@@ -3,6 +3,8 @@
 import { useState, useMemo, useEffect } from "react";
 import { DISCIPLINES, LEVELS } from "@/lib/constants";
 import { getBracket } from "@/lib/api/admin";
+import { cacheKeys } from "@/lib/api/cache";
+import { useCachedQuery } from "@/lib/hooks/useCachedQuery";
 import type { BracketNode } from "@/lib/types";
 import { FilterSelect } from "@/components/ui/FilterSelect";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -222,28 +224,11 @@ export function BracketPanel({
     }
   }, [availableDisciplines, disciplineId, initialDisciplineId]);
 
-  const [bracketNodes, setBracketNodes] = useState<BracketNode[]>([]);
-  const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    if (!disciplineId) return;
-    let isMounted = true;
-    async function load() {
-      setLoading(true);
-      try {
-        const data = await getBracket(disciplineId);
-        if (isMounted) setBracketNodes(data || []);
-      } catch {
-        if (isMounted) setBracketNodes([]);
-      } finally {
-        if (isMounted) setLoading(false);
-      }
-    }
-    load();
-    return () => {
-      isMounted = false;
-    };
-  }, [disciplineId]);
+  const { data, isLoading: loading } = useCachedQuery<BracketNode[]>(
+    disciplineId ? cacheKeys.bracket(disciplineId) : null,
+    () => getBracket(disciplineId)
+  );
+  const bracketNodes = useMemo(() => data ?? [], [data]);
 
   const categoryBracket = useMemo(() => buildCategoryBracket(disciplineId, bracketNodes), [disciplineId, bracketNodes]);
 

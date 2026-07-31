@@ -1,7 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { getMatches } from "@/lib/api/matches";
+import { cacheKeys } from "@/lib/api/cache";
+import { useCachedQuery } from "@/lib/hooks/useCachedQuery";
 import type { Match } from "@/lib/types";
 import { DISCIPLINES, LEVELS } from "@/lib/constants";
 import { FilterSelect } from "@/components/ui/FilterSelect";
@@ -15,31 +17,15 @@ interface SchedulePanelProps {
 }
 
 export function SchedulePanel({ isLight = false }: SchedulePanelProps) {
-  const [allMatches, setAllMatches] = useState<Match[]>([]);
-  const [loading, setLoading] = useState(true);
   const [day, setDay] = useState("all");
   const [category, setCategory] = useState("all");
   const [level, setLevel] = useState("all");
 
-  useEffect(() => {
-    let isMounted = true;
-    async function load() {
-      try {
-        const data = await getMatches();
-        if (isMounted) {
-          setAllMatches(data || []);
-        }
-      } catch (err) {
-        console.error("Gagal mengambil jadwal:", err);
-      } finally {
-        if (isMounted) setLoading(false);
-      }
-    }
-    load();
-    return () => {
-      isMounted = false;
-    };
-  }, []);
+  const { data, isLoading: loading } = useCachedQuery<Match[]>(
+    cacheKeys.matches,
+    () => getMatches()
+  );
+  const allMatches = useMemo(() => data ?? [], [data]);
 
   // Compute available unique dates from matches
   const dayOptions = useMemo(() => {

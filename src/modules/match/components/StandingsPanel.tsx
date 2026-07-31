@@ -1,9 +1,11 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useState, useMemo } from "react";
 import Image from "next/image";
 import { DISCIPLINES } from "@/lib/constants";
 import { getStandings } from "@/lib/api/admin";
+import { cacheKeys } from "@/lib/api/cache";
+import { useCachedQuery } from "@/lib/hooks/useCachedQuery";
 import type { Standing } from "@/lib/types";
 import { FilterSelect } from "@/components/ui/FilterSelect";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -239,28 +241,11 @@ export function StandingsPanel({ isLight = false }: StandingsPanelProps) {
   const [disciplineId, setDisciplineId] = useState(
     teamDisciplines[0]?.id || ""
   );
-  const [standings, setStandings] = useState<Standing[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    if (!disciplineId) return;
-    let isMounted = true;
-    async function load() {
-      setLoading(true);
-      try {
-        const data = await getStandings(disciplineId);
-        if (isMounted) setStandings(data || []);
-      } catch (err) {
-        console.error("Gagal mengambil data klasemen:", err);
-      } finally {
-        if (isMounted) setLoading(false);
-      }
-    }
-    load();
-    return () => {
-      isMounted = false;
-    };
-  }, [disciplineId]);
+  const { data, isLoading: loading } = useCachedQuery<Standing[]>(
+    disciplineId ? cacheKeys.standings(disciplineId) : null,
+    () => getStandings(disciplineId)
+  );
+  const standings = useMemo(() => data ?? [], [data]);
 
   // Group standings by groupName
   const groupedStandings = useMemo(() => {
