@@ -67,12 +67,25 @@ export function DashInput({
   type?: string;
   required?: boolean;
 }) {
+  const isPickerType = ["date", "datetime-local", "time", "month", "week"].includes(type);
   return (
     <input
       type={type}
       placeholder={placeholder}
       value={value}
       onChange={(e) => onChange(e.target.value)}
+      onClick={
+        isPickerType
+          ? (e) => {
+              const el = e.currentTarget as HTMLInputElement & { showPicker?: () => void };
+              try {
+                el.showPicker?.();
+              } catch {
+                // beberapa browser bisa melempar jika picker sudah terbuka — abaikan
+              }
+            }
+          : undefined
+      }
       required={required}
       className="w-full rounded-lg border bg-gray-50 px-3 py-2.5 text-sm outline-none transition focus:border-purple-400 focus:ring-2 focus:ring-purple-100"
       style={{ borderColor: "#D1D5DB", color: "#111827" }}
