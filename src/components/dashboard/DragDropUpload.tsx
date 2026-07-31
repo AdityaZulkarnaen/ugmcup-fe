@@ -5,12 +5,18 @@ import { uploadFile } from "@/lib/api/admin";
 interface DragDropUploadProps {
   value: string;
   onChange: (url: string) => void;
+  /**
+   * Mode deferred: jika diberikan, file TIDAK langsung di-upload saat drop.
+   * Komponen hanya menampilkan preview lokal (object URL) dan menyerahkan
+   * File ke parent — parent yang meng-upload saat tombol Simpan diklik.
+   */
+  onFileSelect?: (file: File | null) => void;
   label?: string;
   className?: string;
   maxSizeMB?: number;
 }
 
-export function DragDropUpload({ value, onChange, label = "Upload Gambar", className = "", maxSizeMB = 1 }: DragDropUploadProps) {
+export function DragDropUpload({ value, onChange, onFileSelect, label = "Upload Gambar", className = "", maxSizeMB = 1 }: DragDropUploadProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState("");
@@ -55,6 +61,13 @@ export function DragDropUpload({ value, onChange, label = "Upload Gambar", class
       return;
     }
 
+    // Mode deferred: tampilkan preview lokal saja, upload dilakukan parent saat Simpan
+    if (onFileSelect) {
+      onFileSelect(file);
+      onChange(URL.createObjectURL(file));
+      return;
+    }
+
     setIsUploading(true);
     try {
       const url = await uploadFile(file);
@@ -74,7 +87,11 @@ export function DragDropUpload({ value, onChange, label = "Upload Gambar", class
           <img src={value} alt="Preview" className="h-full w-full object-cover" />
           <button
             type="button"
-            onClick={() => onChange("")}
+            onClick={() => {
+              if (value.startsWith("blob:")) URL.revokeObjectURL(value);
+              onFileSelect?.(null);
+              onChange("");
+            }}
             className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-full bg-red-500 text-white shadow-sm transition-colors hover:bg-red-600"
           >
             <X size={16} />

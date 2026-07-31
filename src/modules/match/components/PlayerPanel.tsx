@@ -60,6 +60,12 @@ export function PlayerPanel({ isLight = false }: PlayerPanelProps) {
     matches.forEach((m) => {
       if (m.status === "SCHEDULED") return;
 
+      // BYE = auto-advance karena salah satu sisi kosong — bukan pertandingan
+      // nyata, jadi tidak boleh menambah win/lose maupun statistik apa pun.
+      const hasSideA = !!(m.participantA || m.teamA);
+      const hasSideB = !!(m.participantB || m.teamB);
+      if (!hasSideA || !hasSideB) return;
+
       const sets = m.sets || [];
       let totalA = 0;
       let totalB = 0;

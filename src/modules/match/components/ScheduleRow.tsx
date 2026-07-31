@@ -24,6 +24,10 @@ const statusBadgeDark: Record<MatchStatus, { label: string; className: string }>
     label: "RETIRED",
     className: "border-white/10 bg-white/[0.04] text-[#8A8A93]",
   },
+  WALK_OVER: {
+    label: "WALK OVER",
+    className: "border-white/10 bg-white/[0.04] text-[#8A8A93]",
+  },
 };
 
 const statusBadgeLight: Record<MatchStatus, { label: string; className: string }> = {
@@ -41,6 +45,10 @@ const statusBadgeLight: Record<MatchStatus, { label: string; className: string }
   },
   RETIRED: {
     label: "RETIRED",
+    className: "border-[rgba(0,0,0,0.08)] bg-[rgba(0,0,0,0.03)] text-[#808080]",
+  },
+  WALK_OVER: {
+    label: "WALK OVER",
     className: "border-[rgba(0,0,0,0.08)] bg-[rgba(0,0,0,0.03)] text-[#808080]",
   },
 };

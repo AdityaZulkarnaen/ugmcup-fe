@@ -30,6 +30,7 @@ export function MatchSection() {
   const [filterLevel, setFilterLevel] = useState("");
   const [filterDiscipline, setFilterDiscipline] = useState("");
   const [filterDate, setFilterDate] = useState("");
+  const [filterParticipant, setFilterParticipant] = useState("");
   
   const [editForm, setEditForm] = useState({ id: "", courtNumber: "", scheduledTime: "" });
   const [finishForm, setFinishForm] = useState<{
@@ -123,7 +124,12 @@ export function MatchSection() {
     setFinishModalOpen(true);
   }
 
+  const isCompleteMatch = (m: Match) =>
+    !!(m.participantA || m.teamA) && !!(m.participantB || m.teamB);
+
   const filteredData = data.filter(d => {
+    if (filterParticipant === "COMPLETE" && !isCompleteMatch(d)) return false;
+    if (filterParticipant === "INCOMPLETE" && isCompleteMatch(d)) return false;
     if (filterDiscipline && d.disciplineId !== filterDiscipline) return false;
     if (filterLevel && !filterDiscipline) {
       const disc = DISCIPLINES.find(x => x.id === d.disciplineId);
@@ -159,7 +165,14 @@ export function MatchSection() {
             </button>
           ))}
         </div>
-        <div className="flex gap-2 shrink-0">
+        <div className="flex gap-2 shrink-0 flex-wrap">
+          <div className="w-44">
+            <DashSelect value={filterParticipant} onChange={setFilterParticipant} placeholder="Semua Peserta"
+              options={[
+                { value: "COMPLETE", label: "Peserta Lengkap" },
+                { value: "INCOMPLETE", label: "Peserta Belum Lengkap" },
+              ]} />
+          </div>
           <div className="w-40">
             <DashInput type="date" value={filterDate} onChange={setFilterDate} placeholder="Filter Tanggal" />
           </div>

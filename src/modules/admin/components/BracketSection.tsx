@@ -12,6 +12,7 @@ export function BracketSection() {
   const [bracketNodes, setBracketNodes] = useState<BracketNode[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [setupModalOpen, setSetupModalOpen] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [editNodeModalOpen, setEditNodeModalOpen] = useState(false);
   const [selectedNode, setSelectedNode] = useState<BracketNode | null>(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -139,10 +140,10 @@ export function BracketSection() {
 
   async function handleDeleteBracket() {
     if (!selectedDisc) return;
-    if (!confirm("Hapus bracket ini? Semua match knockout yang ter-generate ikut terhapus.")) return;
     setIsDeleting(true); setError("");
     try {
       await deleteBracket(selectedDisc);
+      setDeleteModalOpen(false);
       await loadBracket();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Gagal menghapus bracket");
@@ -309,7 +310,7 @@ export function BracketSection() {
                 <GitMerge size={16} /> Buat Bracket
               </button>
             ) : (
-              <button onClick={handleDeleteBracket} disabled={isDeleting}
+              <button onClick={() => setDeleteModalOpen(true)} disabled={isDeleting}
                 className="flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-bold text-white transition-colors disabled:opacity-60"
                 style={{ background: "#DC2626" }}
                 onMouseEnter={(e) => (e.currentTarget.style.background = "#B91C1C")}
@@ -454,6 +455,26 @@ export function BracketSection() {
           </button>
         </div>
       )}
+
+      {/* Konfirmasi Hapus Bracket Modal */}
+      <Modal isOpen={deleteModalOpen} onClose={() => { setDeleteModalOpen(false); setError(""); }}
+        title="Hapus Bracket" size="sm"
+        footer={<div className="flex gap-2">
+          <ModalCancelButton onClick={() => { setDeleteModalOpen(false); setError(""); }} />
+          <button onClick={handleDeleteBracket} disabled={isDeleting}
+            className="flex items-center gap-2 rounded-lg px-5 py-2 text-sm font-semibold text-white transition hover:opacity-90 disabled:opacity-50"
+            style={{ background: "#DC2626" }}>
+            <Trash2 size={14} /> {isDeleting ? "Menghapus..." : "Ya, Hapus Bracket"}
+          </button>
+        </div>}>
+        {error && <p className="mb-4 rounded-lg p-3 text-sm bg-red-50 text-red-600 border border-red-200">{error}</p>}
+        <p className="text-sm" style={{ color: "#374151" }}>
+          Yakin ingin menghapus bracket <span className="font-bold">{DISCIPLINES.find(d => d.id === selectedDisc)?.name ?? "kategori ini"}</span>?
+        </p>
+        <p className="mt-2 text-sm" style={{ color: "#6B7280" }}>
+          Semua match knockout yang ter-generate dari bracket ini (beserta skor setnya) akan ikut terhapus. Tindakan ini tidak bisa dibatalkan.
+        </p>
+      </Modal>
 
       {/* Setup Bracket Modal */}
       <Modal isOpen={setupModalOpen} onClose={() => { setSetupModalOpen(false); setError(""); setSelectedIds([]); }}

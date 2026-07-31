@@ -91,6 +91,41 @@ body {
   background: rgba(255, 255, 255, 0.35);
 }
 
+/* --- Dashboard scrollbar ---------------------------------------------------
+   Scrollbar tipis modern untuk seluruh halaman dashboard (admin & media):
+   thumb rounded, track/bg transparan. Berlaku untuk semua area scroll di
+   dalam shell dashboard, termasuk modal & tabel. */
+.dash-scrollbar,
+.dash-scrollbar * {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(108, 71, 209, 0.35) transparent;
+}
+
+.dash-scrollbar::-webkit-scrollbar,
+.dash-scrollbar *::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+  background: transparent;
+}
+
+.dash-scrollbar::-webkit-scrollbar-track,
+.dash-scrollbar *::-webkit-scrollbar-track,
+.dash-scrollbar::-webkit-scrollbar-corner,
+.dash-scrollbar *::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+.dash-scrollbar::-webkit-scrollbar-thumb,
+.dash-scrollbar *::-webkit-scrollbar-thumb {
+  background: rgba(108, 71, 209, 0.35);
+  border-radius: 9999px;
+}
+
+.dash-scrollbar::-webkit-scrollbar-thumb:hover,
+.dash-scrollbar *::-webkit-scrollbar-thumb:hover {
+  background: rgba(108, 71, 209, 0.55);
+}
+
 /* --- Date/time picker indicator -------------------------------------------
    Native `datetime-local`/`date` picker icon is nearly invisible on light
    backgrounds; make it clearly visible and clickable. */

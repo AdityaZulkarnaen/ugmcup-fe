@@ -132,7 +132,15 @@ function buildCategoryBracket(disciplineId: string, nodes: BracketNode[]): Categ
       let setsWonA = sets.filter(s => s.scoreA > s.scoreB).length;
       let setsWonB = sets.filter(s => s.scoreB > s.scoreA).length;
 
-      if (match?.status !== "SCHEDULED" && sets.length === 0) {
+      // BYE = auto-advance karena salah satu sisi kosong. Bukan pertandingan
+      // nyata, jadi set menang tidak boleh ditampilkan sama sekali.
+      const hasA = !!(match?.participantA || match?.teamA);
+      const hasB = !!(match?.participantB || match?.teamB);
+      const isByeAdvance = match?.status === "RETIRED" && (!hasA || !hasB);
+
+      // Hanya FINISHED/WALK_OVER tanpa set tercatat yang dihitung 2-0.
+      // RETIRED mempertahankan set aktual (mis. 1-1) — pemenang tetap maju.
+      if (!isByeAdvance && sets.length === 0 && (match?.status === "FINISHED" || match?.status === "WALK_OVER")) {
         if (wonA) setsWonA = 2;
         if (wonB) setsWonB = 2;
       }
@@ -140,7 +148,11 @@ function buildCategoryBracket(disciplineId: string, nodes: BracketNode[]): Categ
       const homeSide = mapSide(match?.participantA, match?.teamA, isFirstRound, match?.status || "SCHEDULED", wonA);
       const awaySide = mapSide(match?.participantB, match?.teamB, isFirstRound, match?.status || "SCHEDULED", wonB);
 
-      if (match?.status !== "SCHEDULED") {
+      if (isByeAdvance) {
+        // Jangan tampilkan skor set pada match BYE
+        homeSide.score = null;
+        awaySide.score = null;
+      } else if (match?.status !== "SCHEDULED") {
         if (homeSide.score !== null) homeSide.score = setsWonA;
         if (awaySide.score !== null) awaySide.score = setsWonB;
       }

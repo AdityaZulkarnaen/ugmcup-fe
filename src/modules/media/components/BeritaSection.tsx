@@ -6,6 +6,7 @@ import { PageHeader, AddButton, FormField, DashInput, DashTextarea } from "@/com
 import { Modal, ModalCancelButton, ModalSubmitButton } from "@/components/dashboard/Modal";
 import { DragDropUpload } from "@/components/dashboard/DragDropUpload";
 import { getNews, createNews, updateNews, deleteNews } from "@/lib/api/content";
+import { uploadFile } from "@/lib/api/admin";
 import type { News } from "@/lib/types";
 
 const EMPTY_FORM = { title: "", content: "", coverImage: "", url: "", publishedAt: "" };
@@ -18,6 +19,8 @@ export function BeritaSection() {
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");
   const [form, setForm] = useState(EMPTY_FORM);
+  // File cover yang dipilih tapi belum di-upload — upload terjadi saat klik Simpan
+  const [pendingFile, setPendingFile] = useState<File | null>(null);
 
   const load = useCallback(async () => {
     setIsLoading(true);
@@ -26,9 +29,10 @@ export function BeritaSection() {
 
   useEffect(() => { load(); }, [load]);
 
-  function openAdd() { setEditTarget(null); setForm(EMPTY_FORM); setModalOpen(true); }
+  function openAdd() { setEditTarget(null); setForm(EMPTY_FORM); setPendingFile(null); setModalOpen(true); }
   function openEdit(item: News) {
     setEditTarget(item);
+    setPendingFile(null);
     setForm({ title: item.title, content: item.content, coverImage: item.coverImage ?? "", url: item.url ?? "", publishedAt: item.publishedAt ? item.publishedAt.slice(0, 16) : "" });
     setModalOpen(true);
   }
@@ -36,15 +40,21 @@ export function BeritaSection() {
   async function handleSave() {
     setIsSaving(true); setError("");
     try {
+      // Upload cover baru dilakukan di sini (bukan saat drop file)
+      let coverImage = form.coverImage;
+      if (pendingFile) {
+        coverImage = await uploadFile(pendingFile);
+        if (form.coverImage.startsWith("blob:")) URL.revokeObjectURL(form.coverImage);
+      }
       const payload = {
         title: form.title, content: form.content,
-        coverImage: form.coverImage || undefined,
+        coverImage: coverImage || undefined,
         url: form.url || undefined,
         publishedAt: form.publishedAt || undefined,
       };
       if (editTarget) await updateNews(editTarget.id, payload);
       else await createNews(payload);
-      setModalOpen(false); await load();
+      setModalOpen(false); setPendingFile(null); await load();
     } catch (e) { setError(e instanceof Error ? e.message : "Gagal menyimpan"); }
     finally { setIsSaving(false); }
   }
@@ -75,8 +85,8 @@ export function BeritaSection() {
         onDelete={handleDelete}
       />
 
-      <Modal isOpen={modalOpen} onClose={() => { setModalOpen(false); setError(""); }} title={editTarget ? "Edit Berita" : "Tulis Berita Baru"} size="lg"
-        footer={<><ModalCancelButton onClick={() => { setModalOpen(false); setError(""); }} /><ModalSubmitButton onClick={handleSave} isLoading={isSaving} /></>}>
+      <Modal isOpen={modalOpen} onClose={() => { setModalOpen(false); setError(""); setPendingFile(null); }} title={editTarget ? "Edit Berita" : "Tulis Berita Baru"} size="lg"
+        footer={<><ModalCancelButton onClick={() => { setModalOpen(false); setError(""); setPendingFile(null); }} /><ModalSubmitButton onClick={handleSave} isLoading={isSaving} /></>}>
         {error && <p className="mb-4 rounded-xl p-3 text-sm" style={{ background: "rgba(239,68,68,0.15)", color: "#f87171" }}>{error}</p>}
         <FormField label="Judul" required>
           <DashInput value={form.title} onChange={(v) => setForm(f => ({ ...f, title: v }))} placeholder="Judul berita menarik..." />
@@ -85,7 +95,7 @@ export function BeritaSection() {
           <DashTextarea value={form.content} onChange={(v) => setForm(f => ({ ...f, content: v }))} placeholder="Tulis isi berita..." rows={6} />
         </FormField>
         <FormField label="Cover Image">
-          <DragDropUpload value={form.coverImage} onChange={(url) => setForm(f => ({ ...f, coverImage: url }))} label="Upload Cover Image" />
+          <DragDropUpload value={form.coverImage} onChange={(url) => setForm(f => ({ ...f, coverImage: url }))} onFileSelect={setPendingFile} label="Upload Cover Image" />
         </FormField>
         <FormField label="Tautan Eksternal (URL)">
           <DashInput value={form.url} onChange={(v) => setForm(f => ({ ...f, url: v }))} placeholder="https://..." type="url" />

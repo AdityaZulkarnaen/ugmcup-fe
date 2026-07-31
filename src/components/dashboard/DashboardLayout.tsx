@@ -32,7 +32,7 @@ export function DashboardLayout({
     (sidebarItems.find((i) => i.key === activeSection)?.label ?? "Dashboard");
 
   return (
-    <div className="flex h-screen overflow-hidden" style={{ background: "var(--dash-body-bg)" }}>
+    <div className="dash-scrollbar flex h-screen overflow-hidden" style={{ background: "var(--dash-body-bg)" }}>
       <Sidebar
         items={sidebarItems}
         activeKey={activeSection}

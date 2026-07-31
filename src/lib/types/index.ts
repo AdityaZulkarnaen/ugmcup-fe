@@ -71,7 +71,7 @@ export interface Team {
 
 // ================== MATCH ==================
 
-export type MatchStatus = "SCHEDULED" | "ONGOING" | "FINISHED" | "RETIRED";
+export type MatchStatus = "SCHEDULED" | "ONGOING" | "FINISHED" | "RETIRED" | "WALK_OVER";
 export type MatchType = "INDIVIDUAL" | "TEAM";
 export type MatchStage = "GROUP" | "KNOCKOUT";
 

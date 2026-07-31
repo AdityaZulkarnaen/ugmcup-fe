@@ -6,6 +6,7 @@ import { PageHeader, AddButton, FormField, DashInput, DashSelect } from "@/compo
 import { Modal, ModalCancelButton, ModalSubmitButton } from "@/components/dashboard/Modal";
 import { DragDropUpload } from "@/components/dashboard/DragDropUpload";
 import { getMedia, createMedia, deleteMedia } from "@/lib/api/content";
+import { uploadFile } from "@/lib/api/admin";
 import type { Media } from "@/lib/types";
 
 const CATEGORIES = ["Opening Ceremony", "Fase Grup", "Perempat Final", "Semifinal", "Final", "Dokumentasi", "Lainnya"];
@@ -18,6 +19,8 @@ export function GaleriSection() {
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");
   const [form, setForm] = useState(EMPTY_FORM);
+  // File yang dipilih tapi belum di-upload — upload terjadi saat klik Simpan
+  const [pendingFile, setPendingFile] = useState<File | null>(null);
   const [filterCat, setFilterCat] = useState("");
 
   const load = useCallback(async () => {
@@ -28,10 +31,17 @@ export function GaleriSection() {
   useEffect(() => { load(); }, [load]);
 
   async function handleSave() {
+    if (!form.imageUrl && !pendingFile) { setError("Pilih gambar terlebih dahulu"); return; }
     setIsSaving(true); setError("");
     try {
-      await createMedia({ imageUrl: form.imageUrl, caption: form.caption || undefined, category: form.category || undefined });
-      setModalOpen(false); setForm(EMPTY_FORM); await load();
+      // Upload baru dilakukan di sini (bukan saat drop file)
+      let imageUrl = form.imageUrl;
+      if (pendingFile) {
+        imageUrl = await uploadFile(pendingFile);
+        if (form.imageUrl.startsWith("blob:")) URL.revokeObjectURL(form.imageUrl);
+      }
+      await createMedia({ imageUrl, caption: form.caption || undefined, category: form.category || undefined });
+      setModalOpen(false); setForm(EMPTY_FORM); setPendingFile(null); await load();
     } catch (e) { setError(e instanceof Error ? e.message : "Gagal"); }
     finally { setIsSaving(false); }
   }
@@ -89,11 +99,11 @@ export function GaleriSection() {
         </div>
       )}
 
-      <Modal isOpen={modalOpen} onClose={() => { setModalOpen(false); setError(""); }} title="Tambah Foto"
-        footer={<><ModalCancelButton onClick={() => { setModalOpen(false); setError(""); }} /><ModalSubmitButton onClick={handleSave} isLoading={isSaving} /></>}>
+      <Modal isOpen={modalOpen} onClose={() => { setModalOpen(false); setError(""); setPendingFile(null); }} title="Tambah Foto"
+        footer={<><ModalCancelButton onClick={() => { setModalOpen(false); setError(""); setPendingFile(null); }} /><ModalSubmitButton onClick={handleSave} isLoading={isSaving} /></>}>
         {error && <p className="mb-4 rounded-xl p-3 text-sm" style={{ background: "rgba(239,68,68,0.15)", color: "#f87171" }}>{error}</p>}
         <FormField label="Gambar">
-          <DragDropUpload value={form.imageUrl} onChange={(url) => setForm(f => ({ ...f, imageUrl: url }))} label="Upload Gambar Galeri" maxSizeMB={20} />
+          <DragDropUpload value={form.imageUrl} onChange={(url) => setForm(f => ({ ...f, imageUrl: url }))} onFileSelect={setPendingFile} label="Upload Gambar Galeri" maxSizeMB={20} />
         </FormField>
         <FormField label="Kategori">
           <DashSelect value={form.category} onChange={(v) => setForm(f => ({ ...f, category: v }))} options={[ { label: "Pilih Kategori", value: "" }, ...CATEGORIES.map(c => ({ label: c, value: c })) ]} />
