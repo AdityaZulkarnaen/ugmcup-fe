@@ -41,6 +41,16 @@ export function PlayerPanel({ isLight = false }: PlayerPanelProps) {
   const athletes = useMemo(() => athletesQuery.data ?? [], [athletesQuery.data]);
   const matches = useMemo(() => matchesQuery.data ?? [], [matchesQuery.data]);
 
+  // Pre-compute seed rank: seeded athletes sorted alphabetically get seed numbers 1,2,3...
+  const seededRankMap = useMemo(() => {
+    const ranked = new Map<string, number>();
+    const seeded = [...athletes]
+      .filter((a) => a.isSeeded)
+      .sort((a, b) => a.name.localeCompare(b.name));
+    seeded.forEach((a, i) => ranked.set(a.id, i + 1));
+    return ranked;
+  }, [athletes]);
+
   const statsList = useMemo(() => {
     // Map athleteId -> Stats
     const map = new Map<string, PlayerStats>();
@@ -266,7 +276,7 @@ export function PlayerPanel({ isLight = false }: PlayerPanelProps) {
                   <th className="py-3 px-4 min-w-[180px]">Atlet & Institusi</th>
                   <th className="py-3 px-2 w-16 text-center whitespace-nowrap">Win</th>
                   <th className="py-3 px-2 w-16 text-center whitespace-nowrap">Lose</th>
-                  <th className="py-3 px-4 w-44 text-center whitespace-nowrap">Total Poin</th>
+                  <th className="py-3 px-3 w-28 text-center whitespace-nowrap">Poin</th>
                 </tr>
               </thead>
               <tbody
@@ -329,15 +339,16 @@ export function PlayerPanel({ isLight = false }: PlayerPanelProps) {
                             >
                               {st.athlete.name}
                             </span>
-                            {st.athlete.isSeeded && (
+                            {st.athlete.isSeeded && seededRankMap.has(st.athlete.id) && (
                               <span
-                                className={`rounded-md px-1.5 py-0.5 mb-1 text-[10px] font-bold uppercase tracking-wider ${
+                                className={`inline-flex items-center justify-center w-5 h-5 rounded-full text-[10px] font-extrabold shrink-0 ${
                                   isLight
-                                    ? "bg-purple-500/12 text-[#6C47D1]"
-                                    : "bg-purple-500/20 text-purple-400"
+                                    ? "bg-[#6C47D1]/15 text-[#6C47D1]"
+                                    : "bg-purple-500/25 text-purple-300"
                                 }`}
+                                title="Unggulan"
                               >
-                                Unggulan
+                                {seededRankMap.get(st.athlete.id)}
                               </span>
                             )}
                           </div>
@@ -368,16 +379,21 @@ export function PlayerPanel({ isLight = false }: PlayerPanelProps) {
                           {st.lose}
                         </td>
 
-                        <td className="py-3.5 px-4 text-center font-bold">
+                        <td className="py-3.5 px-3 w-28 text-center font-bold whitespace-nowrap tabular-nums">
                           <span
-                            className={`inline-block px-2.5 py-0.5 rounded-full text-xs font-bold ${
-                              isLight
-                                ? "bg-[#6C47D1]/10 text-[#6C47D1]"
-                                : "bg-[#8b5cf6]/15 text-purple-300"
+                            className={`inline-block text-sm font-bold ${
+                              st.pointDiff > 0
+                                ? isLight ? "text-emerald-600" : "text-emerald-400"
+                                : st.pointDiff < 0
+                                ? isLight ? "text-[#FB2C36]" : "text-rose-400"
+                                : isLight ? "text-[rgba(26,22,43,0.5)]" : "text-[#6B6B73]"
                             }`}
                           >
                             {st.pointsScored}
                           </span>
+                          <span className={`text-[10px] opacity-50 ml-0.5 ${
+                            isLight ? "text-[#1a162b]" : "text-white"
+                          }`}>/{st.pointsConceded}</span>
                         </td>
                       </tr>
                     );

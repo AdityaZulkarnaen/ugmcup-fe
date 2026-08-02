@@ -57,15 +57,6 @@ function TeamBadge({
   );
 }
 
-function getFormBadges(entry: Standing): Array<"W" | "L"> {
-  if (entry.form && entry.form.length > 0) {
-    return entry.form;
-  }
-  const items: Array<"W" | "L"> = [];
-  for (let i = 0; i < entry.won; i++) items.push("W");
-  for (let i = 0; i < entry.lost; i++) items.push("L");
-  return items;
-}
 
 function StandingRow({ entry, rank, isLight = false }: { entry: Standing; rank: number; isLight?: boolean }) {
   const mainName =
@@ -75,12 +66,17 @@ function StandingRow({ entry, rank, isLight = false }: { entry: Standing; rank: 
 
   const subName =
     entry.participant?.athletes?.length
-      ? entry.participant.athletes.map((a) => a.athlete?.name).filter(Boolean).join(" - ")
+      ? entry.participant.athletes.map((a) => a.athlete?.name).filter(Boolean).join(" / ")
       : undefined;
 
   const logo = entry.team?.institution?.logoUrl || entry.participant?.institution?.logoUrl;
-  const points = entry.won * 3;
-  const formItems = getFormBadges(entry);
+
+  // Matches: beregu = gameWon-gameLost (partai menang-kalah), individu = setWon-setLost (set menang-kalah)
+  const isTeam = !!entry.teamId;
+  const matchWon  = isTeam ? entry.gameWon  : entry.setWon;
+  const matchLost = isTeam ? entry.gameLost : entry.setLost;
+  const gamesWon  = isTeam ? entry.setWon   : 0;
+  const gamesLost = isTeam ? entry.setLost  : 0;
 
   return (
     <tr
@@ -88,6 +84,7 @@ function StandingRow({ entry, rank, isLight = false }: { entry: Standing; rank: 
         isLight ? "border-[rgba(0,0,0,0.05)]" : "border-white/[0.04]"
       }`}
     >
+      {/* Rank */}
       <td
         className={`px-3 py-3 text-center text-sm font-bold tabular-nums ${
           rank === 1
@@ -101,6 +98,8 @@ function StandingRow({ entry, rank, isLight = false }: { entry: Standing; rank: 
       >
         {rank}
       </td>
+
+      {/* Tim / Peserta */}
       <td className="py-3 pr-2">
         <div className="flex items-center gap-2.5">
           <TeamBadge logo={logo} team={mainName} isLight={isLight} />
@@ -124,6 +123,8 @@ function StandingRow({ entry, rank, isLight = false }: { entry: Standing; rank: 
           </div>
         </div>
       </td>
+
+      {/* Played */}
       <td
         className={`px-2 py-3 text-center text-sm tabular-nums ${
           isLight ? "text-[#808080]" : "text-[#8A8A93]"
@@ -131,50 +132,40 @@ function StandingRow({ entry, rank, isLight = false }: { entry: Standing; rank: 
       >
         {entry.played}
       </td>
+
+      {/* Matches won-lost (beregu = partai, individu = set) */}
       <td
-        className={`px-2 py-3 text-center text-sm tabular-nums ${
-          isLight ? "text-[#8b5cf6]" : "text-[#5CFCE7]"
-        }`}
-      >
-        {entry.won}
-      </td>
-      <td
-        className={`px-2 py-3 text-center text-sm tabular-nums ${
-          isLight ? "text-[#FB2C36]" : "text-[#FF8A90]"
-        }`}
-      >
-        {entry.lost}
-      </td>
-      <td
-        className={`px-2 py-3 text-center text-sm font-bold tabular-nums ${
+        className={`px-2 py-3 text-center text-sm font-semibold tabular-nums whitespace-nowrap ${
           isLight ? "text-[#1a162b]" : "text-white"
         }`}
       >
-        {points}
+        <span className={isLight ? "text-[#8b5cf6]" : "text-[#5CFCE7]"}>{matchWon}</span>
+        <span className="opacity-40 mx-0.5">-</span>
+        <span className={isLight ? "text-[#FB2C36]" : "text-[#FF8A90]"}>{matchLost}</span>
       </td>
-      <td className="px-3 py-3 text-center whitespace-nowrap">
-        {formItems.length > 0 ? (
-          <div className="flex items-center justify-center gap-1">
-            {formItems.map((item, i) => (
-              <span
-                key={i}
-                className={`flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold ${
-                  item === "W"
-                    ? isLight
-                      ? "bg-[#8b5cf6]/10 text-[#8b5cf6]"
-                      : "bg-[#02F5D4]/15 text-[#5CFCE7]"
-                    : isLight
-                      ? "bg-[#FB2C36]/08 text-[#FB2C36]"
-                      : "bg-[#FB2C36]/15 text-[#FF8A90]"
-                }`}
-              >
-                {item}
-              </span>
-            ))}
-          </div>
-        ) : (
-          <span className={`text-xs ${isLight ? "text-[rgba(26,22,43,0.3)]" : "text-[#6B6B73]"}`}>-</span>
-        )}
+
+      {/* Games (set) won-lost — hanya untuk beregu */}
+      {isTeam && (
+        <td
+          className={`px-2 py-3 text-center text-sm font-semibold tabular-nums whitespace-nowrap ${
+            isLight ? "text-[#1a162b]" : "text-white"
+          }`}
+        >
+          <span className={isLight ? "text-[#8b5cf6]" : "text-[#5CFCE7]"}>{gamesWon}</span>
+          <span className="opacity-40 mx-0.5">-</span>
+          <span className={isLight ? "text-[#FB2C36]" : "text-[#FF8A90]"}>{gamesLost}</span>
+        </td>
+      )}
+
+      {/* Points (rally poin) won-lost */}
+      <td
+        className={`px-2 py-3 text-center text-sm font-bold tabular-nums whitespace-nowrap ${
+          isLight ? "text-[#1a162b]" : "text-white"
+        }`}
+      >
+        <span className={isLight ? "text-[#8b5cf6]" : "text-[#5CFCE7]"}>{entry.pointWon}</span>
+        <span className="opacity-40 mx-0.5">-</span>
+        <span className={isLight ? "text-[#FB2C36]" : "text-[#FF8A90]"}>{entry.pointLost}</span>
       </td>
     </tr>
   );
@@ -185,6 +176,8 @@ function GroupTable({ groupName, entries, isLight = false }: { groupName: string
   const headCell = `px-2 py-2.5 text-[10px] font-bold uppercase tracking-wider ${
     isLight ? "text-[rgba(26,22,43,0.4)]" : "text-[#7A7A83]"
   }`;
+
+  const isTeam = entries.some((e) => !!e.teamId);
 
   return (
     <section
@@ -208,17 +201,12 @@ function GroupTable({ groupName, entries, isLight = false }: { groupName: string
             <tr>
               <th className={`${headCell} w-10 text-center`}>#</th>
               <th className={`${headCell} text-left pl-4`}>TIM / PESERTA</th>
-              <th className={`${headCell} w-10 text-center`} title="Main">
-                M
-              </th>
-              <th className={`${headCell} w-10 text-center`} title="Menang">
-                W
-              </th>
-              <th className={`${headCell} w-10 text-center`} title="Kalah">
-                L
-              </th>
-              <th className={`${headCell} w-14 text-center`}>Poin</th>
-              <th className={`${headCell} w-28 text-center px-3`}>Form</th>
+              <th className={`${headCell} w-16 text-center`} title="Pertandingan dimainkan">PLAYED</th>
+              <th className={`${headCell} w-20 text-center`} title={isTeam ? "Match Individual Menang-Kalah" : "Set Menang-Kalah"}>MATCHES</th>
+              {isTeam && (
+                <th className={`${headCell} w-20 text-center`} title="Set Menang-Kalah">GAMES</th>
+              )}
+              <th className={`${headCell} w-24 text-center`} title="Poin Rally Menang-Kalah">POINTS</th>
             </tr>
           </thead>
           <tbody>
