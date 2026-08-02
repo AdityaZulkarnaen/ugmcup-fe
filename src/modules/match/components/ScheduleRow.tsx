@@ -68,12 +68,15 @@ function SideName({
 }) {
   return (
     <div
-      className={`flex min-w-0 flex-col ${
+      className={`flex w-full min-w-0 flex-col ${
         align === "right" ? "items-start sm:items-end text-left sm:text-right" : "items-start text-left"
       }`}
     >
       <p
-        className={`flex items-center gap-1.5 text-sm font-bold leading-tight ${
+        title={name}
+        className={`flex w-full min-w-0 items-center gap-1.5 text-sm font-bold leading-tight ${
+          align === "right" ? "justify-start sm:justify-end" : "justify-start"
+        } ${
           won
             ? isLight
               ? "text-[#8b5cf6]"
@@ -88,7 +91,7 @@ function SideName({
             className={`shrink-0 ${isLight ? "text-[#8b5cf6]" : "text-[#34E5A6]"}`}
           />
         )}
-        <span className="truncate">{name}</span>
+        <span className="min-w-0 truncate">{name}</span>
         {won && align === "left" && (
           <CheckIcon
             className={`shrink-0 ${isLight ? "text-[#8b5cf6]" : "text-[#34E5A6]"}`}
@@ -96,7 +99,12 @@ function SideName({
         )}
       </p>
       {subName && (
-        <span className={`truncate text-[11px] ${isLight ? "text-[rgba(26,22,43,0.4)]" : "text-[#7A7A83]"}`}>
+        <span
+          title={subName}
+          className={`block w-full min-w-0 truncate text-[11px] ${
+            isLight ? "text-[rgba(26,22,43,0.4)]" : "text-[#7A7A83]"
+          }`}
+        >
           {subName}
         </span>
       )}
