@@ -60,8 +60,8 @@ jobs:
       # Node, jadi keduanya harus dimasukkan ke dalam bundle.
       - name: Assemble standalone bundle
         run: |
-          cp -r public .next/standalone/
-          cp -r .next/static .next/standalone/.next/
+          cp -r public .next/standalone/public
+          cp -r .next/static .next/standalone/.next/static
           du -sh .next/standalone
 
       # Jalankan bundle yang PERSIS akan dikirim ke EC2, dan pastikan ia benar
@@ -141,6 +141,8 @@ jobs:
         run: |
           scp -i ~/.ssh/deploy_key standalone.tar.gz \
             "${EC2_USER}@${EC2_HOST}:/tmp/ugmcup-fe-${{ github.sha }}.tar.gz"
+          scp -i ~/.ssh/deploy_key deploy/ecosystem.config.js \
+            "${EC2_USER}@${EC2_HOST}:/srv/ugmcup-fe/ecosystem.config.js"
 
       - name: Release
         env:
