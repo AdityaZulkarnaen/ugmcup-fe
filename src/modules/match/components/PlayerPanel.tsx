@@ -9,6 +9,7 @@ import { DISCIPLINES } from "@/lib/constants";
 import type { Athlete, Match } from "@/lib/types";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Pagination } from "@/components/ui/Pagination";
+import { FilterSelect } from "@/components/ui/FilterSelect";
 import { Search } from "lucide-react";
 
 const PAGE_SIZE = 10;
@@ -296,32 +297,27 @@ export function PlayerPanel({ isLight = false }: PlayerPanelProps) {
         </div>
       </div>
 
-      {/* Discipline Dropdown */}
-      <select
+      {/* Discipline Dropdown — FilterSelect style matching BracketPanel */}
+      <FilterSelect
+        options={[
+          { id: "ALL", label: "Semua Cabang" },
+          ...INDIVIDUAL_DISCIPLINES.filter((d) => d.level === "univ").map((d) => ({
+            id: d.id,
+            label: `${BWF_CODE[d.type] ?? d.type} — ${d.label}`,
+          })),
+          ...INDIVIDUAL_DISCIPLINES.filter((d) => d.level === "sma").map((d) => ({
+            id: d.id,
+            label: `${BWF_CODE[d.type] ?? d.type} — ${d.label}`,
+          })),
+        ]}
         value={disciplineFilter}
-        onChange={(e) => { setDisciplineFilter(e.target.value); setPage(1); }}
-        className={`w-full sm:w-64 rounded-xl px-3 py-2 text-sm outline-none transition cursor-pointer ${
-          isLight
-            ? "bg-black/5 text-gray-900 border border-black/10 focus:bg-black/10"
-            : "bg-white/5 text-white border border-white/10 focus:bg-white/10"
-        }`}
-      >
-        <option value="ALL">Semua Cabang</option>
-        <optgroup label="Universitas">
-          {INDIVIDUAL_DISCIPLINES.filter((d) => d.level === "univ").map((d) => (
-            <option key={d.id} value={d.id}>
-              {BWF_CODE[d.type] ?? d.type} — {d.label}
-            </option>
-          ))}
-        </optgroup>
-        <optgroup label="SMA/SMK">
-          {INDIVIDUAL_DISCIPLINES.filter((d) => d.level === "sma").map((d) => (
-            <option key={d.id} value={d.id}>
-              {BWF_CODE[d.type] ?? d.type} — {d.label}
-            </option>
-          ))}
-        </optgroup>
-      </select>
+        onChange={(val) => { setDisciplineFilter(val); setPage(1); }}
+        label="Filter cabang"
+        accent="violet"
+        accented={disciplineFilter !== "ALL"}
+        className="w-full sm:w-72"
+        isLight={isLight}
+      />
 
       {/* Stats Table */}
       {filteredStats.length === 0 ? (
