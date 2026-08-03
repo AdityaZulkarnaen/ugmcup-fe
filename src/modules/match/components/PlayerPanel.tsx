@@ -238,10 +238,10 @@ export function PlayerPanel({ isLight = false }: PlayerPanelProps) {
   return (
     <div className="space-y-6">
       {/* Search & Filter Header */}
-      <div className="flex flex-col sm:flex-row gap-3 items-center justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         {/* Search — pill style */}
         <div
-          className={`relative flex items-center gap-2 rounded-full border px-4 py-2 transition-colors w-full sm:w-72 ${isLight
+          className={`relative flex items-center gap-2 rounded-full border px-4 py-2 transition-colors w-full sm:w-72 shrink-0 ${isLight
             ? "border-[rgba(0,0,0,0.08)] bg-[rgba(0,0,0,0.02)] focus-within:border-[rgba(0,0,0,0.15)]"
             : "border-white/[0.08] bg-white/[0.02] focus-within:border-white/20"
             }`}
@@ -278,41 +278,33 @@ export function PlayerPanel({ isLight = false }: PlayerPanelProps) {
           )}
         </div>
 
-        {/* Level filter pills */}
-        <div className="flex gap-2 w-full sm:w-auto">
-          {[
-            { id: "ALL", label: "Semua" },
-            { id: "UNIVERSITAS", label: "Universitas" },
-            { id: "SMA", label: "SMA/SMK" },
-          ].map((item) => {
-            const isActive = levelFilter === item.id;
-            return (
-              <button
-                key={item.id}
-                type="button"
-                onClick={() => {
-                  setLevelFilter(item.id);
-                  setPage(1);
-                  // Reset discipline filter if current selection doesn't belong to new level
-                  if (item.id !== "ALL" && disciplineFilter !== "ALL") {
-                    const targetLevel = item.id === "UNIVERSITAS" ? "univ" : "sma";
-                    const disc = INDIVIDUAL_DISCIPLINES.find((d) => d.id === disciplineFilter);
-                    if (disc && disc.level !== targetLevel) setDisciplineFilter("ALL");
-                  }
-                }}
-                className={`rounded-full border px-4 py-2 text-xs font-medium transition-colors ${isActive
-                  ? isLight
-                    ? "border-[#8b5cf6]/30 bg-[#8b5cf6]/10 text-[#8b5cf6]"
-                    : "border-[#8B5CF6]/40 bg-[#8B5CF6]/20 text-[#C4B5FD]"
-                  : isLight
-                    ? "border-[rgba(0,0,0,0.08)] bg-[rgba(0,0,0,0.02)] text-[#808080] hover:border-[rgba(0,0,0,0.15)] hover:text-[#1a162b]"
-                    : "border-white/[0.08] bg-white/[0.02] text-[#8A8A93] hover:border-white/15 hover:text-white"
-                  }`}
-              >
-                {item.label}
-              </button>
-            );
-          })}
+        {/* Filter Dropdowns: Level + Discipline */}
+        <div className="flex flex-wrap sm:flex-nowrap items-center gap-2.5 w-full sm:w-auto">
+          {/* Level Dropdown — FilterSelect style matching BracketPanel */}
+          <FilterSelect
+            options={[
+              { id: "ALL", label: "Semua" },
+              { id: "UNIVERSITAS", label: "Universitas" },
+              { id: "SMA", label: "SMA/SMK" },
+            ]}
+            value={levelFilter}
+            onChange={(val) => {
+              setLevelFilter(val);
+              setPage(1);
+              if (val !== "ALL" && disciplineFilter !== "ALL") {
+                const targetLevel = val === "UNIVERSITAS" ? "univ" : "sma";
+                const disc = INDIVIDUAL_DISCIPLINES.find((d) => d.id === disciplineFilter);
+                if (disc && disc.level !== targetLevel) setDisciplineFilter("ALL");
+              }
+            }}
+            label="Filter jenjang"
+            accent="mint"
+            accented={levelFilter !== "ALL"}
+            className="min-w-0 flex-1 sm:w-44 shrink-0"
+            optionLabel={(opt) => opt.id === "ALL" ? "Semua Jenjang" : opt.label}
+            isLight={isLight}
+          />
+
           {/* Discipline Dropdown — FilterSelect style matching BracketPanel */}
           <FilterSelect
             options={disciplineOptions}
@@ -321,7 +313,7 @@ export function PlayerPanel({ isLight = false }: PlayerPanelProps) {
             label="Filter cabang"
             accent="violet"
             accented={disciplineFilter !== "ALL"}
-            className="w-full sm:w-64"
+            className="min-w-0 flex-1 sm:w-56 shrink-0"
             isLight={isLight}
           />
         </div>
@@ -330,7 +322,9 @@ export function PlayerPanel({ isLight = false }: PlayerPanelProps) {
       {/* Stats Table */}
       {filteredStats.length === 0 ? (
         <EmptyState
-          title="Statistik pemain belum tersedia"
+          title="Statistik Pemain Belum Tersedia"
+          description="Data atlet dan pasangan tanding untuk kategori ini belum dirilis oleh panitia."
+          footerNote="Daftar pemain akan diperbarui otomatis setelah registrasi ulang"
           isLight={isLight}
         />
       ) : (

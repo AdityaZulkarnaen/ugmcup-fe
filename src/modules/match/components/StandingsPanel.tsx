@@ -277,7 +277,9 @@ export function StandingsPanel({ isLight = false }: StandingsPanelProps) {
         ))
       ) : (
         <EmptyState
-          title="Klasemen belum tersedia"
+          title="Klasemen Belum Tersedia"
+          description="Panitia belum merilis klasemen grup untuk kategori ini. Silakan cek secara berkala."
+          footerNote="Klasemen akan diperbarui otomatis sesuai hasil pertandingan yang berlangsung"
           isLight={isLight}
         />
       )}

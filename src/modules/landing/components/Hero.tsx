@@ -1,4 +1,4 @@
-﻿import Image from "next/image";
+import Image from "next/image";
 import { Navbar } from "@/components/layout/Navbar";
 import { Button } from "@/components/ui/Button";
 import { ArrowIcon } from "@/components/ui/icons";
@@ -77,40 +77,33 @@ export function Hero() {
 
         {/* Heading + Sponsor Row Block */}
         <div className="mt-5 sm:mt-6 flex w-fit flex-col items-center">
-          <h1 className="flex flex-col w-fit items-center tracking-[-0.02em] font-extrabold italic">
-            {/*
-              The page's one h1 read "Rallyverse — Power in every motion", which
-              never names the tournament people actually search for. The pill
-              above says "UGM CUP 2026" but it is a sibling, not part of the
-              heading. This puts the name inside the h1 for crawlers and screen
-              readers while the visible design stays exactly as drawn.
-            */}
+          <h1 className="flex flex-col w-fit items-center tracking-[-0.02em] font-extrabold italic text-center">
             <span className="sr-only">UGM CUP 2026 — </span>
             <span
               data-aos="blur-in"
               data-aos-delay="120"
               data-aos-duration="900"
-              className="bg-linear-to-r from-accent to-accent-2 bg-clip-text text-[#02F5D4] text-[42px] leading-[38px] sm:text-[96px] sm:leading-[80px]"
+              className="bg-linear-to-r from-accent to-accent-2 bg-clip-text text-[#02F5D4] text-[42px] leading-[38px] sm:text-[68px] sm:leading-[60px] md:text-[80px] md:leading-[70px] lg:text-[88px] lg:leading-[78px] min-[1440px]:text-[96px] min-[1440px]:leading-[80px]"
             >
               Rallyverse
             </span>
 
-            {/* Desktop Headline */}
+            {/* Large Desktop Headline (2 lines total: 1440px+) */}
             <span
               data-aos="blur-in"
-              data-aos-delay="260"
+              data-aos-delay="200"
               data-aos-duration="900"
-              className="hidden sm:flex text-white text-[96px] leading-[80px] mt-2"
+              className="hidden min-[1440px]:block text-white text-[96px] leading-[80px]"
             >
               Power in every motion
             </span>
 
-            {/* Mobile Headline */}
+            {/* Mobile, Tablet & Medium Laptop Headline (3 lines total: < 1440px) */}
             <span
               data-aos="blur-in"
-              data-aos-delay="260"
+              data-aos-delay="200"
               data-aos-duration="900"
-              className="flex sm:hidden flex-col text-white text-[42px] leading-[38px] mt-1"
+              className="flex min-[1440px]:hidden flex-col text-white text-[42px] leading-[38px] sm:text-[68px] sm:leading-[60px] md:text-[80px] md:leading-[70px] lg:text-[88px] lg:leading-[78px] mt-1"
             >
               <span>Power in every</span>
               <span>motion</span>

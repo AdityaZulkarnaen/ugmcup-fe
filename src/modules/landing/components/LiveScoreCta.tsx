@@ -8,7 +8,7 @@ export function LiveScoreCta() {
         <h2
           data-aos="fade-up"
           data-aos-duration="800"
-          className="max-w-8xl text-4xl font-black italic leading-tight sm:text-7xl sm:leading-[70px]"
+          className="max-w-8xl text-4xl font-black italic leading-[0.95] tracking-tight sm:text-7xl sm:leading-[70px]"
         >
           Dapatkan akses instan ke seluruh pertandingan!
         </h2>
