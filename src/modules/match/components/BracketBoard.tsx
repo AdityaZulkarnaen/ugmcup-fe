@@ -14,7 +14,7 @@ import {
 } from "./BracketMatchCard";
 
 const roundLabel =
-  "text-[11px] font-bold uppercase tracking-wider text-[#34E5A6]";
+  "text-[11px] font-bold uppercase tracking-wider text-[#02F5D4]";
 
 /**
  * Connector segments.
@@ -28,7 +28,8 @@ const roundLabel =
 const connector = "absolute";
 const connectorIdleDark = "bg-white/22";
 const connectorIdleLight = "bg-[rgba(0,0,0,0.16)]";
-const connectorLit = "bg-[#02F5D4]";
+const connectorLitDark = "bg-[#02F5D4]";
+const connectorLitLight = "bg-[#8B5CF6]";
 
 /** Column slot keys: match ids, or the round id for the champion column. */
 export function columnKeys(round: BracketRound): string[] {
@@ -103,6 +104,7 @@ function RoundColumn({
   /** Two feeders per slot means the incoming line forks; 1-to-1 stays straight. */
   const forked = feederKeys.length === keys.length * 2;
   const connectorIdle = isLight ? connectorIdleLight : connectorIdleDark;
+  const connectorLit = isLight ? connectorLitLight : connectorLitDark;
 
   return (
     <div className="flex h-full flex-col">

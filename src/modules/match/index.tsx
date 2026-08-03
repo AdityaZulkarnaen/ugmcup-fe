@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { MatchTabs } from "./components/MatchTabs";
-import { ThemeToggle } from "./components/ThemeToggle";
+import { FloatingThemeToggle } from "./components/FloatingThemeToggle";
+import { useMatchTheme } from "@/lib/hooks/useMatchTheme";
 import { Calendar } from "lucide-react";
 
 /**
@@ -13,14 +13,14 @@ import { Calendar } from "lucide-react";
  * The app router renders this from `app/pertandingan/page.tsx`.
  */
 export default function MatchPage() {
-  const [isLight, setIsLight] = useState(true);
+  const { isLight, toggle } = useMatchTheme();
 
   return (
     <>
       <Navbar variant={isLight ? "light" : "dark"} />
 
       <main
-        className={`relative pt-28 pb-24 transition-colors duration-300 ${
+        className={`relative pt-24 sm:pt-28 lg:pt-36 pb-16 sm:pb-20 lg:pb-24 transition-colors duration-300 ${
           isLight
             ? "bg-gradient-to-b from-[#FBFAFF] to-[#f5f5f5]"
             : "bg-linear-to-b from-[#1A162B] to-[#0F0E1A]"
@@ -65,21 +65,20 @@ export default function MatchPage() {
                 isLight ? "text-[rgba(26,22,43,0.5)]" : "text-[#8A8A93]"
               }`}
             >
-              Jadwal, bagan knockout, dan klasemen.
+              Jadwal, bagan knockout, player stats, dan klasemen.
             </p>
           </div>
 
-          {/* Theme toggle — placed below the heading for accessibility */}
-          <div className="mt-4">
-            <ThemeToggle isLight={isLight} onToggle={() => setIsLight((v) => !v)} />
-          </div>
+
         </header>
 
         {/* Tabs + panels */}
-        <div className="relative mt-10">
+        <div className="relative mt-8 sm:mt-12 lg:mt-18">
           <MatchTabs isLight={isLight} />
         </div>
       </main>
+
+      <FloatingThemeToggle isLight={isLight} onToggle={toggle} />
 
       <Footer />
     </>

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Match } from "@/lib/types";
 import { ChevronIcon, CourtIcon } from "@/components/ui/icons";
+import { CategoryPill } from "@/components/ui/CategoryPill";
 
 interface LiveScoreCardProps {
   match: Match;
@@ -141,15 +142,9 @@ export function LiveScoreCard({ match, isLight = false }: LiveScoreCardProps) {
           </span>
 
           {/* Category pill */}
-          <span
-            className={`truncate rounded-full border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.25px] ${
-              isLight
-                ? "border-[#D9D3FF] bg-[#F3F0FF] text-[#6C47D1]"
-                : "border-[#8B5CF6]/40 bg-[#8B5CF6]/12 text-[#C4B5FD]"
-            }`}
-          >
+          <CategoryPill isLight={isLight}>
             {match.discipline?.name || (isTeamMatch ? "Beregu" : "Badminton")}
-          </span>
+          </CategoryPill>
         </div>
 
         {/* Court badge */}
@@ -199,9 +194,9 @@ export function LiveScoreCard({ match, isLight = false }: LiveScoreCardProps) {
             <span
               className={`text-4xl font-black tabular-nums sm:text-5xl ${
                 displayScoreA > displayScoreB
-                  ? isLight ? "text-[#8b5cf6]" : "text-[#34E5A6]"
+                  ? isLight ? "text-[#8b5cf6]" : "text-[#02F5D4]"
                   : displayScoreA === displayScoreB && displayScoreA > 0
-                    ? isLight ? "text-[#8b5cf6]" : "text-[#34E5A6]"
+                    ? isLight ? "text-[#8b5cf6]" : "text-[#02F5D4]"
                     : isLight ? "text-[#1a162b]" : "text-white"
               }`}
             >
@@ -211,9 +206,9 @@ export function LiveScoreCard({ match, isLight = false }: LiveScoreCardProps) {
             <span
               className={`text-4xl font-black tabular-nums sm:text-5xl ${
                 displayScoreB > displayScoreA
-                  ? isLight ? "text-[#8b5cf6]" : "text-[#34E5A6]"
+                  ? isLight ? "text-[#8b5cf6]" : "text-[#02F5D4]"
                   : displayScoreA === displayScoreB && displayScoreB > 0
-                    ? isLight ? "text-[#8b5cf6]" : "text-[#34E5A6]"
+                    ? isLight ? "text-[#8b5cf6]" : "text-[#02F5D4]"
                     : isLight ? "text-[rgba(26,22,43,0.4)]" : "text-[#8A8A93]"
               }`}
             >
@@ -303,7 +298,7 @@ export function LiveScoreCard({ match, isLight = false }: LiveScoreCardProps) {
                   key={idx}
                   className={`h-1 w-8 rounded-full ${
                     isFinishedChild
-                      ? isLight ? "bg-[#8b5cf6]" : "bg-[#34E5A6]"
+                      ? isLight ? "bg-[#8b5cf6]" : "bg-[#02F5D4]"
                       : isLight ? "bg-[rgba(0,0,0,0.08)]" : "bg-white/[0.08]"
                   }`}
                 />
@@ -321,7 +316,7 @@ export function LiveScoreCard({ match, isLight = false }: LiveScoreCardProps) {
         className={`mt-4 flex items-center justify-end gap-1 border-t pt-3 text-xs font-semibold ${
           isLight
             ? "border-[rgba(0,0,0,0.06)] text-[#8b5cf6]"
-            : "border-white/[0.06] text-[#34E5A6]"
+            : "border-white/[0.06] text-[#02F5D4]"
         }`}
       >
         Lihat detail pertandingan

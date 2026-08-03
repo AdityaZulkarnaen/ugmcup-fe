@@ -18,6 +18,6 @@ export interface SocialLink {
  */
 export const socialLinks: SocialLink[] = [
   { label: "YouTube", href: "#", Icon: YoutubeIcon },
-  { label: "TikTok", href: "https://www.tiktok.com/@ugmcup2026?_r=1&_t=ZS-98KkBVLEX7I", Icon: TiktokIcon },
-  { label: "Instagram", href: "https://www.instagram.com/ugm_cup?igsh=MXUzZWphY3F2dWRvNQ==", Icon: InstagramIcon },
+  { label: "TikTok", href: "https://www.tiktok.com/@ugmcup2026", Icon: TiktokIcon },
+  { label: "Instagram", href: "https://www.instagram.com/ugm_cup", Icon: InstagramIcon },
 ];

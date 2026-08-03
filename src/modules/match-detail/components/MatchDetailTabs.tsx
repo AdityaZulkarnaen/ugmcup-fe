@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState, useCallback } from "react";
 import type { Match } from "@/lib/types";
@@ -51,12 +51,14 @@ function SubMatchCard({
   index,
   isSelected,
   onSelect,
+  isLight,
 }: {
   subMatch: Match;
   parentMatch: Match;
   index: number;
   isSelected: boolean;
   onSelect: () => void;
+  isLight: boolean;
 }) {
   const label = formatSlotLabel(subMatch.slotType, index);
 
@@ -95,74 +97,106 @@ function SubMatchCard({
   const namesA = instA;
   const namesB = instB;
 
+  // Light / dark token helpers
+  const accentColor = isLight ? "#6C47D1" : "#02F5D4";
+  const accentBg = isLight ? "bg-[#8B5CF6]/10" : "bg-[#02F5D4]/10";
+  const accentBorder = isLight ? "border-[#8B5CF6]/40" : "border-[#02F5D4]";
+  const cardBase = isLight
+    ? "border-[rgba(0,0,0,0.08)] bg-white shadow-[0px_1px_4px_0px_rgba(0,0,0,0.06)]"
+    : "border-white/[0.06] bg-white/[0.02]";
+  const cardHover = isLight
+    ? "hover:border-[rgba(0,0,0,0.18)] hover:shadow-md"
+    : "hover:border-white/20 hover:bg-white/[0.04]";
+  const dividerColor = isLight ? "border-[rgba(0,0,0,0.06)]" : "border-white/[0.06]";
+  const labelColor = isLight ? `text-[${accentColor}]` : "text-[#02F5D4]";
+  const tableHeaderBg = isLight ? "bg-[#F9F9FB]" : "bg-white/[0.02]";
+  const tableHeaderText = isLight ? "text-[#6B6B73]" : "text-[#7A7A83]";
+  const tableDivide = isLight ? "divide-[rgba(0,0,0,0.05)]" : "divide-white/[0.04]";
+  const nameColor = isLight ? "text-[#1a162b]" : "text-white";
+  const winnerNameColor = isLight ? "text-[#6C47D1]" : "text-[#02F5D4]";
+  const winnerBg = isLight ? "bg-[#8B5CF6]/[0.07]" : "bg-[#02F5D4]/[0.07]";
+  const scoreDefault = isLight ? "text-[#1a162b]/60" : "text-white/60";
+  const scoreWin = isLight ? "text-[#1a162b] font-bold" : "text-white font-bold";
+  const detailLinkColor = isLight ? "text-[#6C47D1]" : "text-[#02F5D4]";
+
   return (
     <div
       onClick={onSelect}
-      className={`group cursor-pointer rounded-xl border p-4 transition-all ${isSelected
-        ? "border-[#02F5D4] bg-[#02F5D4]/10"
-        : "border-white/[0.06] bg-white/[0.02] hover:border-white/20 hover:bg-white/[0.04]"
-        }`}
+      className={`group cursor-pointer rounded-xl border p-4 transition-all ${
+        isSelected
+          ? `${accentBorder} ${accentBg}`
+          : `${cardBase} ${cardHover}`
+      }`}
     >
-      <div className="flex items-center justify-between border-b border-white/[0.06] pb-2">
-        <span className="text-xs font-bold uppercase tracking-wider text-[#34E5A6]">
+      <div className={`flex items-center justify-between border-b ${dividerColor} pb-2`}>
+        <span className={`text-xs font-bold uppercase tracking-wider ${labelColor}`}>
           {label}
         </span>
         <span
-          className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${isOngoing
-            ? "bg-red-500/20 text-red-400 animate-pulse"
-            : isFinished
-              ? "bg-emerald-500/20 text-emerald-400"
-              : "bg-white/10 text-gray-400"
-            }`}
+          className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
+            isOngoing
+              ? "bg-red-500/20 text-red-400 animate-pulse"
+              : isFinished
+                ? "bg-emerald-500/20 text-emerald-400"
+                : isLight
+                  ? "bg-[rgba(0,0,0,0.06)] text-[#6B6B73]"
+                  : "bg-white/10 text-gray-400"
+          }`}
         >
           {isOngoing ? "LIVE" : isFinished ? "SELESAI" : "MENDATANG"}
         </span>
       </div>
 
-      <div className="mt-3 overflow-hidden rounded-lg border border-white/[0.06] bg-white/[0.02]">
+      <div
+        className={`mt-3 overflow-hidden rounded-lg border ${dividerColor} ${
+          isLight ? "bg-[#F9F9FB]" : "bg-white/[0.02]"
+        }`}
+      >
         <table className="w-full text-[11px]">
           <thead>
-            <tr className="border-b border-white/[0.06] bg-white/[0.02]">
-              <th className="py-2 pl-3 text-left font-bold uppercase tracking-wider text-[#7A7A83]">Tim / Atlet</th>
-              <th className="w-7 py-2 text-center font-bold text-[#7A7A83]">1</th>
-              <th className="w-7 py-2 text-center font-bold text-[#7A7A83]">2</th>
-              <th className="w-7 py-2 text-center font-bold text-[#7A7A83]">3</th>
+            <tr className={`border-b ${dividerColor} ${tableHeaderBg}`}>
+              <th className={`py-2 pl-3 text-left font-bold uppercase tracking-wider ${tableHeaderText}`}>Tim / Atlet</th>
+              <th className={`w-7 py-2 text-center font-bold ${tableHeaderText}`}>1</th>
+              <th className={`w-7 py-2 text-center font-bold ${tableHeaderText}`}>2</th>
+              <th className={`w-7 py-2 text-center font-bold ${tableHeaderText}`}>3</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-white/[0.04]">
-            <tr className={`${teamAWon ? "bg-[#34E5A6]/[0.07]" : ""}`}>
+          <tbody className={`divide-y ${tableDivide}`}>
+            <tr className={`${teamAWon ? winnerBg : ""}`}>
               <td className="py-2 pl-3 pr-2">
                 <span
-                  className={`block max-w-[140px] truncate font-semibold ${teamAWon ? "text-[#34E5A6]" : "text-white"
-                    }`}
+                  className={`block max-w-[140px] truncate font-semibold ${
+                    teamAWon ? winnerNameColor : nameColor
+                  }`}
                   title={namesA}
                 >
                   {namesA}
                 </span>
               </td>
-              <td className={`w-7 py-2 text-center font-mono font-bold ${sets[0]?.scoreA > sets[0]?.scoreB ? "text-white" : "text-white/60"}`}>{sets[0]?.scoreA ?? "-"}</td>
-              <td className={`w-7 py-2 text-center font-mono font-bold ${sets[1]?.scoreA > sets[1]?.scoreB ? "text-white" : "text-white/60"}`}>{sets[1]?.scoreA ?? "-"}</td>
-              <td className={`w-7 py-2 text-center font-mono font-bold ${sets[2]?.scoreA > sets[2]?.scoreB ? "text-white" : "text-white/60"}`}>{sets[2]?.scoreA ?? "-"}</td>
+              <td className={`w-7 py-2 text-center font-mono font-bold ${sets[0]?.scoreA > sets[0]?.scoreB ? scoreWin : scoreDefault}`}>{sets[0]?.scoreA ?? "-"}</td>
+              <td className={`w-7 py-2 text-center font-mono font-bold ${sets[1]?.scoreA > sets[1]?.scoreB ? scoreWin : scoreDefault}`}>{sets[1]?.scoreA ?? "-"}</td>
+              <td className={`w-7 py-2 text-center font-mono font-bold ${sets[2]?.scoreA > sets[2]?.scoreB ? scoreWin : scoreDefault}`}>{sets[2]?.scoreA ?? "-"}</td>
             </tr>
-            <tr className={`${teamBWon ? "bg-[#34E5A6]/[0.07]" : ""}`}>
+            <tr className={`${teamBWon ? winnerBg : ""}`}>
               <td className="py-2 pl-3 pr-2">
                 <span
-                  className={`block max-w-[140px] truncate font-semibold ${teamBWon ? "text-[#34E5A6]" : "text-white"
-                    }`}
+                  className={`block max-w-[140px] truncate font-semibold ${
+                    teamBWon ? winnerNameColor : nameColor
+                  }`}
                   title={namesB}
                 >
                   {namesB}
                 </span>
               </td>
-              <td className={`w-7 py-2 text-center font-mono font-bold ${sets[0]?.scoreB > sets[0]?.scoreA ? "text-white" : "text-white/60"}`}>{sets[0]?.scoreB ?? "-"}</td>
-              <td className={`w-7 py-2 text-center font-mono font-bold ${sets[1]?.scoreB > sets[1]?.scoreA ? "text-white" : "text-white/60"}`}>{sets[1]?.scoreB ?? "-"}</td>
-              <td className={`w-7 py-2 text-center font-mono font-bold ${sets[2]?.scoreB > sets[2]?.scoreA ? "text-white" : "text-white/60"}`}>{sets[2]?.scoreB ?? "-"}</td>
+              <td className={`w-7 py-2 text-center font-mono font-bold ${sets[0]?.scoreB > sets[0]?.scoreA ? scoreWin : scoreDefault}`}>{sets[0]?.scoreB ?? "-"}</td>
+              <td className={`w-7 py-2 text-center font-mono font-bold ${sets[1]?.scoreB > sets[1]?.scoreA ? scoreWin : scoreDefault}`}>{sets[1]?.scoreB ?? "-"}</td>
+              <td className={`w-7 py-2 text-center font-mono font-bold ${sets[2]?.scoreB > sets[2]?.scoreA ? scoreWin : scoreDefault}`}>{sets[2]?.scoreB ?? "-"}</td>
             </tr>
           </tbody>
         </table>
       </div>
 
-      <div className="mt-3 flex items-center justify-end gap-1 text-[10px] font-bold text-[#34E5A6] group-hover:underline">
+      <div className={`mt-3 flex items-center justify-end gap-1 text-[10px] font-bold ${detailLinkColor} group-hover:underline`}>
         <span>Detail</span>
         <ChevronIcon className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
       </div>
@@ -170,7 +204,13 @@ function SubMatchCard({
   );
 }
 
-export function MatchDetailTabs({ initialMatch }: { initialMatch: Match }) {
+export function MatchDetailTabs({
+  initialMatch,
+  isLight,
+}: {
+  initialMatch: Match;
+  isLight: boolean;
+}) {
   const [match, setMatch] = useState<Match>(initialMatch);
   const [tab, setTab] = useState(tabs[0].id);
   const [subTab, setSubTab] = useState(subTabs[0].id);
@@ -201,13 +241,29 @@ export function MatchDetailTabs({ initialMatch }: { initialMatch: Match }) {
     return () => clearInterval(interval);
   }, [refreshMatch]);
 
+  // Light/dark token helpers for MatchDetailTabs shell
+  const headingColor = isLight ? "text-[#1a162b]" : "text-white";
+  const subheadingColor = isLight ? "text-[rgba(26,22,43,0.5)]" : "text-[#8A8A93]";
+  const cardBorder = isLight ? "border-[rgba(0,0,0,0.08)]" : "border-white/[0.06]";
+  const cardBg = isLight ? "bg-white shadow-[0px_1px_4px_0px_rgba(0,0,0,0.06)]" : "bg-white/[0.02]";
+  const tabBorder = isLight ? "border-[rgba(0,0,0,0.08)]" : "border-white/[0.06]";
+  const activeTabColor = isLight ? "border-[#8B5CF6] text-[#6C47D1]" : "border-[#02F5D4] text-[#02F5D4]";
+  const inactiveTabColor = isLight ? "text-[#6B6B73] hover:text-[#1a162b]" : "text-[#6B6B73] hover:text-white";
+  const pillActive = isLight
+    ? "border-[#8B5CF6]/50 bg-[#8B5CF6]/15 text-[#6C47D1]"
+    : "border-[#8B5CF6]/50 bg-[#8B5CF6]/15 text-[#C4B5FD]";
+  const pillInactive = isLight
+    ? "border-[rgba(0,0,0,0.08)] bg-[rgba(0,0,0,0.02)] text-[#6B6B73] hover:text-[#1a162b]"
+    : "border-white/[0.06] bg-white/[0.03] text-[#8A8A93] hover:text-white";
+  const bereguHeadingColor = isLight ? "text-[#6C47D1]" : "text-[#02F5D4]";
+
   return (
     <div className="flex flex-col gap-4">
       <header className="text-center">
-        <h1 className="text-4xl font-black italic text-white sm:text-6xl lg:text-7xl">
+        <h1 className={`text-4xl font-black italic sm:text-6xl lg:text-7xl transition-colors duration-300 ${headingColor}`}>
           Statistik Pertandingan
         </h1>
-        <p className="mt-3 text-sm text-[#8A8A93] sm:text-base">
+        <p className={`mt-3 text-sm sm:text-base transition-colors duration-300 ${subheadingColor}`}>
           {tab === "bracket"
             ? "Posisi pertandingan ini pada bagan knockout kategorinya."
             : subTab === "sejarah"
@@ -222,10 +278,9 @@ export function MatchDetailTabs({ initialMatch }: { initialMatch: Match }) {
           <button
             type="button"
             onClick={() => setSelectedSubMatchId(null)}
-            className={`rounded-full border px-4 py-2 text-xs font-bold uppercase tracking-wide transition-all ${selectedSubMatchId === null
-              ? "border-[#8B5CF6]/50 bg-[#8B5CF6]/15 text-[#C4B5FD]"
-              : "border-white/[0.06] bg-white/[0.03] text-[#8A8A93] hover:text-white"
-              }`}
+            className={`rounded-full border px-4 py-2 text-xs font-bold uppercase tracking-wide transition-all ${
+              selectedSubMatchId === null ? pillActive : pillInactive
+            }`}
           >
             Ringkasan
           </button>
@@ -237,10 +292,9 @@ export function MatchDetailTabs({ initialMatch }: { initialMatch: Match }) {
                 key={child.id}
                 type="button"
                 onClick={() => setSelectedSubMatchId(child.id)}
-                className={`rounded-full border px-4 py-2 text-xs font-bold uppercase tracking-wide transition-all ${isSelected
-                  ? "border-[#8B5CF6]/50 bg-[#8B5CF6]/15 text-[#C4B5FD]"
-                  : "border-white/[0.06] bg-white/[0.03] text-[#8A8A93] hover:text-white"
-                  }`}
+                className={`rounded-full border px-4 py-2 text-xs font-bold uppercase tracking-wide transition-all ${
+                  isSelected ? pillActive : pillInactive
+                }`}
               >
                 {label}
               </button>
@@ -250,15 +304,15 @@ export function MatchDetailTabs({ initialMatch }: { initialMatch: Match }) {
       )}
 
       <div className="mt-4">
-        <MatchScoreboard match={activeMatchForDetail} parentMatch={selectedSubMatch ? match : undefined} />
+        <MatchScoreboard match={activeMatchForDetail} parentMatch={selectedSubMatch ? match : undefined} isLight={isLight} />
       </div>
 
-      <div className="overflow-hidden rounded-xl border border-white/[0.06] bg-white/[0.02]">
+      <div className={`overflow-hidden rounded-xl border ${cardBorder} ${cardBg}`}>
         {/* Primary tabs */}
         <div
           role="tablist"
           aria-label="Bagian statistik"
-          className="flex border-b border-white/[0.06]"
+          className={`flex border-b ${tabBorder}`}
         >
           {tabs.map((item) => {
             const isActive = item.id === tab;
@@ -268,10 +322,9 @@ export function MatchDetailTabs({ initialMatch }: { initialMatch: Match }) {
                 role="tab"
                 aria-selected={isActive}
                 onClick={() => setTab(item.id)}
-                className={`-mb-px border-b-2 px-5 py-3.5 text-[13px] font-bold uppercase tracking-wide transition-colors ${isActive
-                    ? "border-[#02F5D4] text-[#34E5A6]"
-                    : "border-transparent text-[#6B6B73] hover:text-white"
-                  }`}
+                className={`-mb-px border-b-2 px-5 py-3.5 text-[13px] font-bold uppercase tracking-wide transition-colors ${
+                  isActive ? activeTabColor : `border-transparent ${inactiveTabColor}`
+                }`}
               >
                 {item.label}
               </button>
@@ -290,10 +343,9 @@ export function MatchDetailTabs({ initialMatch }: { initialMatch: Match }) {
                   type="button"
                   aria-pressed={isActive}
                   onClick={() => setSubTab(item.id)}
-                  className={`rounded-full border px-4 py-2 text-[11px] font-bold uppercase tracking-wide transition-colors ${isActive
-                      ? "border-[#8B5CF6]/50 bg-[#8B5CF6]/15 text-[#C4B5FD]"
-                      : "border-white/[0.06] bg-white/[0.03] text-[#8A8A93] hover:text-white"
-                    }`}
+                  className={`rounded-full border px-4 py-2 text-[11px] font-bold uppercase tracking-wide transition-colors ${
+                    isActive ? pillActive : pillInactive
+                  }`}
                 >
                   {item.label}
                 </button>
@@ -313,6 +365,7 @@ export function MatchDetailTabs({ initialMatch }: { initialMatch: Match }) {
                 : "univ"
             }
             highlightParticipantId={match.participantAId || match.participantBId || match.teamAId || match.teamBId}
+            isLight={isLight}
           />
         </div>
       ) : subTab === "ringkasan" ? (
@@ -320,7 +373,7 @@ export function MatchDetailTabs({ initialMatch }: { initialMatch: Match }) {
           {/* If Team Match and viewing overall Beregu summary, show the 5 Submatch Cards Grid */}
           {isTeamMatch && selectedSubMatchId === null ? (
             <div className="flex flex-col gap-4">
-              <h3 className="text-sm font-bold uppercase tracking-wider text-[#34E5A6]">
+              <h3 className={`text-sm font-bold uppercase tracking-wider ${bereguHeadingColor}`}>
                 Daftar Match Beregu
               </h3>
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -332,15 +385,16 @@ export function MatchDetailTabs({ initialMatch }: { initialMatch: Match }) {
                     index={index}
                     isSelected={child.id === selectedSubMatchId}
                     onSelect={() => setSelectedSubMatchId(child.id)}
+                    isLight={isLight}
                   />
                 ))}
               </div>
-              <MatchInfo match={match} />
+              <MatchInfo match={match} isLight={isLight} />
             </div>
           ) : (
             <>
-              <ScoreTable match={activeMatchForDetail} parentMatch={match} />
-              <MatchInfo match={activeMatchForDetail} />
+              <ScoreTable match={activeMatchForDetail} parentMatch={match} isLight={isLight} />
+              <MatchInfo match={activeMatchForDetail} isLight={isLight} />
             </>
           )}
         </>

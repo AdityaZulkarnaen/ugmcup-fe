@@ -85,10 +85,9 @@ export function PlayerPanel({ isLight = false }: PlayerPanelProps) {
   }, [filteredMatches]);
 
   const statsList = useMemo(() => {
-    // Map athleteId -> Stats — only athletes appearing in filtered matches
     const map = new Map<string, PlayerStats>();
 
-    // Collect athlete IDs from matches first (for discipline filter)
+    // Collect relevant athlete IDs when discipline filter is active
     const relevantAthleteIds = new Set<string>();
     if (disciplineFilter !== "ALL") {
       filteredMatches.forEach((m) => {
@@ -102,7 +101,6 @@ export function PlayerPanel({ isLight = false }: PlayerPanelProps) {
     }
 
     athletes.forEach((ath) => {
-      // If a discipline is selected, only include athletes in that discipline
       if (disciplineFilter !== "ALL" && !relevantAthleteIds.has(ath.id)) return;
       map.set(ath.id, {
         athlete: ath,
@@ -223,81 +221,107 @@ export function PlayerPanel({ isLight = false }: PlayerPanelProps) {
 
   return (
     <div className="space-y-6">
-      {/* Filter Row */}
-      <div className="flex flex-col gap-3">
-        {/* Search */}
-        <div className="relative w-full">
+      {/* Search & Filter Header */}
+      <div className="flex flex-col sm:flex-row gap-3 items-center justify-between">
+        {/* Search — pill style */}
+        <div
+          className={`relative flex items-center gap-2 rounded-full border px-4 py-2 transition-colors w-full sm:w-72 ${
+            isLight
+              ? "border-[rgba(0,0,0,0.08)] bg-[rgba(0,0,0,0.02)] focus-within:border-[rgba(0,0,0,0.15)]"
+              : "border-white/[0.08] bg-white/[0.02] focus-within:border-white/20"
+          }`}
+        >
           <Search
-            className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${
-              isLight ? "text-[rgba(26,22,43,0.4)]" : "text-[#7A7A83]"
+            className={`shrink-0 w-4 h-4 ${
+              isLight ? "text-[rgba(26,22,43,0.3)]" : "text-[#6B6B73]"
             }`}
           />
           <input
             type="text"
             placeholder="Cari nama atlet atau institusi..."
             value={search}
-            onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-            className={`w-full rounded-xl pl-9 pr-4 py-2 text-sm outline-none transition ${isLight
-              ? "bg-black/5 text-gray-900 focus:bg-black/10"
-              : "bg-white/5 text-white focus:bg-white/10"
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setPage(1);
+            }}
+            className={`min-w-0 flex-1 bg-transparent text-xs font-medium outline-none ${
+              isLight
+                ? "text-[#1a162b] placeholder:text-[rgba(26,22,43,0.35)]"
+                : "text-white placeholder:text-[#6B6B73]"
             }`}
           />
+          {search && (
+            <button
+              type="button"
+              onClick={() => { setSearch(""); setPage(1); }}
+              aria-label="Hapus pencarian"
+              className={`shrink-0 transition-colors ${
+                isLight ? "text-[#808080] hover:text-[#1a162b]" : "text-[#8A8A93] hover:text-white"
+              }`}
+            >
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden>
+                <path d="M1 1L11 11M11 1L1 11" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+              </svg>
+            </button>
+          )}
         </div>
 
-        {/* Discipline Dropdown + Level Tabs */}
-        <div className="flex flex-col sm:flex-row gap-2 sm:items-center sm:justify-between">
-          {/* Discipline select */}
-          <select
-            value={disciplineFilter}
-            onChange={(e) => { setDisciplineFilter(e.target.value); setPage(1); }}
-            className={`flex-1 sm:flex-none sm:w-56 rounded-xl px-3 py-2 text-sm outline-none transition cursor-pointer ${
-              isLight
-                ? "bg-black/5 text-gray-900 border border-black/10 focus:bg-black/10"
-                : "bg-white/5 text-white border border-white/10 focus:bg-white/10"
-            }`}
-          >
-            <option value="ALL">Semua Cabang</option>
-            <optgroup label="Universitas">
-              {INDIVIDUAL_DISCIPLINES.filter((d) => d.level === "univ").map((d) => (
-                <option key={d.id} value={d.id}>
-                  {BWF_CODE[d.type] ?? d.type} — {d.label}
-                </option>
-              ))}
-            </optgroup>
-            <optgroup label="SMA/SMK">
-              {INDIVIDUAL_DISCIPLINES.filter((d) => d.level === "sma").map((d) => (
-                <option key={d.id} value={d.id}>
-                  {BWF_CODE[d.type] ?? d.type} — {d.label}
-                </option>
-              ))}
-            </optgroup>
-          </select>
-
-          {/* Level filter pills */}
-          <div className="flex gap-2">
-            {[
-              { id: "ALL", label: "Semua" },
-              { id: "UNIVERSITAS", label: "Universitas" },
-              { id: "SMA", label: "SMA/SMK" },
-            ].map((item) => (
+        {/* Level filter pills */}
+        <div className="flex gap-2 w-full sm:w-auto">
+          {[
+            { id: "ALL", label: "Semua" },
+            { id: "UNIVERSITAS", label: "Universitas" },
+            { id: "SMA", label: "SMA/SMK" },
+          ].map((item) => {
+            const isActive = levelFilter === item.id;
+            return (
               <button
                 key={item.id}
+                type="button"
                 onClick={() => { setLevelFilter(item.id); setPage(1); }}
-                className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition ${levelFilter === item.id
-                  ? isLight
-                    ? "bg-[#6C47D1] text-white shadow-sm"
-                    : "bg-[#8b5cf6] text-white shadow-sm"
-                  : isLight
-                    ? "bg-black/5 text-gray-600 hover:bg-black/10"
-                    : "bg-white/5 text-gray-400 hover:bg-white/10"
+                className={`rounded-full border px-4 py-2 text-xs font-medium transition-colors ${
+                  isActive
+                    ? isLight
+                      ? "border-[#8b5cf6]/30 bg-[#8b5cf6]/10 text-[#8b5cf6]"
+                      : "border-[#8B5CF6]/40 bg-[#8B5CF6]/20 text-[#C4B5FD]"
+                    : isLight
+                      ? "border-[rgba(0,0,0,0.08)] bg-[rgba(0,0,0,0.02)] text-[#808080] hover:border-[rgba(0,0,0,0.15)] hover:text-[#1a162b]"
+                      : "border-white/[0.08] bg-white/[0.02] text-[#8A8A93] hover:border-white/15 hover:text-white"
                 }`}
               >
                 {item.label}
               </button>
-            ))}
-          </div>
+            );
+          })}
         </div>
       </div>
+
+      {/* Discipline Dropdown */}
+      <select
+        value={disciplineFilter}
+        onChange={(e) => { setDisciplineFilter(e.target.value); setPage(1); }}
+        className={`w-full sm:w-64 rounded-xl px-3 py-2 text-sm outline-none transition cursor-pointer ${
+          isLight
+            ? "bg-black/5 text-gray-900 border border-black/10 focus:bg-black/10"
+            : "bg-white/5 text-white border border-white/10 focus:bg-white/10"
+        }`}
+      >
+        <option value="ALL">Semua Cabang</option>
+        <optgroup label="Universitas">
+          {INDIVIDUAL_DISCIPLINES.filter((d) => d.level === "univ").map((d) => (
+            <option key={d.id} value={d.id}>
+              {BWF_CODE[d.type] ?? d.type} — {d.label}
+            </option>
+          ))}
+        </optgroup>
+        <optgroup label="SMA/SMK">
+          {INDIVIDUAL_DISCIPLINES.filter((d) => d.level === "sma").map((d) => (
+            <option key={d.id} value={d.id}>
+              {BWF_CODE[d.type] ?? d.type} — {d.label}
+            </option>
+          ))}
+        </optgroup>
+      </select>
 
       {/* Stats Table */}
       {filteredStats.length === 0 ? (
@@ -327,7 +351,7 @@ export function PlayerPanel({ isLight = false }: PlayerPanelProps) {
                   }`}
                 >
                   <th className="py-3 px-3 w-14 text-center whitespace-nowrap">Rank</th>
-                  <th className="py-3 px-4 min-w-[180px]">Atlet & Institusi</th>
+                  <th className="py-3 px-4 min-w-[180px]">Atlet &amp; Institusi</th>
                   <th className="py-3 px-2 w-16 text-center whitespace-nowrap">Win</th>
                   <th className="py-3 px-2 w-16 text-center whitespace-nowrap">Lose</th>
                   <th className="py-3 px-3 w-28 text-center whitespace-nowrap">Poin</th>
@@ -369,7 +393,6 @@ export function PlayerPanel({ isLight = false }: PlayerPanelProps) {
                           <span className={`font-semibold ${isLight ? "text-[#1a162b]" : "text-white"}`}>
                             {st.athlete.name}
                           </span>
-                          {/* Seed badge: show BWF code + seed number from participant data */}
                           {seedInfo && (
                             <span
                               className={`inline-flex items-center gap-0.5 rounded-md px-1.5 py-0.5 text-[10px] font-extrabold shrink-0 ${
@@ -389,12 +412,20 @@ export function PlayerPanel({ isLight = false }: PlayerPanelProps) {
                       </td>
 
                       {/* Win */}
-                      <td className={`py-3.5 px-2 w-16 text-center font-bold whitespace-nowrap ${isLight ? "text-emerald-600" : "text-emerald-400"}`}>
+                      <td
+                        className={`py-3.5 px-2 w-16 text-center font-bold whitespace-nowrap ${
+                          isLight ? "text-[#8B5CF6]" : "text-[#02F5D4]"
+                        }`}
+                      >
                         {st.win}
                       </td>
 
                       {/* Lose */}
-                      <td className={`py-3.5 px-2 w-16 text-center font-semibold whitespace-nowrap ${isLight ? "text-[#FB2C36]" : "text-rose-400"}`}>
+                      <td
+                        className={`py-3.5 px-2 w-16 text-center font-semibold whitespace-nowrap ${
+                          isLight ? "text-[#FF6467]/80" : "text-[#FF6467]/60"
+                        }`}
+                      >
                         {st.lose}
                       </td>
 
@@ -405,15 +436,15 @@ export function PlayerPanel({ isLight = false }: PlayerPanelProps) {
                             st.pointDiff > 0
                               ? isLight ? "text-emerald-600" : "text-emerald-400"
                               : st.pointDiff < 0
-                              ? isLight ? "text-[#FB2C36]" : "text-rose-400"
+                              ? isLight ? "text-[#FF6467]" : "text-[#FF6467]/90"
                               : isLight ? "text-[rgba(26,22,43,0.5)]" : "text-[#6B6B73]"
                           }`}
                         >
                           {st.pointsScored}
                         </span>
-                        <span className={`text-[10px] opacity-50 ml-0.5 ${isLight ? "text-[#1a162b]" : "text-white"}`}>
-                          /{st.pointsConceded}
-                        </span>
+                        <span className={`text-[10px] opacity-50 ml-0.5 ${
+                          isLight ? "text-[#1a162b]" : "text-white"
+                        }`}>/{st.pointsConceded}</span>
                       </td>
                     </tr>
                   );

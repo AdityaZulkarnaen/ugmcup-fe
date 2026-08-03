@@ -21,9 +21,9 @@ const kontak = [
 ];
 
 const jadwal = [
-  { label: "Fase Grup", value: "1-10 Agustus 2026" },
-  { label: "Fase Gugur", value: "11-18 Agustus 2026" },
-  { label: "Semifinal & Final", value: "19-20 Agustus 2026" },
+  { label: "Fase Gugur", value: "10-13 Agustus 2026" },
+  { label: "Semifinal", value: "14 Agustus 2026" },
+  { label: "Final", value: "15 Agustus 2026" },
 ];
 
 const columnHeading = "text-sm font-black italic text-white";

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useMemo } from "react";
 import Image from "next/image";
@@ -90,7 +90,7 @@ function StandingRow({ entry, rank, isLight = false }: { entry: Standing; rank: 
           rank === 1
             ? isLight
               ? "text-[#8b5cf6]"
-              : "text-[#34E5A6]"
+              : "text-[#02F5D4]"
             : isLight
               ? "text-[#808080]"
               : "text-[#6B6B73]"
@@ -139,9 +139,9 @@ function StandingRow({ entry, rank, isLight = false }: { entry: Standing; rank: 
           isLight ? "text-[#1a162b]" : "text-white"
         }`}
       >
-        <span className={isLight ? "text-[#8b5cf6]" : "text-[#5CFCE7]"}>{matchWon}</span>
+        <span className={isLight ? "text-[#8b5cf6]" : "text-[#02F5D4]"}>{matchWon}</span>
         <span className="opacity-40 mx-0.5">-</span>
-        <span className={isLight ? "text-[#FB2C36]" : "text-[#FF8A90]"}>{matchLost}</span>
+        <span className={isLight ? "text-[#FF6467]/80" : "text-[#FF6467]/80"}>{matchLost}</span>
       </td>
 
       {/* Games (set) won-lost — hanya untuk beregu */}
@@ -151,9 +151,9 @@ function StandingRow({ entry, rank, isLight = false }: { entry: Standing; rank: 
             isLight ? "text-[#1a162b]" : "text-white"
           }`}
         >
-          <span className={isLight ? "text-[#8b5cf6]" : "text-[#5CFCE7]"}>{gamesWon}</span>
+          <span className={isLight ? "text-[#8b5cf6]" : "text-[#02F5D4]"}>{gamesWon}</span>
           <span className="opacity-40 mx-0.5">-</span>
-          <span className={isLight ? "text-[#FB2C36]" : "text-[#FF8A90]"}>{gamesLost}</span>
+          <span className={isLight ? "text-[#FF6467]/80" : "text-[#FF6467]/80"}>{gamesLost}</span>
         </td>
       )}
 
@@ -163,9 +163,9 @@ function StandingRow({ entry, rank, isLight = false }: { entry: Standing; rank: 
           isLight ? "text-[#1a162b]" : "text-white"
         }`}
       >
-        <span className={isLight ? "text-[#8b5cf6]" : "text-[#5CFCE7]"}>{entry.pointWon}</span>
+        <span className={isLight ? "text-[#8b5cf6]" : "text-[#02F5D4]"}>{entry.pointWon}</span>
         <span className="opacity-40 mx-0.5">-</span>
-        <span className={isLight ? "text-[#FB2C36]" : "text-[#FF8A90]"}>{entry.pointLost}</span>
+        <span className={isLight ? "text-[#FF6467]/80" : "text-[#FF6467]/80"}>{entry.pointLost}</span>
       </td>
     </tr>
   );
@@ -189,7 +189,7 @@ function GroupTable({ groupName, entries, isLight = false }: { groupName: string
         className={`border-b px-4 py-2.5 text-[11px] font-bold uppercase tracking-wider ${
           isLight
             ? "border-[rgba(0,0,0,0.06)] bg-[rgba(0,0,0,0.02)] text-[#6C47D1]"
-            : "border-white/[0.06] bg-white/[0.03] text-[#34E5A6]"
+            : "border-white/[0.06] bg-white/[0.03] text-[#02F5D4]"
         }`}
       >
         Grup {groupName}

@@ -68,11 +68,11 @@ export function News() {
         {/* Wrapper carries the reveal so the button keeps its own transitions */}
         <div data-aos="zoom-in" className="mt-12">
           <Button
-            href="#"
+            href="/informasi"
             variant="solid"
             className="px-6 py-3 text-base font-black italic"
           >
-            Baca Berita Lainnya
+            Baca Informasi Lainnya
           </Button>
         </div>
       </div>
