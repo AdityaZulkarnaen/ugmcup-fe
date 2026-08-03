@@ -189,15 +189,17 @@ export function GallerySlider() {
       <div className="relative -mt-14 overflow-hidden sm:-mt-18">
         <ProgressArc progress={progress} onScrub={scrubTo} onScrubEnd={restoreSnap} />
 
-        <Button
-          href={driveUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          variant="solid"
-          className="absolute top-[72%] left-1/2 -translate-x-1/2 -translate-y-1/2 px-6 py-3 text-sm font-black italic sm:text-base"
-        >
-          Lihat Semua di Google Drive
-        </Button>
+        <div className="absolute top-[72%] left-1/2 flex -translate-x-1/2 -translate-y-1/2 justify-center">
+          <Button
+            href={driveUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            variant="solid"
+            className="flex items-center justify-center whitespace-nowrap text-center px-4 py-2.5 text-xs font-black italic sm:px-6 sm:py-3 sm:text-base"
+          >
+            Lihat Semua di Google Drive
+          </Button>
+        </div>
       </div>
     </div>
   );

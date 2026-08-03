@@ -85,9 +85,8 @@ export function Navbar({ variant = "auto", forceInverted = false }: NavbarProps)
       {/* The bar. Never moves. Skins between Light and Dark treatments.      */}
       {/* ------------------------------------------------------------------ */}
       <header
-        className={`fixed inset-x-0 top-0 z-50 transition-colors duration-300 ${
-          inverted ? "bg-white shadow-[0_1px_0_rgba(0,0,0,0.06)]" : "bg-transparent backdrop-blur-md"
-        }`}
+        className={`fixed inset-x-0 top-0 z-50 transition-colors duration-300 ${inverted ? "bg-white shadow-[0_1px_0_rgba(0,0,0,0.06)]" : "bg-transparent backdrop-blur-md"
+          }`}
       >
         <div className="mx-auto flex h-[76px] w-full max-w-[1280px] items-center justify-between px-8">
 
@@ -98,9 +97,8 @@ export function Navbar({ variant = "auto", forceInverted = false }: NavbarProps)
               alt="UGMCUP"
               width={4800}
               height={4800}
-              className={`h-10 w-36 transition duration-300 sm:h-11 sm:w-40 ${
-                inverted ? "invert" : ""
-              }`}
+              className={`h-10 w-36 transition duration-300 sm:h-11 sm:w-40 ${inverted ? "invert" : ""
+                }`}
             />
           </Link>
 
@@ -120,14 +118,13 @@ export function Navbar({ variant = "auto", forceInverted = false }: NavbarProps)
                   className={`
                     relative flex items-center justify-center rounded-full
                     px-4 py-1.5 text-sm font-semibold transition-colors
-                    ${
-                      inverted
-                        ? isActive
-                          ? "text-[#1a162b]"
-                          : "text-[#99a1af] hover:text-[#1a162b]"
-                        : isActive
-                          ? "text-[#00F5D4] font-bold"
-                          : "text-white/70 hover:text-white"
+                    ${inverted
+                      ? isActive
+                        ? "text-[#1a162b]"
+                        : "text-[#99a1af] hover:text-[#1a162b]"
+                      : isActive
+                        ? "text-[#02F5D4] font-bold"
+                        : "text-white/70 hover:text-[#02F5D4]"
                     }
                   `}
                 >
@@ -138,42 +135,33 @@ export function Navbar({ variant = "auto", forceInverted = false }: NavbarProps)
           </nav>
 
           {/* -------- CTA Button -------- */}
-          <div className="hidden shrink-0 items-center sm:flex">
+          <div className="hidden shrink-0 items-center lg:flex">
             {inverted ? (
-              /* Figma "Header [Light]" — solid black pill */
+              /* Figma "Header [Light]" — solid dark pill with violet glow hover */
               <a
                 href="/pertandingan"
-                className="inline-flex items-center gap-1.5 rounded-full bg-[#1a162b] px-6 py-3 text-xs font-black italic text-white transition-opacity hover:opacity-90"
+                className="group inline-flex items-center gap-2 rounded-full border border-transparent bg-[#1a162b] px-6 py-3 text-xs font-black italic text-white transition-all duration-300 hover:bg-[#8352D9] hover:shadow-[0_4px_20px_rgba(131,82,217,0.2)] hover:scale-[1.03] active:scale-95"
               >
-                Pertandingan
-                {/* <span
-                  className="text-sm font-black italic leading-none"
-                  aria-hidden
-                  style={{ fontVariationSettings: '"slnt" -14' }}
-                >
-                  →
-                </span> */}
+                <span>Pertandingan</span>
+                <ArrowIcon className="h-3.5 w-3.5 transition-transform duration-300 group-hover:translate-x-1" />
               </a>
             ) : (
-              /* Figma "Header [Dark]" — violet-glow outline pill */
+              /* Figma "Header [Dark]" — outline pill that turns into solid Mint button on hover */
               <a
                 href="/pertandingan"
                 className={`
-                  relative inline-flex items-center gap-1.5 overflow-hidden
+                  group relative inline-flex items-center gap-2 overflow-hidden
                   rounded-full border border-white/50
                   px-6 py-3 text-xs font-black italic text-[#f4f0ff]
                   shadow-[inset_0_0_12px_rgba(255,255,255,0.08),inset_0_-8px_32px_rgba(30,13,73,0.5)]
-                  transition-opacity hover:opacity-90
+                  transition-all duration-300 ease-out
+                  hover:border-white hover:bg-[#02F5D4] hover:text-[#12102A]
+                  hover:shadow-[inset_0_0_18px_rgba(255,255,255,0.08),inset_0_-12px_48px_rgba(2,245,212,0.5)]
+                  hover:scale-[1.03] active:scale-95
                 `}
               >
-                Pertandingan
-                {/* <span
-                  className="text-sm font-black italic leading-none text-white"
-                  aria-hidden
-                  style={{ fontVariationSettings: '"slnt" -14' }}
-                >
-                  →
-                </span> */}
+                <span>Pertandingan</span>
+                <ArrowIcon className="h-3.5 w-3.5 transition-transform duration-300 group-hover:translate-x-1" />
               </a>
             )}
           </div>
@@ -185,11 +173,10 @@ export function Navbar({ variant = "auto", forceInverted = false }: NavbarProps)
             aria-expanded={menuOpen}
             aria-controls="mobile-menu"
             aria-label={menuOpen ? "Tutup menu" : "Buka menu"}
-            className={`flex h-10 w-10 items-center justify-center rounded-full transition-colors lg:hidden ${
-              inverted
+            className={`flex h-10 w-10 items-center justify-center rounded-full transition-colors lg:hidden ${inverted
                 ? "text-[#1a162b] hover:bg-black/5"
                 : "text-white hover:bg-white/10"
-            }`}
+              }`}
           >
             {menuOpen ? <CloseIcon /> : <MenuIcon />}
           </button>
@@ -204,9 +191,8 @@ export function Navbar({ variant = "auto", forceInverted = false }: NavbarProps)
       <div
         id="mobile-menu"
         aria-hidden={!menuOpen}
-        className={`fixed inset-0 z-40 flex flex-col bg-white pt-[76px] transition-transform duration-300 ease-out lg:hidden ${
-          menuOpen ? "translate-x-0" : "pointer-events-none translate-x-full"
-        }`}
+        className={`fixed inset-0 z-40 flex flex-col bg-white pt-[76px] transition-transform duration-300 ease-out lg:hidden ${menuOpen ? "translate-x-0" : "pointer-events-none translate-x-full"
+          }`}
       >
         <nav className="flex flex-1 flex-col items-center justify-center gap-4 px-6 text-center">
           {navLinks.map((link) => {
@@ -217,11 +203,10 @@ export function Navbar({ variant = "auto", forceInverted = false }: NavbarProps)
                 href={link.href}
                 aria-current={isActive ? "page" : undefined}
                 onClick={() => setMenuOpen(false)}
-                className={`text-3xl font-black italic tracking-[-0.01em] leading-[40px] sm:text-4xl sm:leading-[48px] transition-colors ${
-                  isActive
+                className={`text-3xl font-black italic tracking-[-0.01em] leading-[40px] sm:text-4xl sm:leading-[48px] transition-colors ${isActive
                     ? "text-[#7C5CFF]"
                     : "text-[#1a162b] hover:text-[#7C5CFF]"
-                }`}
+                  }`}
               >
                 {link.label}
               </Link>
@@ -231,10 +216,10 @@ export function Navbar({ variant = "auto", forceInverted = false }: NavbarProps)
           <a
             href="/pertandingan"
             onClick={() => setMenuOpen(false)}
-            className="mt-8 inline-flex items-center gap-1.5 rounded-full bg-[#1a162b] px-6 py-3 text-base font-black italic text-white transition-opacity hover:opacity-90"
+            className="group mt-8 inline-flex items-center gap-2 rounded-full bg-[#1a162b] px-6 py-3 text-base font-black italic text-white transition-all duration-300 hover:bg-[#8352D9] hover:shadow-[0_4px_20px_rgba(131,82,217,0.4)] hover:scale-[1.03] active:scale-95"
           >
-            Lihat Pertandingan
-            {/* <ArrowIcon /> */}
+            <span>Lihat Pertandingan</span>
+            <ArrowIcon className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
           </a>
         </nav>
 
