@@ -182,7 +182,7 @@ export function BracketMatchCard({
     <article
       className={`relative overflow-hidden rounded-xl border transition-all ${
         onPath
-          ? "border-[#02F5D4]/60 bg-[#02F5D4]/6 shadow-[0_0_12px_-2px_rgba(2,245,212,0.35)]"
+          ? "border-[#8B5CF6]/60 bg-[#8B5CF6]/6 shadow-[0_0_12px_-2px_rgba(139,92,246,0.35)]"
           : match.isByeMatch
             ? // A walkover is real but uncontested — dashed, so it reads as
               // "advanced without playing" rather than a fixture.

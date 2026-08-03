@@ -25,30 +25,53 @@ function SideColumn({
   subName,
   logoUrl,
   won,
+  isLight,
 }: {
   name: string;
   subName?: string;
   logoUrl?: string;
   won: boolean;
+  isLight: boolean;
 }) {
+  const winnerNameColor = isLight ? "text-[#6C47D1]" : "text-[#02F5D4]";
+  const loserNameColor = isLight ? "text-[rgba(26,22,43,0.5)]" : "text-[rgba(255,255,255,0.5)]";
+  const subColor = isLight ? "text-[rgba(26,22,43,0.45)]" : "text-[rgba(255,255,255,0.85)]";
+  const logoBorder = isLight ? "border-[rgba(0,0,0,0.08)]" : "border-white/[0.08]";
+  const logoBg = isLight ? "bg-white" : "bg-white/[0.04]";
+  const logoFallbackColor = isLight ? "text-[#9ca3af]" : "text-gray-400";
+  const logoShadow = isLight
+    ? "shadow-[0px_2px_8px_0px_rgba(0,0,0,0.06)]"
+    : "shadow-[0px_4px_24px_0px_rgba(0,0,0,0.4)]";
+
   return (
     <div className="flex flex-col items-center gap-2 text-center">
-      <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.04]">
+      {/* Logo box — image always contained within the box regardless of source size */}
+      <div className={`flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl border ${logoShadow} ${logoBorder} ${logoBg}`}>
         {logoUrl ? (
-          <img src={logoUrl} alt={name} className="h-full w-full rounded-2xl object-cover" />
+          <img
+            src={logoUrl}
+            alt={name}
+            className="h-full w-full object-contain p-[3px]"
+          />
         ) : (
-          <span className="text-xl font-bold text-gray-400">?</span>
+          <span className={`text-xl font-bold ${logoFallbackColor}`}>?</span>
         )}
       </div>
       <div className="min-w-0">
+        {/* Name: Bold 14px, winner = full opacity, loser = 50% opacity */}
         <p
-          className={`flex flex-wrap items-center justify-center gap-x-1.5 wrap-break-word text-sm font-bold sm:text-[15px] ${
-            won ? "text-[#34E5A6]" : "text-white"
+          className={`flex flex-wrap items-center justify-center gap-x-1.5 break-words text-[14px] font-bold leading-[20px] transition-colors ${
+            won ? winnerNameColor : loserNameColor
           }`}
         >
           {name}
         </p>
-        {subName && <p className="mt-0.5 text-xs text-[#8A8A93] sm:text-[13px]">{subName}</p>}
+        {/* Subtitle: Regular 10px, rgba opacity */}
+        {subName && (
+          <p className={`mt-0.5 text-[10px] font-normal leading-[15px] ${subColor}`}>
+            {subName}
+          </p>
+        )}
       </div>
     </div>
   );
@@ -128,7 +151,15 @@ export function getMatchSideDetails(match: Match, parentMatch?: Match) {
   };
 }
 
-export function MatchScoreboard({ match, parentMatch }: { match: Match; parentMatch?: Match }) {
+export function MatchScoreboard({
+  match,
+  parentMatch,
+  isLight = false,
+}: {
+  match: Match;
+  parentMatch?: Match;
+  isLight?: boolean;
+}) {
   const isTeamMatch = match.matchType === "TEAM" && !parentMatch;
 
   let displayScoreA = 0;
@@ -199,9 +230,40 @@ export function MatchScoreboard({ match, parentMatch }: { match: Match; parentMa
     }
   }
 
+  // Light/dark tokens
+  const cardBorder = isLight ? "border-[rgba(0,0,0,0.08)]" : "border-white/[0.06]";
+  const cardBg = isLight ? "bg-white shadow-[0px_1px_4px_0px_rgba(0,0,0,0.06)]" : "bg-white/[0.03]";
+
+  // Date: SemiBold 12px, rgba(255,255,255,0.85) per Figma
+  const dateColor = isLight ? "text-[#1a162b]" : "text-[rgba(255,255,255,0.85)]";
+
+  // Accent (status line) color — matches RETIRED badge yellow, FINISHED teal, etc.
+  const accentColor = isLight ? "text-[#6C47D1]" : "text-[#02F5D4]";
+
+  // Separator: very dim per Figma (rgba(255,255,255,0.15) dark, rgba(0,0,0,0.15) light)
+  const separatorColor = isLight ? "text-[rgba(26,22,43,0.15)]" : "text-[rgba(255,255,255,0.15)]";
+
+  // Score: Black/900 weight, winner = accent, loser = 50% opacity white/dark
+  const winnerScoreColor = isLight ? "text-[#6C47D1]" : "text-[#02F5D4]";
+  const loserScoreColor = isLight ? "text-[rgba(26,22,43,0.4)]" : "text-[rgba(255,255,255,0.5)]";
+  const neutralScoreColor = isLight ? "text-[#1a162b]" : "text-white";
+
+  const scoreColorA = level
+    ? neutralScoreColor
+    : displayScoreA > displayScoreB
+      ? winnerScoreColor
+      : loserScoreColor;
+
+  const scoreColorB = level
+    ? neutralScoreColor
+    : displayScoreB > displayScoreA
+      ? winnerScoreColor
+      : loserScoreColor;
+
   return (
-    <section className="rounded-2xl border border-white/[0.06] bg-white/[0.02] px-4 py-6 sm:px-6 sm:py-7">
-      <p className="text-center text-[13px] font-bold text-white">{dateStr}</p>
+    <section className={`rounded-2xl border ${cardBorder} ${cardBg} px-4 py-6 sm:px-6 sm:py-7 transition-all duration-300`}>
+      {/* Date: SemiBold 12px per Figma */}
+      <p className={`text-center text-[12px] font-semibold leading-[16px] ${dateColor}`}>{dateStr}</p>
 
       <div className="mt-5 grid grid-cols-[1fr_auto_1fr] items-start gap-3 sm:gap-8">
         <SideColumn
@@ -209,29 +271,25 @@ export function MatchScoreboard({ match, parentMatch }: { match: Match; parentMa
           subName={subA}
           logoUrl={logoA}
           won={wonA}
+          isLight={isLight}
         />
 
         <div className="flex flex-col items-center pt-3">
-          <p className="flex items-baseline gap-2 sm:gap-2.5">
-            <span
-              className={`text-3xl font-black tabular-nums sm:text-4xl ${!level && displayScoreA > displayScoreB ? "text-[#34E5A6]" : "text-white"
-                }`}
-            >
+          {/* Score: Black weight 48px per Figma, winner teal/violet, loser 50% opacity */}
+          <p className="flex items-baseline gap-1.5 sm:gap-2">
+            <span className={`text-4xl font-black tabular-nums leading-none sm:text-5xl ${scoreColorA}`}>
               {displayScoreA}
             </span>
-            <span className="text-xl font-black text-[#5A5A63] sm:text-2xl">
+            {/* Separator: rgba(255,255,255,0.15) per Figma */}
+            <span className={`text-2xl font-black leading-none sm:text-3xl ${separatorColor}`}>
               :
             </span>
-            <span
-              className={`text-3xl font-black tabular-nums sm:text-4xl ${!level && displayScoreB > displayScoreA ? "text-[#34E5A6]" : "text-white"
-                }`}
-            >
+            <span className={`text-4xl font-black tabular-nums leading-none sm:text-5xl ${scoreColorB}`}>
               {displayScoreB}
             </span>
           </p>
-          {/* Squeezed into the middle column this wraps one word per line, so on
-              mobile it moves under the whole board instead. */}
-          <p className="mt-2 hidden text-center text-[11px] font-bold uppercase tracking-wide text-[#34E5A6] sm:block">
+          {/* Status line: SemiBold 9px uppercase per Figma — hidden on mobile, shown on sm+ */}
+          <p className={`mt-2 hidden text-center text-[9px] font-semibold uppercase tracking-[0.225px] sm:block ${accentColor}`}>
             {statusLine(match)}
           </p>
         </div>
@@ -241,12 +299,15 @@ export function MatchScoreboard({ match, parentMatch }: { match: Match; parentMa
           subName={subB}
           logoUrl={logoB}
           won={wonB}
+          isLight={isLight}
         />
       </div>
 
-      <p className="mt-5 text-center text-[11px] font-bold uppercase tracking-wide text-[#34E5A6] sm:hidden">
+      {/* Status line on mobile */}
+      <p className={`mt-5 text-center text-[9px] font-semibold uppercase tracking-[0.225px] sm:hidden ${accentColor}`}>
         {statusLine(match)}
       </p>
     </section>
   );
 }
+

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useMemo, useRef, useState } from "react";
 import { getPublicMatches } from "@/lib/api/matches";
@@ -291,7 +291,7 @@ export function SchedulePanel({ isLight = false }: SchedulePanelProps) {
               <div className="flex items-baseline gap-3">
                 <h3
                   className={`text-lg font-extrabold italic tabular-nums leading-none tracking-tight ${
-                    isLight ? "text-[#6C47D1]" : "text-[#34E5A6]"
+                    isLight ? "text-[#6C47D1]" : "text-[#02F5D4]"
                   }`}
                 >
                   {group.timeLabel}

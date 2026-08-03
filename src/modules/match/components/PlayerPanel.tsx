@@ -187,10 +187,17 @@ export function PlayerPanel({ isLight = false }: PlayerPanelProps) {
     <div className="space-y-6">
       {/* Search & Filter Header */}
       <div className="flex flex-col sm:flex-row gap-3 items-center justify-between">
-        <div className="relative w-full sm:w-72">
+        {/* Search — matches AthleteSearch pill style */}
+        <div
+          className={`relative flex items-center gap-2 rounded-full border px-4 py-2 transition-colors w-full sm:w-72 ${
+            isLight
+              ? "border-[rgba(0,0,0,0.08)] bg-[rgba(0,0,0,0.02)] focus-within:border-[rgba(0,0,0,0.15)]"
+              : "border-white/[0.08] bg-white/[0.02] focus-within:border-white/20"
+          }`}
+        >
           <Search
-            className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${
-              isLight ? "text-[rgba(26,22,43,0.4)]" : "text-[#7A7A83]"
+            className={`shrink-0 w-4 h-4 ${
+              isLight ? "text-[rgba(26,22,43,0.3)]" : "text-[#6B6B73]"
             }`}
           />
           <input
@@ -201,37 +208,59 @@ export function PlayerPanel({ isLight = false }: PlayerPanelProps) {
               setSearch(e.target.value);
               setPage(1);
             }}
-            className={`w-full rounded-xl pl-9 pr-4 py-2 text-sm outline-none transition ${isLight
-              ? "bg-black/5 text-gray-900 focus:bg-black/10"
-              : "bg-white/5 text-white focus:bg-white/10"
-              }`}
+            className={`min-w-0 flex-1 bg-transparent text-xs font-medium outline-none ${
+              isLight
+                ? "text-[#1a162b] placeholder:text-[rgba(26,22,43,0.35)]"
+                : "text-white placeholder:text-[#6B6B73]"
+            }`}
           />
+          {search && (
+            <button
+              type="button"
+              onClick={() => { setSearch(""); setPage(1); }}
+              aria-label="Hapus pencarian"
+              className={`shrink-0 transition-colors ${
+                isLight ? "text-[#808080] hover:text-[#1a162b]" : "text-[#8A8A93] hover:text-white"
+              }`}
+            >
+              {/* × close icon */}
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden>
+                <path d="M1 1L11 11M11 1L1 11" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+              </svg>
+            </button>
+          )}
         </div>
 
+        {/* Level filter pills — match FilterSelect rounded-full border style */}
         <div className="flex gap-2 w-full sm:w-auto">
           {[
             { id: "ALL", label: "Semua" },
             { id: "UNIVERSITAS", label: "Universitas" },
             { id: "SMA", label: "SMA/SMK" },
-          ].map((item) => (
-            <button
-              key={item.id}
-              onClick={() => {
-                setLevelFilter(item.id);
-                setPage(1);
-              }}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition ${levelFilter === item.id
-                ? isLight
-                  ? "bg-[#6C47D1] text-white shadow-sm"
-                  : "bg-[#8b5cf6] text-white shadow-sm"
-                : isLight
-                  ? "bg-black/5 text-gray-600 hover:bg-black/10"
-                  : "bg-white/5 text-gray-400 hover:bg-white/10"
+          ].map((item) => {
+            const isActive = levelFilter === item.id;
+            return (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => {
+                  setLevelFilter(item.id);
+                  setPage(1);
+                }}
+                className={`rounded-full border px-4 py-2 text-xs font-medium transition-colors ${
+                  isActive
+                    ? isLight
+                      ? "border-[#8b5cf6]/30 bg-[#8b5cf6]/10 text-[#8b5cf6]"
+                      : "border-[#8B5CF6]/40 bg-[#8B5CF6]/20 text-[#C4B5FD]"
+                    : isLight
+                      ? "border-[rgba(0,0,0,0.08)] bg-[rgba(0,0,0,0.02)] text-[#808080] hover:border-[rgba(0,0,0,0.15)] hover:text-[#1a162b]"
+                      : "border-white/[0.08] bg-white/[0.02] text-[#8A8A93] hover:border-white/15 hover:text-white"
                 }`}
-            >
-              {item.label}
-            </button>
-          ))}
+              >
+                {item.label}
+              </button>
+            );
+          })}
         </div>
       </div>
 
@@ -355,7 +384,7 @@ export function PlayerPanel({ isLight = false }: PlayerPanelProps) {
 
                         <td
                           className={`py-3.5 px-2 w-16 text-center font-bold whitespace-nowrap ${
-                            isLight ? "text-emerald-600" : "text-emerald-400"
+                            isLight ? "text-[#8B5CF6]" : "text-[#02F5D4]"
                           }`}
                         >
                           {st.win}
@@ -363,7 +392,7 @@ export function PlayerPanel({ isLight = false }: PlayerPanelProps) {
 
                         <td
                           className={`py-3.5 px-2 w-16 text-center font-semibold whitespace-nowrap ${
-                            isLight ? "text-[#FB2C36]" : "text-rose-400"
+                            isLight ? "text-[#FF6467]/80" : "text-[#FF6467]/60"
                           }`}
                         >
                           {st.lose}
@@ -375,7 +404,7 @@ export function PlayerPanel({ isLight = false }: PlayerPanelProps) {
                               st.pointDiff > 0
                                 ? isLight ? "text-emerald-600" : "text-emerald-400"
                                 : st.pointDiff < 0
-                                ? isLight ? "text-[#FB2C36]" : "text-rose-400"
+                                ? isLight ? "text-[#FF6467]" : "text-[#FF6467]/90"
                                 : isLight ? "text-[rgba(26,22,43,0.5)]" : "text-[#6B6B73]"
                             }`}
                           >
