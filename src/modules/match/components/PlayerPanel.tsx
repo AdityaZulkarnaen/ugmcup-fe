@@ -349,7 +349,7 @@ export function PlayerPanel({ isLight = false }: PlayerPanelProps) {
                     : "border-white/10 bg-white/5 text-gray-400"
                     }`}
                 >
-                  <th className="py-3 px-3 w-14 text-center whitespace-nowrap">Rank</th>
+                  <th className="py-3 px-3 w-14 text-center whitespace-nowrap">No</th>
                   <th className="py-3 px-4 min-w-[180px]">Atlet &amp; Institusi</th>
                   <th className="py-3 px-2 w-16 text-center whitespace-nowrap">Win</th>
                   <th className="py-3 px-2 w-16 text-center whitespace-nowrap">Lose</th>
