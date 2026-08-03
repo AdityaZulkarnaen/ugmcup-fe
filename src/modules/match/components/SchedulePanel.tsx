@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useMemo, useRef, useState } from "react";
 import { getPublicMatches } from "@/lib/api/matches";
@@ -328,11 +328,6 @@ export function SchedulePanel({ isLight = false }: SchedulePanelProps) {
       ) : (
         <EmptyState
           title="Jadwal pertandingan belum tersedia"
-          description={
-            hasActiveFilter
-              ? "Tidak ada pertandingan yang cocok dengan filter yang dipilih."
-              : "Panitia belum merilis jadwal pertandingan."
-          }
           isLight={isLight}
         />
       )}

@@ -332,7 +332,6 @@ export function BracketPanel({
       ) : (
         <EmptyState
           title="Bagan bracket belum tersedia"
-          description="Panitia belum menyusun bracket fase gugur untuk kategori ini."
           isLight={isLight}
         />
       )}

@@ -331,11 +331,6 @@ export function PlayerPanel({ isLight = false }: PlayerPanelProps) {
       {filteredStats.length === 0 ? (
         <EmptyState
           title="Statistik pemain belum tersedia"
-          description={
-            hasActiveFilter
-              ? "Tidak ada atlet yang cocok dengan pencarian atau filter yang dipilih."
-              : "Statistik akan muncul setelah pertandingan pertama selesai dimainkan."
-          }
           isLight={isLight}
         />
       ) : (

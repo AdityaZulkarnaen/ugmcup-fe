@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useMemo } from "react";
 import Image from "next/image";
@@ -278,7 +278,6 @@ export function StandingsPanel({ isLight = false }: StandingsPanelProps) {
       ) : (
         <EmptyState
           title="Klasemen belum tersedia"
-          description="Panitia belum menyusun klasemen grup untuk kategori ini."
           isLight={isLight}
         />
       )}
