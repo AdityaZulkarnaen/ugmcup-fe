@@ -16,11 +16,11 @@ const PAGE_SIZE = 10;
 
 // BWF standard discipline codes
 const BWF_CODE: Record<string, string> = {
-  TUNGGAL_PUTRA:   "MS", // Men's Singles
-  TUNGGAL_PUTRI:   "WS", // Women's Singles
-  GANDA_PUTRA:     "MD", // Men's Doubles
-  GANDA_PUTRI:     "WD", // Women's Doubles
-  GANDA_CAMPURAN:  "XD", // Mixed Doubles
+  TUNGGAL_PUTRA: "MS", // Men's Singles
+  TUNGGAL_PUTRI: "WS", // Women's Singles
+  GANDA_PUTRA: "MD", // Men's Doubles
+  GANDA_PUTRI: "WD", // Women's Doubles
+  GANDA_CAMPURAN: "XD", // Mixed Doubles
 };
 
 // Map disciplineId → BWF code
@@ -66,6 +66,23 @@ export function PlayerPanel({ isLight = false }: PlayerPanelProps) {
     if (disciplineFilter === "ALL") return matches;
     return matches.filter((m) => m.disciplineId === disciplineFilter);
   }, [matches, disciplineFilter]);
+
+  // Discipline options shown in dropdown — filtered by active level
+  const disciplineOptions = useMemo(() => {
+    const base = levelFilter === "ALL"
+      ? INDIVIDUAL_DISCIPLINES
+      : INDIVIDUAL_DISCIPLINES.filter((d) => d.level === (levelFilter === "UNIVERSITAS" ? "univ" : "sma"));
+    const showLevelSuffix = levelFilter === "ALL";
+    return [
+      { id: "ALL", label: "Semua Cabang" },
+      ...base.map((d) => ({
+        id: d.id,
+        label: showLevelSuffix
+          ? `${d.label} · ${d.level === "univ" ? "Univ" : "SMA"}`
+          : d.label,
+      })),
+    ];
+  }, [levelFilter]);
 
   // Build seed map from participant data in matches: athleteId → { code, seedNumber }
   const athleteSeedMap = useMemo(() => {
@@ -211,9 +228,8 @@ export function PlayerPanel({ isLight = false }: PlayerPanelProps) {
   if (isLoading) {
     return (
       <div
-        className={`py-12 text-center text-sm ${
-          isLight ? "text-[rgba(26,22,43,0.5)]" : "text-[#7A7A83]"
-        }`}
+        className={`py-12 text-center text-sm ${isLight ? "text-[rgba(26,22,43,0.5)]" : "text-[#7A7A83]"
+          }`}
       >
         Memuat statistik pemain...
       </div>
@@ -226,16 +242,14 @@ export function PlayerPanel({ isLight = false }: PlayerPanelProps) {
       <div className="flex flex-col sm:flex-row gap-3 items-center justify-between">
         {/* Search — pill style */}
         <div
-          className={`relative flex items-center gap-2 rounded-full border px-4 py-2 transition-colors w-full sm:w-72 ${
-            isLight
-              ? "border-[rgba(0,0,0,0.08)] bg-[rgba(0,0,0,0.02)] focus-within:border-[rgba(0,0,0,0.15)]"
-              : "border-white/[0.08] bg-white/[0.02] focus-within:border-white/20"
-          }`}
+          className={`relative flex items-center gap-2 rounded-full border px-4 py-2 transition-colors w-full sm:w-72 ${isLight
+            ? "border-[rgba(0,0,0,0.08)] bg-[rgba(0,0,0,0.02)] focus-within:border-[rgba(0,0,0,0.15)]"
+            : "border-white/[0.08] bg-white/[0.02] focus-within:border-white/20"
+            }`}
         >
           <Search
-            className={`shrink-0 w-4 h-4 ${
-              isLight ? "text-[rgba(26,22,43,0.3)]" : "text-[#6B6B73]"
-            }`}
+            className={`shrink-0 w-4 h-4 ${isLight ? "text-[rgba(26,22,43,0.3)]" : "text-[#6B6B73]"
+              }`}
           />
           <input
             type="text"
@@ -245,20 +259,18 @@ export function PlayerPanel({ isLight = false }: PlayerPanelProps) {
               setSearch(e.target.value);
               setPage(1);
             }}
-            className={`min-w-0 flex-1 bg-transparent text-xs font-medium outline-none ${
-              isLight
-                ? "text-[#1a162b] placeholder:text-[rgba(26,22,43,0.35)]"
-                : "text-white placeholder:text-[#6B6B73]"
-            }`}
+            className={`min-w-0 flex-1 bg-transparent text-xs font-medium outline-none ${isLight
+              ? "text-[#1a162b] placeholder:text-[rgba(26,22,43,0.35)]"
+              : "text-white placeholder:text-[#6B6B73]"
+              }`}
           />
           {search && (
             <button
               type="button"
               onClick={() => { setSearch(""); setPage(1); }}
               aria-label="Hapus pencarian"
-              className={`shrink-0 transition-colors ${
-                isLight ? "text-[#808080] hover:text-[#1a162b]" : "text-[#8A8A93] hover:text-white"
-              }`}
+              className={`shrink-0 transition-colors ${isLight ? "text-[#808080] hover:text-[#1a162b]" : "text-[#8A8A93] hover:text-white"
+                }`}
             >
               <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden>
                 <path d="M1 1L11 11M11 1L1 11" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
@@ -279,45 +291,42 @@ export function PlayerPanel({ isLight = false }: PlayerPanelProps) {
               <button
                 key={item.id}
                 type="button"
-                onClick={() => { setLevelFilter(item.id); setPage(1); }}
-                className={`rounded-full border px-4 py-2 text-xs font-medium transition-colors ${
-                  isActive
-                    ? isLight
-                      ? "border-[#8b5cf6]/30 bg-[#8b5cf6]/10 text-[#8b5cf6]"
-                      : "border-[#8B5CF6]/40 bg-[#8B5CF6]/20 text-[#C4B5FD]"
-                    : isLight
-                      ? "border-[rgba(0,0,0,0.08)] bg-[rgba(0,0,0,0.02)] text-[#808080] hover:border-[rgba(0,0,0,0.15)] hover:text-[#1a162b]"
-                      : "border-white/[0.08] bg-white/[0.02] text-[#8A8A93] hover:border-white/15 hover:text-white"
-                }`}
+                onClick={() => {
+                  setLevelFilter(item.id);
+                  setPage(1);
+                  // Reset discipline filter if current selection doesn't belong to new level
+                  if (item.id !== "ALL" && disciplineFilter !== "ALL") {
+                    const targetLevel = item.id === "UNIVERSITAS" ? "univ" : "sma";
+                    const disc = INDIVIDUAL_DISCIPLINES.find((d) => d.id === disciplineFilter);
+                    if (disc && disc.level !== targetLevel) setDisciplineFilter("ALL");
+                  }
+                }}
+                className={`rounded-full border px-4 py-2 text-xs font-medium transition-colors ${isActive
+                  ? isLight
+                    ? "border-[#8b5cf6]/30 bg-[#8b5cf6]/10 text-[#8b5cf6]"
+                    : "border-[#8B5CF6]/40 bg-[#8B5CF6]/20 text-[#C4B5FD]"
+                  : isLight
+                    ? "border-[rgba(0,0,0,0.08)] bg-[rgba(0,0,0,0.02)] text-[#808080] hover:border-[rgba(0,0,0,0.15)] hover:text-[#1a162b]"
+                    : "border-white/[0.08] bg-white/[0.02] text-[#8A8A93] hover:border-white/15 hover:text-white"
+                  }`}
               >
                 {item.label}
               </button>
             );
           })}
+          {/* Discipline Dropdown — FilterSelect style matching BracketPanel */}
+          <FilterSelect
+            options={disciplineOptions}
+            value={disciplineFilter}
+            onChange={(val) => { setDisciplineFilter(val); setPage(1); }}
+            label="Filter cabang"
+            accent="violet"
+            accented={disciplineFilter !== "ALL"}
+            className="w-full sm:w-64"
+            isLight={isLight}
+          />
         </div>
       </div>
-
-      {/* Discipline Dropdown — FilterSelect style matching BracketPanel */}
-      <FilterSelect
-        options={[
-          { id: "ALL", label: "Semua Cabang" },
-          ...INDIVIDUAL_DISCIPLINES.filter((d) => d.level === "univ").map((d) => ({
-            id: d.id,
-            label: `${BWF_CODE[d.type] ?? d.type} — ${d.label}`,
-          })),
-          ...INDIVIDUAL_DISCIPLINES.filter((d) => d.level === "sma").map((d) => ({
-            id: d.id,
-            label: `${BWF_CODE[d.type] ?? d.type} — ${d.label}`,
-          })),
-        ]}
-        value={disciplineFilter}
-        onChange={(val) => { setDisciplineFilter(val); setPage(1); }}
-        label="Filter cabang"
-        accent="violet"
-        accented={disciplineFilter !== "ALL"}
-        className="w-full sm:w-72"
-        isLight={isLight}
-      />
 
       {/* Stats Table */}
       {filteredStats.length === 0 ? (
@@ -335,7 +344,7 @@ export function PlayerPanel({ isLight = false }: PlayerPanelProps) {
           className={`rounded-2xl border overflow-hidden ${isLight
             ? "border-black/10 bg-white"
             : "border-white/10 bg-white/[0.02]"
-          }`}
+            }`}
         >
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
@@ -344,7 +353,7 @@ export function PlayerPanel({ isLight = false }: PlayerPanelProps) {
                   className={`border-b text-xs font-semibold uppercase tracking-wider ${isLight
                     ? "border-black/10 bg-black/5 text-gray-600"
                     : "border-white/10 bg-white/5 text-gray-400"
-                  }`}
+                    }`}
                 >
                   <th className="py-3 px-3 w-14 text-center whitespace-nowrap">Rank</th>
                   <th className="py-3 px-4 min-w-[180px]">Atlet &amp; Institusi</th>
@@ -366,9 +375,8 @@ export function PlayerPanel({ isLight = false }: PlayerPanelProps) {
                   return (
                     <tr
                       key={st.athlete.id}
-                      className={`transition ${
-                        isLight ? "hover:bg-black/3" : "hover:bg-white/5"
-                      }`}
+                      className={`transition ${isLight ? "hover:bg-black/3" : "hover:bg-white/5"
+                        }`}
                     >
                       {/* Rank */}
                       <td className="py-3.5 px-3 w-14 text-center font-bold text-sm whitespace-nowrap">
@@ -391,11 +399,10 @@ export function PlayerPanel({ isLight = false }: PlayerPanelProps) {
                           </span>
                           {seedInfo && (
                             <span
-                              className={`inline-flex items-center gap-0.5 rounded-md px-1.5 py-0.5 text-[10px] font-extrabold shrink-0 ${
-                                isLight
-                                  ? "bg-[#6C47D1]/15 text-[#6C47D1]"
-                                  : "bg-purple-500/25 text-purple-300"
-                              }`}
+                              className={`inline-flex items-center gap-0.5 rounded-md px-1.5 py-0.5 text-[10px] font-extrabold shrink-0 ${isLight
+                                ? "bg-[#6C47D1]/15 text-[#6C47D1]"
+                                : "bg-purple-500/25 text-purple-300"
+                                }`}
                               title={`Unggulan ${seedInfo.code} ${seedInfo.seedNumber}`}
                             >
                               {seedInfo.code} {seedInfo.seedNumber}
@@ -409,18 +416,16 @@ export function PlayerPanel({ isLight = false }: PlayerPanelProps) {
 
                       {/* Win */}
                       <td
-                        className={`py-3.5 px-2 w-16 text-center font-bold whitespace-nowrap ${
-                          isLight ? "text-[#8B5CF6]" : "text-[#02F5D4]"
-                        }`}
+                        className={`py-3.5 px-2 w-16 text-center font-bold whitespace-nowrap ${isLight ? "text-[#8B5CF6]" : "text-[#02F5D4]"
+                          }`}
                       >
                         {st.win}
                       </td>
 
                       {/* Lose */}
                       <td
-                        className={`py-3.5 px-2 w-16 text-center font-semibold whitespace-nowrap ${
-                          isLight ? "text-[#FF6467]/80" : "text-[#FF6467]/60"
-                        }`}
+                        className={`py-3.5 px-2 w-16 text-center font-semibold whitespace-nowrap ${isLight ? "text-[#FF6467]/80" : "text-[#FF6467]/60"
+                          }`}
                       >
                         {st.lose}
                       </td>
@@ -428,19 +433,17 @@ export function PlayerPanel({ isLight = false }: PlayerPanelProps) {
                       {/* Poin */}
                       <td className="py-3.5 px-3 w-28 text-center font-bold whitespace-nowrap tabular-nums">
                         <span
-                          className={`inline-block text-sm font-bold ${
-                            st.pointDiff > 0
-                              ? isLight ? "text-emerald-600" : "text-emerald-400"
-                              : st.pointDiff < 0
+                          className={`inline-block text-sm font-bold ${st.pointDiff > 0
+                            ? isLight ? "text-emerald-600" : "text-emerald-400"
+                            : st.pointDiff < 0
                               ? isLight ? "text-[#FF6467]" : "text-[#FF6467]/90"
                               : isLight ? "text-[rgba(26,22,43,0.5)]" : "text-[#6B6B73]"
-                          }`}
+                            }`}
                         >
                           {st.pointsScored}
                         </span>
-                        <span className={`text-[10px] opacity-50 ml-0.5 ${
-                          isLight ? "text-[#1a162b]" : "text-white"
-                        }`}>/{st.pointsConceded}</span>
+                        <span className={`text-[10px] opacity-50 ml-0.5 ${isLight ? "text-[#1a162b]" : "text-white"
+                          }`}>/{st.pointsConceded}</span>
                       </td>
                     </tr>
                   );
