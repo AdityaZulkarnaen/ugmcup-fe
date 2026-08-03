@@ -30,7 +30,7 @@ export function About() {
             transition and would swallow the button's own hover animation. */}
         <div data-aos="fade-up" data-aos-delay="100" className="mt-[40px] md:mt-[48px]">
           <Button
-            href="#"
+            href="/tentang-kami"
             variant="solid"
             className="px-[32px] py-[14px] text-[14px] font-black italic leading-[20px] md:px-[40px] md:py-[20px]"
           >

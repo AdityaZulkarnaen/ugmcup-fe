@@ -1,4 +1,4 @@
-import Image from "next/image";
+﻿import Image from "next/image";
 import { Navbar } from "@/components/layout/Navbar";
 import { Button } from "@/components/ui/Button";
 import { ArrowIcon } from "@/components/ui/icons";
@@ -89,7 +89,7 @@ export function Hero() {
               data-aos="blur-in"
               data-aos-delay="120"
               data-aos-duration="900"
-              className="bg-linear-to-r from-accent to-accent-2 bg-clip-text text-[#00F5D4] text-[42px] leading-[38px] sm:text-[96px] sm:leading-[80px]"
+              className="bg-linear-to-r from-accent to-accent-2 bg-clip-text text-[#02F5D4] text-[42px] leading-[38px] sm:text-[96px] sm:leading-[80px]"
             >
               Rallyverse
             </span>

@@ -58,6 +58,21 @@ export function CheckIcon({ className }: { className?: string }) {
   );
 }
 
+export function TrophyIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      xmlns="http://www.w3.org/2000/svg"
+      className={className}
+    >
+      <path d="M19 4h-2V3a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v1H5a3 3 0 0 0-3 3v1a4 4 0 0 0 4 4h.34A7.002 7.002 0 0 0 11 16.92V19H8a1 1 0 0 0 0 2h8a1 1 0 0 0 0-2h-3v-2.08A7.002 7.002 0 0 0 17.66 12H18a4 4 0 0 0 4-4V7a3 3 0 0 0-3-3ZM4 8V7a1 1 0 0 1 1-1h2v4.08A3.003 3.003 0 0 1 4 8Zm16 0a3.003 3.003 0 0 1-3 2.08V6h2a1 1 0 0 1 1 1v1Z" />
+    </svg>
+  );
+}
+
 /** Spinner ring; pair with `animate-spin`. Used by the loading states. */
 export function SpinnerIcon({ className }: { className?: string }) {
   return (
