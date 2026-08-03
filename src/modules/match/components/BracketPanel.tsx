@@ -331,7 +331,9 @@ export function BracketPanel({
         </div>
       ) : (
         <EmptyState
-          title="Bagan bracket belum tersedia"
+          title="Bagan Bracket Belum Tersedia"
+          description="Panitia sedang menyusun bagan alur pertandingan untuk kategori ini. Silakan cek secara berkala."
+          footerNote="Bagan akan diperbarui otomatis saat undian dirilis"
           isLight={isLight}
         />
       )}

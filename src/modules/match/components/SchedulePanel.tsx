@@ -327,7 +327,9 @@ export function SchedulePanel({ isLight = false }: SchedulePanelProps) {
         </div>
       ) : (
         <EmptyState
-          title="Jadwal pertandingan belum tersedia"
+          title="Jadwal Pertandingan Belum Tersedia"
+          description="Belum ada laga yang dijadwalkan untuk kategori ini. Silakan cek sesi mendatang."
+          footerNote="Jadwal akan diperbarui otomatis saat babak baru dimulai"
           isLight={isLight}
         />
       )}

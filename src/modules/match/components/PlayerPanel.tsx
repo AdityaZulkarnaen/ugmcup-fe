@@ -330,7 +330,9 @@ export function PlayerPanel({ isLight = false }: PlayerPanelProps) {
       {/* Stats Table */}
       {filteredStats.length === 0 ? (
         <EmptyState
-          title="Statistik pemain belum tersedia"
+          title="Statistik Pemain Belum Tersedia"
+          description="Data atlet dan pasangan tanding untuk kategori ini belum dirilis oleh panitia."
+          footerNote="Daftar pemain akan diperbarui otomatis setelah registrasi ulang"
           isLight={isLight}
         />
       ) : (
