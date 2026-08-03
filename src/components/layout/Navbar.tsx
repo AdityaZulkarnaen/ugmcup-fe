@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Image from "next/image";
 import Link from "next/link";
@@ -195,7 +195,7 @@ export function Navbar({ variant = "auto", forceInverted = false }: NavbarProps)
         className={`fixed inset-0 z-40 flex flex-col bg-white pt-[76px] transition-transform duration-300 ease-out lg:hidden ${menuOpen ? "translate-x-0" : "pointer-events-none translate-x-full"
           }`}
       >
-        <nav className="flex flex-1 flex-col items-center justify-center gap-4 px-6 text-center">
+        <nav className="flex flex-1 flex-col items-center justify-center gap-2 px-6 text-center">
           {navLinks.map((link) => {
             const isActive = isActiveLink(link.href, pathname);
             return (

@@ -60,9 +60,9 @@ export function Footer() {
             groups line up beside it. `order-*` drives both arrangements from one
             markup order, so nothing is rendered twice.
           */}
-          <div className="grid grid-cols-2 gap-x-6 gap-y-10 md:grid-cols-[5fr_1fr_1fr_1fr] md:gap-12">
+          <div className="grid grid-cols-2 gap-x-6 gap-y-10 md:grid-cols-2 lg:grid-cols-[3.5fr_1fr_1fr_1fr] md:gap-8 lg:gap-12">
             {/* Brand */}
-            <div className="order-5 col-span-2 flex flex-col items-center gap-8 border-t border-white/20 pt-10 md:order-0 md:col-span-1 md:items-start md:gap-6 md:border-0 md:pt-0">
+            <div className="order-5 col-span-2 flex flex-col items-center gap-8 border-t border-white/20 pt-10 md:order-0 md:col-span-2 lg:col-span-1 md:items-start md:gap-6 md:border-0 md:pt-0">
               <p className="order-1 w-full text-left text-sm leading-relaxed md:order-2">
                 UGM CUP adalah turnamen bulutangkis nasional yang mempertemukan
                 tim terbaik Universitas dan SMA/Sederajat se-Indonesia. Ajang ini
@@ -71,14 +71,14 @@ export function Footer() {
                 olahraga.
               </p>
 
-              <div className="order-2 flex items-center gap-4 sm:gap-5 md:order-1">
+              <div className="order-2 flex flex-wrap items-center gap-4 sm:gap-5 md:order-1">
                 {/* UGM university seal — ganti dengan aset asli bila tersedia */}
                 <Image
                   src="/images/global/ugm.svg"
                   alt="UGM CUP"
                   width={120}
                   height={30}
-                  className="h-12 w-auto sm:h-14 md:h-18"
+                  className="h-10 w-auto sm:h-12 lg:h-14 shrink-0"
                 />
 
                 <Image
@@ -86,7 +86,7 @@ export function Footer() {
                   alt="UGM CUP"
                   width={1200}
                   height={300}
-                  className="h-12 w-auto sm:h-14 md:h-18"
+                  className="h-10 w-auto sm:h-12 lg:h-14 shrink-0"
                 />
               </div>
 
