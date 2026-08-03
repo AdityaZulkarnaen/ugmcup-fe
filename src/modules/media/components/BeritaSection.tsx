@@ -95,7 +95,7 @@ export function BeritaSection() {
           <DashTextarea value={form.content} onChange={(v) => setForm(f => ({ ...f, content: v }))} placeholder="Tulis isi berita..." rows={6} />
         </FormField>
         <FormField label="Cover Image">
-          <DragDropUpload value={form.coverImage} onChange={(url) => setForm(f => ({ ...f, coverImage: url }))} onFileSelect={setPendingFile} label="Upload Cover Image" />
+          <DragDropUpload value={form.coverImage} onChange={(url) => setForm(f => ({ ...f, coverImage: url }))} onFileSelect={setPendingFile} label="Upload Cover Image" maxSizeMB={5} />
         </FormField>
         <FormField label="Tautan Eksternal (URL)">
           <DashInput value={form.url} onChange={(v) => setForm(f => ({ ...f, url: v }))} placeholder="https://..." type="url" />

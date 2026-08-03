@@ -18,6 +18,12 @@ export interface Athlete {
   isSeeded?: boolean;
   createdAt: string;
   institution?: Institution;
+  participantMembers?: {
+    id: string;
+    participantId: string;
+    athleteId: string;
+    participant?: Participant;
+  }[];
 }
 
 export interface Category {

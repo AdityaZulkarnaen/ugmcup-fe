@@ -84,23 +84,22 @@ export function PlayerPanel({ isLight = false }: PlayerPanelProps) {
     ];
   }, [levelFilter]);
 
-  // Build seed map from participant data in matches: athleteId → { code, seedNumber }
+  // Build seed map from participant data attached directly to athletes: athleteId → { code, seedNumber }
   const athleteSeedMap = useMemo(() => {
     const map = new Map<string, { code: string; seedNumber: number }>();
-    filteredMatches.forEach((m) => {
-      const code = DISCIPLINE_CODE_MAP[m.disciplineId] ?? "";
-      [m.participantA, m.participantB].forEach((p) => {
-        if (!p || !p.seedNumber) return;
-        p.athletes?.forEach((pa) => {
-          const athId = pa.athleteId || pa.athlete?.id;
-          if (athId && !map.has(athId)) {
-            map.set(athId, { code, seedNumber: p.seedNumber! });
+    athletes.forEach((ath) => {
+      if (ath.participantMembers) {
+        ath.participantMembers.forEach((pm) => {
+          if (pm.participant?.seedNumber) {
+            const discId = pm.participant.disciplineId;
+            const code = DISCIPLINE_CODE_MAP[discId] ?? "";
+            map.set(ath.id, { code, seedNumber: pm.participant.seedNumber });
           }
         });
-      });
+      }
     });
     return map;
-  }, [filteredMatches]);
+  }, [athletes]);
 
   const statsList = useMemo(() => {
     const map = new Map<string, PlayerStats>();
@@ -108,13 +107,13 @@ export function PlayerPanel({ isLight = false }: PlayerPanelProps) {
     // Collect relevant athlete IDs when discipline filter is active
     const relevantAthleteIds = new Set<string>();
     if (disciplineFilter !== "ALL") {
-      filteredMatches.forEach((m) => {
-        [m.participantA, m.participantB].forEach((p) => {
-          p?.athletes?.forEach((pa) => {
-            const id = pa.athleteId || pa.athlete?.id;
-            if (id) relevantAthleteIds.add(id);
-          });
-        });
+      athletes.forEach((ath) => {
+        const belongsToDiscipline = ath.participantMembers?.some(
+          (pm) => pm.participant?.disciplineId === disciplineFilter
+        );
+        if (belongsToDiscipline) {
+          relevantAthleteIds.add(ath.id);
+        }
       });
     }
 
