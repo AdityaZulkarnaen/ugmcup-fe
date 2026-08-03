@@ -129,7 +129,9 @@ export default function RootLayout({
         />
         <SmoothScroll>
           <ScrollAnimator />
-          {children}
+          <main id="main-content" className="flex-1">
+            {children}
+          </main>
         </SmoothScroll>
       </body>
     </html>

@@ -22,7 +22,7 @@ export function SponsorRow({ className, dark, fast }: SponsorRowProps) {
     >
       {/* Hapus data-aos dari div marquee ini */}
       <div
-        className={`flex items-center ${fast ? "animate-marquee-fast sm:animate-marquee" : "animate-marquee"}`}
+        className={`flex w-max items-center ${fast ? "animate-marquee-fast sm:animate-marquee" : "animate-marquee"}`}
       >
         {loop.map((sponsor, index) => (
           <SponsorLogo

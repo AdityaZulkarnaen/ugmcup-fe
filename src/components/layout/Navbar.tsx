@@ -191,6 +191,7 @@ export function Navbar({ variant = "auto", forceInverted = false }: NavbarProps)
       <div
         id="mobile-menu"
         aria-hidden={!menuOpen}
+        inert={!menuOpen}
         className={`fixed inset-0 z-40 flex flex-col bg-white pt-[76px] transition-transform duration-300 ease-out lg:hidden ${menuOpen ? "translate-x-0" : "pointer-events-none translate-x-full"
           }`}
       >

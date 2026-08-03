@@ -13,7 +13,7 @@ export const sponsors: Sponsor[] = [
   { id: "every-print", name: "Every Print", logo: `${SPONSOR_DIR}/every-print.webp` },
   { id: "yup", name: "Yup", logo: `${SPONSOR_DIR}/yup2.webp` },
   { id: "pop", name: "Pop", logo: `${SPONSOR_DIR}/pop.webp` },
-  { id: "bebek-rakyat", name: "Bebek Rakyat", logo: `${SPONSOR_DIR}/bebek-rakyat2.webp` },
+  { id: "bebek-rakyat", name: "Bebek Rakyat", logo: `${SPONSOR_DIR}/bebek-rakyat.webp` },
   { id: "happy-puppy", name: "Happy Puppy", logo: `${SPONSOR_DIR}/happy-puppy.webp` },
   { id: "ornaminc", name: "OrnaminC", logo: `${SPONSOR_DIR}/ornaminc.webp` },
 ];

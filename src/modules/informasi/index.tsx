@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useState, useEffect } from "react";
 import { Footer } from "@/components/layout/Footer";
 import { Navbar } from "@/components/layout/Navbar";
+import { NewsCard } from "@/modules/landing/components/NewsCard";
 
 import { getNews } from "@/lib/api/content";
 import type { News } from "@/lib/types";
@@ -11,46 +12,6 @@ import type { News } from "@/lib/types";
 type FilterKey = "Semua" | "Sorotan" | "Informasi";
 
 const FILTERS: FilterKey[] = ["Semua", "Sorotan", "Informasi"];
-
-function InfoCard({ article, index }: { article: News; index: number }) {
-  const href = article.url || "#";
-  const image = article.coverImage || "https://images.unsplash.com/photo-1541534741688-6078c6bfb5c5?auto=format&fit=crop&q=80";
-  const date = article.publishedAt ? new Date(article.publishedAt).toLocaleDateString("id-ID", { day: 'numeric', month: 'long', year: 'numeric' }) : "";
-
-  return (
-    <a
-      href={href}
-      target="_blank"
-      rel="noopener noreferrer"
-      // Cards cascade left to right across a row. Staggering on the column
-      // rather than the flat index keeps the last row from waiting on a delay
-      // it inherited from the rows above it.
-      data-aos="fade-up"
-      data-aos-delay={`${(index % 3) * 110}`}
-      className="flex flex-col text-left"
-    >
-      <div className="relative aspect-35/36 w-full overflow-hidden rounded-[1.8rem] bg-neutral-200 shadow-[0_14px_32px_rgba(17,17,17,0.05)]">
-        <Image
-          src={image}
-          alt={article.title}
-          fill
-          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-          className="object-cover"
-        />
-        <span className="absolute left-3 top-3 rounded-full bg-[#02F5D4] px-3 py-1 text-[11px] font-semibold text-[#8352D9]">
-          INFO
-        </span>
-      </div>
-
-      <p className="mt-4 text-[11px] font-normal uppercase tracking-[0.02em] text-[#7C7C8A]">
-        {date}
-      </p>
-      <h3 className="mt-2 max-w-[20rem] text-[1.15rem] font-black italic leading-[0.92] tracking-tighter text-[#0B0B0F] sm:text-[1.25rem]">
-        {article.title}
-      </h3>
-    </a>
-  );
-}
 
 export function InformasiPage() {
   const [activeFilter, setActiveFilter] = useState<FilterKey>("Semua");
@@ -125,7 +86,13 @@ export function InformasiPage() {
       <section className="mx-auto w-[87.5%] max-w-7xl pb-20 pt-10 sm:pb-24 sm:pt-14">
         <div className="grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 xl:grid-cols-3">
           {articles.map((article, index) => (
-            <InfoCard key={article.id} article={article} index={index} />
+            <div
+              key={article.id}
+              data-aos="fade-up"
+              data-aos-delay={`${(index % 3) * 110}`}
+            >
+              <NewsCard item={article} />
+            </div>
           ))}
         </div>
       </section>

@@ -43,7 +43,7 @@ export function News() {
         <div
           id="news-track"
           ref={trackRef}
-          className="scrollbar-none mt-12 flex w-[80%] snap-x snap-mandatory gap-2 overflow-x-auto pb-2 sm:grid sm:grid-cols-3 sm:gap-6 sm:overflow-visible sm:pb-0 [&::-webkit-scrollbar]:hidden"
+          className="scrollbar-none mt-12 flex w-[90%] snap-x snap-mandatory gap-2 overflow-x-auto pb-2 sm:grid sm:grid-cols-3 sm:gap-6 sm:overflow-visible sm:pb-0 [&::-webkit-scrollbar]:hidden"
         >
           {newsList.map((item, index) => (
             <div
