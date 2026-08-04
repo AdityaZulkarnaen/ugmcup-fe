@@ -1,4 +1,4 @@
-import { apiRequest } from "./client";
+import { apiRequest, API_BASE_URL } from "./client";
 import type {
   Institution,
   Athlete,
@@ -17,7 +17,7 @@ export const uploadFile = async (file: File) => {
   formData.append("file", file);
   
   const token = localStorage.getItem("ugmcup_token");
-  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"}/admin/upload`, {
+  const res = await fetch(`${API_BASE_URL}/admin/upload`, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${token}`,
