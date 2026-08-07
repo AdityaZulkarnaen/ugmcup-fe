@@ -101,13 +101,55 @@ function participant(
 
 let teamSeq = 0;
 
-function team(disciplineId: string, inst: Institution): Team {
+/**
+ * Susunan partai satu tie beregu: 3 tunggal + 2 ganda. Urutannya ikut dipakai
+ * sebagai urutan kartu partai di halaman detail, dan nama slotnya harus sama
+ * dengan yang dikenali `formatSlotLabel()`.
+ */
+const BEREGU_SLOTS: Array<{
+  slot: string;
+  size: number;
+  gender: Athlete["gender"];
+}> = [
+  { slot: "TUNGGAL_1", size: 1, gender: "LAKI_LAKI" },
+  { slot: "GANDA_1", size: 2, gender: "LAKI_LAKI" },
+  { slot: "TUNGGAL_2", size: 1, gender: "PEREMPUAN" },
+  { slot: "GANDA_2", size: 2, gender: "PEREMPUAN" },
+  { slot: "TUNGGAL_3", size: 1, gender: "LAKI_LAKI" },
+];
+
+/**
+ * Bentuk satu tim. `squad` diisi nama atlet berurutan sesuai `BEREGU_SLOTS` —
+ * dari situlah nama pemain tiap partai beregu dibaca di halaman detail.
+ */
+function team(disciplineId: string, inst: Institution, squad?: string[]): Team {
   teamSeq += 1;
+  const id = `team-${teamSeq}`;
+
+  let cursor = 0;
+  const members = squad?.length
+    ? BEREGU_SLOTS.flatMap(({ slot, size, gender }) => {
+        const names = squad.slice(cursor, cursor + size);
+        cursor += size;
+        return names.map((name, i) => {
+          const player = athlete(inst, name, gender);
+          return {
+            id: `${id}-${slot.toLowerCase()}-${i + 1}`,
+            teamId: id,
+            athleteId: player.id,
+            assignedSlot: slot,
+            athlete: player,
+          };
+        });
+      })
+    : undefined;
+
   return {
-    id: `team-${teamSeq}`,
+    id,
     disciplineId,
     institutionId: inst.id,
     institution: inst,
+    members,
   };
 }
 
@@ -139,10 +181,68 @@ interface MatchDraft {
   scores?: Array<[number, number]>;
   /** "a" atau "b" — dikosongkan kalau belum ada pemenang. */
   winner?: "a" | "b";
+  /**
+   * Rincian partai untuk match beregu. Kalau dikosongkan, jumlahnya mengikuti
+   * `BEREGU_SLOTS` dengan status SCHEDULED — halaman detail beregu memang
+   * seluruhnya digerakkan oleh daftar ini.
+   */
+  parties?: PartyDraft[];
+}
+
+/** Satu partai di dalam match beregu; slotnya diambil dari `BEREGU_SLOTS`. */
+interface PartyDraft {
+  status: MatchStatus;
+  scores?: Array<[number, number]>;
+  winner?: "a" | "b";
 }
 
 function isTeam(side: Participant | Team): side is Team {
   return "members" in side || side.id.startsWith("team-");
+}
+
+function buildSets(matchId: string, scores?: Array<[number, number]>): MatchSet[] {
+  return (scores ?? []).map((score, i) => ({
+    id: `${matchId}-set${i + 1}`,
+    matchId,
+    setNumber: i + 1,
+    scoreA: score[0],
+    scoreB: score[1],
+    isFinished: true,
+  }));
+}
+
+/** Susun lima partai anak dari sebuah match beregu. */
+function buildParties(parentId: string, draft: MatchDraft, teamA: Team, teamB: Team): Match[] {
+  return BEREGU_SLOTS.map(({ slot }, i) => {
+    const party = draft.parties?.[i] ?? { status: "SCHEDULED" as MatchStatus };
+    const id = `${parentId}-p${i + 1}`;
+    const winnerTeam =
+      party.winner === "a" ? teamA.id : party.winner === "b" ? teamB.id : undefined;
+
+    return {
+      id,
+      disciplineId: draft.disciplineId,
+      parentMatchId: parentId,
+      slotType: slot,
+      matchType: "INDIVIDUAL" as const,
+      stage: draft.stage ?? "KNOCKOUT",
+      roundName: draft.roundName,
+      groupName: draft.groupName,
+      teamAId: teamA.id,
+      teamBId: teamB.id,
+      courtNumber: draft.court,
+      scheduledTime: `${draft.time}:00+07:00`,
+      status: party.status,
+      winnerTeamId: winnerTeam,
+      version: 1,
+      createdAt: CREATED_AT,
+      updatedAt: CREATED_AT,
+      sets: buildSets(id, party.scores),
+      teamA,
+      teamB,
+      discipline: discipline(draft.disciplineId),
+    };
+  });
 }
 
 function buildMatch(draft: MatchDraft): Match {
@@ -150,14 +250,7 @@ function buildMatch(draft: MatchDraft): Match {
   const id = `match-${matchSeq}`;
   const teamMatch = isTeam(draft.a);
 
-  const sets: MatchSet[] = (draft.scores ?? []).map((score, i) => ({
-    id: `${id}-set${i + 1}`,
-    matchId: id,
-    setNumber: i + 1,
-    scoreA: score[0],
-    scoreB: score[1],
-    isFinished: true,
-  }));
+  const sets: MatchSet[] = buildSets(id, draft.scores);
 
   const winnerSide = draft.winner === "a" ? draft.a : draft.winner === "b" ? draft.b : undefined;
 
@@ -186,6 +279,9 @@ function buildMatch(draft: MatchDraft): Match {
     teamA: teamMatch ? (draft.a as Team) : undefined,
     teamB: teamMatch ? (draft.b as Team) : undefined,
     discipline: discipline(draft.disciplineId),
+    childMatches: teamMatch
+      ? buildParties(id, draft, draft.a as Team, draft.b as Team)
+      : undefined,
   };
 }
 
@@ -265,11 +361,36 @@ const gpSma8 = participant("sma-gp", A.sma8, [
   athlete(A.sma8, "Alfi Yaumi", "LAKI_LAKI"),
 ]);
 
-// Beregu Sudirman
-const beregUgm = team("univ-beregu", A.ugm);
-const beregUi = team("univ-beregu", A.ui);
-const beregItb = team("univ-beregu", A.itb);
-const beregUnair = team("univ-beregu", A.unair);
+// Beregu Sudirman — nama disetor berurutan mengikuti BEREGU_SLOTS:
+// Tunggal 1, Ganda 1 (2 orang), Tunggal 2, Ganda 2 (2 orang), Tunggal 3.
+const beregUgm = team("univ-beregu", A.ugm, [
+  "Bimo Arya Wicaksono",
+  "Danang Prasetya", "Ilham Nurhakim",
+  "Larasati Prameswari",
+  "Ayudia Kusuma", "Nabila Hapsari",
+  "Rakha Adiwangsa",
+]);
+const beregUi = team("univ-beregu", A.ui, [
+  "Gilang Ramadhan",
+  "Tegar Saputra", "Wisnu Baskara",
+  "Mutiara Anggraini",
+  "Callista Wibowo", "Shafira Handayani",
+  "Panji Wicaksana",
+]);
+const beregItb = team("univ-beregu", A.itb, [
+  "Aditya Nurwahid",
+  "Bramantyo Aji", "Cakra Nugraha",
+  "Diandra Safitri",
+  "Elvira Puspaningrum", "Freya Amaranggana",
+  "Gading Mahesa",
+]);
+const beregUnair = team("univ-beregu", A.unair, [
+  "Hafiz Ardiansyah",
+  "Ibnu Fadhilah", "Janu Respati",
+  "Kayla Nariswari",
+  "Luthfia Ramadhani", "Maheswari Ayu",
+  "Nanda Prayoga",
+]);
 
 // --------------------------------------------------------------- jadwalnya ---
 
@@ -347,8 +468,17 @@ export const dummyMatches: Match[] = [
   buildMatch({
     disciplineId: "univ-beregu", roundName: "Penyisihan Grup", stage: "GROUP",
     groupName: "A", court: 3,
-    time: `${DAY_1}T10:00`, status: "SCHEDULED",
+    time: `${DAY_1}T10:00`, status: "ONGOING",
     a: beregUgm, b: beregUi,
+    // Tiga partai kelar, partai keempat sedang jalan — supaya halaman detail
+    // beregu bisa dicek pada semua status sekaligus.
+    parties: [
+      { status: "FINISHED", scores: [[21, 17], [21, 14]], winner: "a" },
+      { status: "FINISHED", scores: [[19, 21], [21, 23]], winner: "b" },
+      { status: "FINISHED", scores: [[21, 12], [18, 21], [21, 19]], winner: "a" },
+      { status: "ONGOING", scores: [[21, 18], [15, 13]] },
+      { status: "SCHEDULED" },
+    ],
   }),
 
   // ===== Hari 2 · 09:00 =====
@@ -382,10 +512,23 @@ export const dummyMatches: Match[] = [
   }),
 ];
 
+/**
+ * Cari satu match berdasarkan id, termasuk partai-partai di dalam match beregu
+ * — halaman detail bisa dibuka langsung lewat id partainya.
+ */
+export function findDummyMatch(matches: Match[], id: string): Match | null {
+  for (const match of matches) {
+    if (match.id === id) return match;
+    const child = (match.childMatches ?? []).find((c) => c.id === id);
+    if (child) return child;
+  }
+  return null;
+}
+
 // ============================================================================
 //  SAKLAR DUMMY — komentari baris `matches:` di bawah untuk memakai data asli.
 // ============================================================================
 
 export const DUMMY_DATA: { matches?: Match[] } = {
-  // matches: dummyMatches, // ← KOMENTARI BARIS INI untuk kembali ke data asli API
+  matches: dummyMatches, // ← KOMENTARI BARIS INI untuk kembali ke data asli API
 };

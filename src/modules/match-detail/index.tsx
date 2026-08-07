@@ -6,7 +6,7 @@ import { notFound } from "next/navigation";
 import { ChevronIcon } from "@/components/ui/icons";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
-import { getMatch } from "@/lib/api/matches";
+import { getPublicMatch } from "@/lib/api/matches";
 import type { Match } from "@/lib/types";
 import { MatchDetailTabs } from "./components/MatchDetailTabs";
 import { FloatingThemeToggle } from "@/modules/match/components/FloatingThemeToggle";
@@ -22,7 +22,7 @@ export default function MatchDetailPage({ id }: { id: string }) {
     let isMounted = true;
     async function load() {
       try {
-        const data = await getMatch(id);
+        const data = await getPublicMatch(id);
         if (isMounted) {
           if (!data) setError(true);
           else setMatch(data);

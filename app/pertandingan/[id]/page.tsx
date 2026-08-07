@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import MatchDetailPage from "@/modules/match-detail";
-import { getMatch } from "@/lib/api/matches";
+import { getPublicMatch } from "@/lib/api/matches";
 import type { Match } from "@/lib/types";
 import { SITE_NAME } from "@/lib/seo";
 
@@ -40,7 +40,9 @@ export async function generateMetadata({
   };
 
   try {
-    const match = await getMatch(id);
+    const match = await getPublicMatch(id);
+    if (!match) return base;
+
     const home = sideName(match, "A");
     const away = sideName(match, "B");
 

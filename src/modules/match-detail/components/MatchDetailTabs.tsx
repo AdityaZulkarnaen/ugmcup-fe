@@ -2,12 +2,13 @@
 
 import { useEffect, useState, useCallback } from "react";
 import type { Match } from "@/lib/types";
-import { getMatch } from "@/lib/api/matches";
+import { getPublicMatch } from "@/lib/api/matches";
 import { MatchScoreboard } from "./MatchScoreboard";
 import { ScoreTable } from "./ScoreTable";
 import { MatchInfo } from "./MatchInfo";
 import { BracketPanel } from "@/modules/match/components/BracketPanel";
-import { ChevronIcon } from "@/components/ui/icons";
+import { ChevronIcon, ShareIcon } from "@/components/ui/icons";
+import { ShareMatchModal } from "./ShareMatchModal";
 
 const tabs = [
   { id: "pertandingan", label: "Pertandingan" },
@@ -217,6 +218,7 @@ export function MatchDetailTabs({
   const [selectedSubMatchId, setSelectedSubMatchId] = useState<string | null>(
     null
   );
+  const [shareOpen, setShareOpen] = useState(false);
 
   const isTeamMatch = match.matchType === "TEAM";
 
@@ -228,18 +230,21 @@ export function MatchDetailTabs({
 
   const refreshMatch = useCallback(async () => {
     try {
-      const updated = await getMatch(match.id);
+      const updated = await getPublicMatch(match.id);
       if (updated) setMatch(updated);
     } catch (e) {
       console.error("Gagal me-refresh match detail:", e);
     }
   }, [match.id]);
 
-  // Polling fallback every 2 seconds to stream real-time updates seamlessly
+  // Polling fallback every 2 seconds to stream real-time updates seamlessly.
+  // Dijeda selagi modal share terbuka supaya kartu yang sedang diatur user
+  // tidak digambar ulang tiap dua detik.
   useEffect(() => {
+    if (shareOpen) return;
     const interval = setInterval(refreshMatch, 2000);
     return () => clearInterval(interval);
-  }, [refreshMatch]);
+  }, [refreshMatch, shareOpen]);
 
   // Light/dark token helpers for MatchDetailTabs shell
   const headingColor = isLight ? "text-[#1a162b]" : "text-white";
@@ -256,6 +261,9 @@ export function MatchDetailTabs({
     ? "border-[rgba(0,0,0,0.08)] bg-[rgba(0,0,0,0.02)] text-[#6B6B73] hover:text-[#1a162b]"
     : "border-white/[0.06] bg-white/[0.03] text-[#8A8A93] hover:text-white";
   const bereguHeadingColor = isLight ? "text-[#6C47D1]" : "text-[#02F5D4]";
+  const shareButtonColor = isLight
+    ? "border-[rgba(0,0,0,0.1)] bg-white text-[#6C47D1] shadow-[0px_1px_3px_0px_rgba(0,0,0,0.08)] hover:border-[#8B5CF6]/40 hover:bg-[#8B5CF6]/[0.06]"
+    : "border-white/[0.08] bg-white/[0.03] text-[#02F5D4] hover:border-[#02F5D4]/50 hover:bg-[#02F5D4]/[0.08]";
 
   return (
     <div className="flex flex-col gap-4">
@@ -303,9 +311,28 @@ export function MatchDetailTabs({
         </div>
       )}
 
-      <div className="mt-4">
+      <div className="mt-4 flex flex-col gap-2">
+        <div className="flex justify-end">
+          <button
+            type="button"
+            onClick={() => setShareOpen(true)}
+            className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-[11px] font-bold uppercase tracking-wide transition-all ${shareButtonColor}`}
+          >
+            <ShareIcon className="h-3.5 w-3.5" />
+            Bagikan
+          </button>
+        </div>
         <MatchScoreboard match={activeMatchForDetail} parentMatch={selectedSubMatch ? match : undefined} isLight={isLight} />
       </div>
+
+      {shareOpen && (
+        <ShareMatchModal
+          match={activeMatchForDetail}
+          parentMatch={selectedSubMatch ? match : undefined}
+          isLight={isLight}
+          onClose={() => setShareOpen(false)}
+        />
+      )}
 
       <div className={`overflow-hidden rounded-xl border ${cardBorder} ${cardBg}`}>
         {/* Primary tabs */}

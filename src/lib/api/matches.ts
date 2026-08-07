@@ -1,5 +1,5 @@
 import { apiRequest } from "./client";
-import { DUMMY_DATA } from "./dummy";
+import { DUMMY_DATA, findDummyMatch } from "./dummy";
 import type { Match, MatchStatus, MatchHistoryEntry } from "@/lib/types";
 
 // ================== READ ==================
@@ -32,6 +32,19 @@ export const getPublicMatches = (): Promise<Match[]> =>
   DUMMY_DATA.matches ? Promise.resolve(DUMMY_DATA.matches) : getMatches();
 
 export const getMatch = (id: string) => apiRequest<Match>(`/matches/${id}`);
+
+/**
+ * Detail satu pertandingan untuk halaman publik.
+ *
+ * Pasangan dari `getPublicMatches()` dan memakai saklar dummy yang sama, supaya
+ * halaman daftar dan halaman detail tidak pernah membaca sumber yang berbeda.
+ * Mengembalikan `null` kalau id-nya tidak ketemu — halaman detail
+ * menerjemahkannya jadi 404.
+ */
+export const getPublicMatch = (id: string): Promise<Match | null> =>
+  DUMMY_DATA.matches
+    ? Promise.resolve(findDummyMatch(DUMMY_DATA.matches, id))
+    : getMatch(id);
 
 export const getMatchHistory = (id: string) =>
   apiRequest<MatchHistoryEntry[]>(`/matches/${id}/history`);
