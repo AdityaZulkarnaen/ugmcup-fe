@@ -111,8 +111,8 @@ export const swapMatchSides = (id: string) =>
 export const finishMatch = (
   id: string,
   data: { 
-    status: 'FINISHED' | 'WALK_OVER' | 'RETIRED';
-    winnerId: string;
+    status: 'FINISHED' | 'WALK_OVER' | 'RETIRED' | 'ONGOING';
+    winnerId?: string;
     sets?: Array<{ setNumber: number; scoreA: number; scoreB: number }>;
   }
 ) =>

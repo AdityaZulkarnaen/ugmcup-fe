@@ -254,7 +254,7 @@ export function PesertaSection() {
             {
               key: "athletes",
               header: "Atlet",
-              searchable: true,
+              getSearchValue: (row) => row.athletes?.map(a => a.athlete?.name).filter(Boolean).join(" ") || "",
               render: (row) => (
                 <span className="font-semibold text-gray-900">
                   {row.athletes && row.athletes.length > 0
@@ -266,12 +266,13 @@ export function PesertaSection() {
             {
               key: "institution",
               header: "Institusi",
-              searchable: true,
+              getSearchValue: (row) => row.institution?.name ?? institutions.find(i => i.id === row.institutionId)?.name ?? "",
               render: (row) => row.institution?.name ?? institutions.find(i => i.id === row.institutionId)?.name ?? "—",
             },
             {
               key: "discipline",
               header: "Cabang",
+              getSearchValue: (row) => row.discipline?.name ?? DISCIPLINES.find(d => d.id === row.disciplineId)?.name ?? "",
               render: (row) => row.discipline?.name ?? DISCIPLINES.find(d => d.id === row.disciplineId)?.name ?? "—",
             }
           ]}
@@ -283,12 +284,12 @@ export function PesertaSection() {
           isLoading={isLoading}
           data={filteredTeams}
           emptyText="Belum ada tim beregu"
-          searchPlaceholder="Cari nama institusi..."
+          searchPlaceholder="Cari nama institusi atau anggota tim..."
           columns={[
             {
               key: "institution",
               header: "Institusi",
-              searchable: true,
+              getSearchValue: (row) => row.institution?.name ?? institutions.find(i => i.id === row.institutionId)?.name ?? "",
               render: (row) => (
                 <span className="font-semibold text-gray-900">
                   {row.institution?.name ?? institutions.find(i => i.id === row.institutionId)?.name ?? "—"}
@@ -298,6 +299,7 @@ export function PesertaSection() {
             {
               key: "members",
               header: "Anggota",
+              getSearchValue: (row) => row.members?.map(m => m.athlete?.name).filter(Boolean).join(" ") || "",
               render: (row) => `${row.members?.length ?? 0} atlet terdaftar`,
             }
           ]}

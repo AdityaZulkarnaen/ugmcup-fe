@@ -43,6 +43,14 @@ export function MatchSection() {
     { setNumber: 2, scoreA: 0, scoreB: 0 },
     { setNumber: 3, scoreA: 0, scoreB: 0 },
   ] });
+  const [subMatchForms, setSubMatchForms] = useState<{
+    id?: string;
+    slotType: string;
+    label: string;
+    status: "FINISHED" | "WALK_OVER" | "RETIRED";
+    winnerId: string;
+    sets: { setNumber: number; scoreA: number; scoreB: number }[];
+  }[]>([]);
   const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
 
   const load = useCallback(async (showSpinner = true) => {
@@ -72,11 +80,72 @@ export function MatchSection() {
     if (finishForm.status !== "FINISHED" && !finishForm.winnerId) return setError("Pilih pemenang terlebih dahulu");
     setIsSaving(true); setError("");
     try {
-      await finishMatch(finishForm.id, {
-        status: finishForm.status,
-        winnerId: finishForm.winnerId,
-        sets: finishForm.sets.filter(s => s.scoreA > 0 || s.scoreB > 0), // Hanya kirim set yang diisi
-      });
+      const isTeam = selectedMatch?.matchType === "TEAM" || subMatchForms.length > 0;
+      if (isTeam && selectedMatch) {
+        let winsA = 0;
+        let winsB = 0;
+
+        for (const sub of subMatchForms) {
+          if (!sub.id) continue;
+          let subWinner = sub.winnerId;
+          const validSets = sub.sets.filter(s => s.scoreA > 0 || s.scoreB > 0);
+          
+          if (validSets.length > 0 || sub.status !== "FINISHED") {
+            if (sub.status === "FINISHED") {
+              const wonA = validSets.filter(s => s.scoreA > s.scoreB).length;
+              const wonB = validSets.filter(s => s.scoreB > s.scoreA).length;
+              if (wonA > wonB) {
+                subWinner = selectedMatch.teamAId || "";
+                winsA++;
+              } else if (wonB > wonA) {
+                subWinner = selectedMatch.teamBId || "";
+                winsB++;
+              }
+            } else {
+              if (subWinner === selectedMatch.teamAId) winsA++;
+              if (subWinner === selectedMatch.teamBId) winsB++;
+            }
+
+            await finishMatch(sub.id, {
+              status: sub.status,
+              winnerId: subWinner || undefined,
+              sets: validSets,
+            });
+          } else {
+            if (sub.winnerId === selectedMatch.teamAId) winsA++;
+            if (sub.winnerId === selectedMatch.teamBId) winsB++;
+          }
+        }
+
+        let parentWinner = finishForm.winnerId;
+        let parentStatus: "FINISHED" | "WALK_OVER" | "RETIRED" | "ONGOING" = finishForm.status;
+
+        if (finishForm.status === "FINISHED") {
+          if (winsA >= 3) {
+            parentWinner = selectedMatch.teamAId || "";
+            parentStatus = "FINISHED";
+          } else if (winsB >= 3) {
+            parentWinner = selectedMatch.teamBId || "";
+            parentStatus = "FINISHED";
+          } else {
+            parentStatus = "ONGOING";
+            parentWinner = "";
+          }
+        }
+
+        await finishMatch(finishForm.id, {
+          status: parentStatus,
+          winnerId: parentWinner || undefined,
+          sets: [],
+        });
+      } else {
+        await finishMatch(finishForm.id, {
+          status: finishForm.status,
+          winnerId: finishForm.winnerId,
+          sets: finishForm.sets.filter(s => s.scoreA > 0 || s.scoreB > 0),
+        });
+      }
+
       await load(false);
       setFinishModalOpen(false);
     } catch (e) {
@@ -113,18 +182,91 @@ export function MatchSection() {
     setEditModalOpen(true);
   }
 
+  const [isSavingSubMatch, setIsSavingSubMatch] = useState<string | null>(null);
+
+  async function handleSaveSingleSubMatch(subIdx: number) {
+    const sub = subMatchForms[subIdx];
+    if (!sub || !sub.id || !selectedMatch) return;
+
+    setIsSavingSubMatch(sub.id);
+    setError("");
+    try {
+      let subWinner = sub.winnerId;
+      const validSets = sub.sets.filter(s => s.scoreA > 0 || s.scoreB > 0);
+
+      if (sub.status === "FINISHED") {
+        const wonA = validSets.filter(s => s.scoreA > s.scoreB).length;
+        const wonB = validSets.filter(s => s.scoreB > s.scoreA).length;
+        if (wonA > wonB) subWinner = selectedMatch.teamAId || "";
+        else if (wonB > wonA) subWinner = selectedMatch.teamBId || "";
+        else throw new Error("Skor set seri — tidak dapat menentukan pemenang match.");
+      } else {
+        if (!subWinner) throw new Error("Pilih pemenang match terlebih dahulu.");
+      }
+
+      const updatedChild = await finishMatch(sub.id, {
+        status: sub.status,
+        winnerId: subWinner || undefined,
+        sets: validSets,
+      });
+
+      await load(false);
+      setSelectedMatch(prev => {
+        if (!prev) return null;
+        const updatedChildren = (prev.childMatches || []).map(c => c.id === updatedChild.id ? updatedChild : c);
+        return { ...prev, childMatches: updatedChildren };
+      });
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Gagal menyimpan match");
+    } finally {
+      setIsSavingSubMatch(null);
+    }
+  }
+
   function openFinishModal(match: Match) {
     setSelectedMatch(match);
     setFinishForm({
       id: match.id,
       status: "FINISHED",
-      winnerId: "",
+      winnerId: match.winnerParticipantId || match.winnerTeamId || "",
       sets: [
-        { setNumber: 1, scoreA: 0, scoreB: 0 },
-        { setNumber: 2, scoreA: 0, scoreB: 0 },
-        { setNumber: 3, scoreA: 0, scoreB: 0 },
+        { setNumber: 1, scoreA: match.sets?.[0]?.scoreA ?? 0, scoreB: match.sets?.[0]?.scoreB ?? 0 },
+        { setNumber: 2, scoreA: match.sets?.[1]?.scoreA ?? 0, scoreB: match.sets?.[1]?.scoreB ?? 0 },
+        { setNumber: 3, scoreA: match.sets?.[2]?.scoreA ?? 0, scoreB: match.sets?.[2]?.scoreB ?? 0 },
       ]
     });
+
+    const isTeam = match.matchType === "TEAM" || (match.childMatches && match.childMatches.length > 0);
+    if (isTeam) {
+      const slots = ["TUNGGAL_PUTRA", "TUNGGAL_PUTRI", "GANDA_PUTRA", "GANDA_PUTRI", "TRIPLE_MIX"];
+      const labels: Record<string, string> = {
+        TUNGGAL_PUTRA: "Match 1: Tunggal Putra (TPA)",
+        TUNGGAL_PUTRI: "Match 2: Tunggal Putri (TPI)",
+        GANDA_PUTRA: "Match 3: Ganda Putra (GPA)",
+        GANDA_PUTRI: "Match 4: Ganda Putri (GPI)",
+        TRIPLE_MIX: "Match 5: Triple Mix",
+      };
+      const initialSubMatches = slots.map(slot => {
+        const cm = match.childMatches?.find(c => c.slotType === slot);
+        const s = cm?.status;
+        const subStatus = (s === "WALK_OVER" || s === "RETIRED") ? s : "FINISHED";
+        return {
+          id: cm?.id,
+          slotType: slot,
+          label: labels[slot] || slot,
+          status: subStatus as "FINISHED" | "WALK_OVER" | "RETIRED",
+          winnerId: cm?.winnerTeamId || "",
+          sets: [0, 1, 2].map(i => {
+            const s = cm?.sets?.find(x => x.setNumber === i + 1);
+            return { setNumber: i + 1, scoreA: s?.scoreA ?? 0, scoreB: s?.scoreB ?? 0 };
+          })
+        };
+      });
+      setSubMatchForms(initialSubMatches);
+    } else {
+      setSubMatchForms([]);
+    }
+
     setFinishModalOpen(true);
   }
 
@@ -238,9 +380,9 @@ export function MatchSection() {
           
           return (
           <div className="flex gap-2">
-            {row.status === "SCHEDULED" && hasBothParticipants && (
+            {(row.status === "SCHEDULED" || row.status === "ONGOING") && hasBothParticipants && (
               <button onClick={() => openFinishModal(row)} className="flex items-center gap-1.5 rounded-lg px-3 py-1 text-xs font-semibold text-white transition hover:opacity-90" style={{ background: "#6C47D1" }}>
-                <CheckCircle size={12} /> Input Hasil
+                <CheckCircle size={12} /> {row.status === "ONGOING" ? "Lanjut Input Hasil" : "Input Hasil"}
               </button>
             )}
             <button onClick={() => openEditModal(row)} className="rounded-lg px-3 py-1 text-xs font-semibold text-blue-600 border border-blue-200 bg-blue-50 hover:bg-blue-100 transition">Edit</button>
@@ -290,8 +432,27 @@ export function MatchSection() {
         })()}
       </Modal>
 
-      <Modal isOpen={finishModalOpen} onClose={() => { setFinishModalOpen(false); setError(""); }} title="Input Hasil Pertandingan" size="lg"
-        footer={<><ModalCancelButton onClick={() => { setFinishModalOpen(false); setError(""); }} /><ModalSubmitButton onClick={handleSaveFinish} isLoading={isSaving} label="Simpan Hasil" /></>}>
+      <Modal
+        isOpen={finishModalOpen}
+        onClose={() => { setFinishModalOpen(false); setError(""); }}
+        title="Input Hasil Pertandingan"
+        size="lg"
+        footer={
+          subMatchForms.length > 0 && finishForm.status === "FINISHED" ? (
+            <button
+              type="button"
+              onClick={() => { setFinishModalOpen(false); setError(""); }}
+              className="rounded-lg border border-gray-300 bg-white px-5 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-50"
+            >
+              Tutup
+            </button>
+          ) : (
+            <>
+              <ModalCancelButton onClick={() => { setFinishModalOpen(false); setError(""); }} />
+              <ModalSubmitButton onClick={handleSaveFinish} isLoading={isSaving} label="Simpan Hasil" />
+            </>
+          )
+        }>
         {error && <p className="mb-4 rounded-xl p-3 text-sm" style={{ background: "rgba(239,68,68,0.15)", color: "#f87171" }}>{error}</p>}
         
         {selectedMatch && (
@@ -335,63 +496,162 @@ export function MatchSection() {
             </div>
 
             {finishForm.status === "FINISHED" && (
-              <div className="rounded-xl border border-gray-200 bg-gray-50 p-4">
-                <h4 className="mb-3 text-sm font-semibold text-gray-700">Skor Akhir (Per Set)</h4>
+              <div className="flex flex-col gap-4">
                 {(() => {
                   const nameA = selectedMatch.participantA
                     ? (selectedMatch.participantA.athletes?.map((a: any) => a.athlete.name).filter(Boolean).join(" / ") || selectedMatch.participantA.institution?.name || "Peserta A")
-                    : (selectedMatch.teamA?.institution?.name || "Peserta A");
+                    : (selectedMatch.teamA?.institution?.name || "Tim A");
                   const instA = selectedMatch.participantA?.institution?.name ?? "";
                   const nameB = selectedMatch.participantB
                     ? (selectedMatch.participantB.athletes?.map((a: any) => a.athlete.name).filter(Boolean).join(" / ") || selectedMatch.participantB.institution?.name || "Peserta B")
-                    : (selectedMatch.teamB?.institution?.name || "Peserta B");
+                    : (selectedMatch.teamB?.institution?.name || "Tim B");
                   const instB = selectedMatch.participantB?.institution?.name ?? "";
+
                   return (
-                    <div className="mb-3 flex items-center gap-3">
-                      <span className="w-12 shrink-0" />
+                    <div className="flex items-center gap-3 rounded-xl border border-gray-200 bg-white p-3 shadow-sm">
                       <div className="min-w-0 flex-1 text-center">
-                        <p className="truncate text-sm font-semibold text-gray-800">{nameA}</p>
+                        <p className="truncate text-sm font-bold text-gray-900">{nameA}</p>
                         {instA && <p className="truncate text-xs text-gray-500">{instA}</p>}
                       </div>
-                      <span className="text-transparent">-</span>
+                      <span className="text-xs font-bold text-purple-600 uppercase tracking-widest px-2">VS</span>
                       <div className="min-w-0 flex-1 text-center">
-                        <p className="truncate text-sm font-semibold text-gray-800">{nameB}</p>
+                        <p className="truncate text-sm font-bold text-gray-900">{nameB}</p>
                         {instB && <p className="truncate text-xs text-gray-500">{instB}</p>}
                       </div>
                     </div>
                   );
                 })()}
-                <div className="flex flex-col gap-3">
-                  {[0, 1, 2].map(idx => (
-                    <div key={idx} className="flex items-center gap-3">
-                      <span className="w-12 text-sm font-medium text-gray-600">Set {idx + 1}</span>
-                      <DashInput
-                        type="number"
-                        placeholder="Skor A"
-                        value={String(finishForm.sets[idx]?.scoreA ?? 0)}
-                        onChange={(v) => {
-                          const newSets = [...finishForm.sets];
-                          if (!newSets[idx]) newSets[idx] = { setNumber: idx + 1, scoreA: 0, scoreB: 0 };
-                          newSets[idx].scoreA = parseInt(v) || 0;
-                          setFinishForm({ ...finishForm, sets: newSets });
-                        }}
-                      />
-                      <span className="text-gray-400">-</span>
-                      <DashInput
-                        type="number"
-                        placeholder="Skor B"
-                        value={String(finishForm.sets[idx]?.scoreB ?? 0)}
-                        onChange={(v) => {
-                          const newSets = [...finishForm.sets];
-                          if (!newSets[idx]) newSets[idx] = { setNumber: idx + 1, scoreA: 0, scoreB: 0 };
-                          newSets[idx].scoreB = parseInt(v) || 0;
-                          setFinishForm({ ...finishForm, sets: newSets });
-                        }}
-                      />
+
+                {subMatchForms.length > 0 ? (
+                  <div className="space-y-4 max-h-[50vh] overflow-y-auto pr-1" data-lenis-prevent>
+                    {subMatchForms.map((sub, subIdx) => {
+                      const idA = selectedMatch.teamAId || "";
+                      const idB = selectedMatch.teamBId || "";
+                      const nameA = selectedMatch.teamA?.institution?.name || "Tim A";
+                      const nameB = selectedMatch.teamB?.institution?.name || "Tim B";
+                      const isSavingThis = isSavingSubMatch === sub.id;
+
+                      return (
+                        <div key={sub.slotType} className="rounded-xl border border-gray-200 bg-gray-50 p-4">
+                          <div className="mb-3 flex flex-wrap items-center justify-between gap-2 border-b border-gray-200 pb-2">
+                            <h5 className="text-xs font-bold text-[#6C47D1] uppercase tracking-wider">{sub.label}</h5>
+                            
+                            <div className="flex items-center gap-2">
+                              <select
+                                value={sub.status}
+                                onChange={(e) => {
+                                  const nextSub = [...subMatchForms];
+                                  nextSub[subIdx].status = e.target.value as any;
+                                  setSubMatchForms(nextSub);
+                                }}
+                                className="rounded-md border border-gray-300 bg-white px-2 py-1 text-xs font-semibold text-gray-700 outline-none"
+                              >
+                                <option value="FINISHED">Selesai Normal</option>
+                                <option value="WALK_OVER">Walk Over (WO)</option>
+                                <option value="RETIRED">Retired (Mundur)</option>
+                              </select>
+
+                              {sub.id && (
+                                <button
+                                  type="button"
+                                  disabled={isSavingThis}
+                                  onClick={() => handleSaveSingleSubMatch(subIdx)}
+                                  className="rounded-md bg-[#6C47D1] px-3 py-1 text-xs font-bold text-white transition hover:bg-[#5b3cae] disabled:opacity-50"
+                                >
+                                  {isSavingThis ? "Menyimpan..." : "Simpan Match"}
+                                </button>
+                              )}
+                            </div>
+                          </div>
+
+                          {sub.status !== "FINISHED" ? (
+                            <div className="mt-2">
+                              <label className="block text-xs font-bold text-gray-600 mb-1">Pemenang Submatch</label>
+                              <DashSelect
+                                value={sub.winnerId}
+                                onChange={(v) => {
+                                  const nextSub = [...subMatchForms];
+                                  nextSub[subIdx].winnerId = v;
+                                  setSubMatchForms(nextSub);
+                                }}
+                                options={[
+                                  { value: idA, label: nameA },
+                                  { value: idB, label: nameB },
+                                ]}
+                                placeholder="Pilih Pemenang Submatch..."
+                              />
+                            </div>
+                          ) : (
+                            <div className="flex flex-col gap-2">
+                              {[0, 1, 2].map((sIdx) => (
+                                <div key={sIdx} className="flex items-center gap-3">
+                                  <span className="w-12 text-xs font-medium text-gray-600">Set {sIdx + 1}</span>
+                                  <DashInput
+                                    type="number"
+                                    placeholder="Skor A"
+                                    value={String(sub.sets[sIdx]?.scoreA ?? 0)}
+                                    onChange={(v) => {
+                                      const nextSub = [...subMatchForms];
+                                      nextSub[subIdx].sets[sIdx].scoreA = parseInt(v) || 0;
+                                      setSubMatchForms(nextSub);
+                                    }}
+                                  />
+                                  <span className="text-gray-400">-</span>
+                                  <DashInput
+                                    type="number"
+                                    placeholder="Skor B"
+                                    value={String(sub.sets[sIdx]?.scoreB ?? 0)}
+                                    onChange={(v) => {
+                                      const nextSub = [...subMatchForms];
+                                      nextSub[subIdx].sets[sIdx].scoreB = parseInt(v) || 0;
+                                      setSubMatchForms(nextSub);
+                                    }}
+                                  />
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                    <p className="text-xs text-gray-500">*Klik "Simpan Match" pada masing-masing match setelah skor diisi.</p>
+                  </div>
+                ) : (
+                  <div className="rounded-xl border border-gray-200 bg-gray-50 p-4">
+                    <h4 className="mb-3 text-sm font-semibold text-gray-700">Skor Akhir (Per Set)</h4>
+                    <div className="flex flex-col gap-3">
+                      {[0, 1, 2].map((idx) => (
+                        <div key={idx} className="flex items-center gap-3">
+                          <span className="w-12 text-sm font-medium text-gray-600">Set {idx + 1}</span>
+                          <DashInput
+                            type="number"
+                            placeholder="Skor A"
+                            value={String(finishForm.sets[idx]?.scoreA ?? 0)}
+                            onChange={(v) => {
+                              const newSets = [...finishForm.sets];
+                              if (!newSets[idx]) newSets[idx] = { setNumber: idx + 1, scoreA: 0, scoreB: 0 };
+                              newSets[idx].scoreA = parseInt(v) || 0;
+                              setFinishForm({ ...finishForm, sets: newSets });
+                            }}
+                          />
+                          <span className="text-gray-400">-</span>
+                          <DashInput
+                            type="number"
+                            placeholder="Skor B"
+                            value={String(finishForm.sets[idx]?.scoreB ?? 0)}
+                            onChange={(v) => {
+                              const newSets = [...finishForm.sets];
+                              if (!newSets[idx]) newSets[idx] = { setNumber: idx + 1, scoreA: 0, scoreB: 0 };
+                              newSets[idx].scoreB = parseInt(v) || 0;
+                              setFinishForm({ ...finishForm, sets: newSets });
+                            }}
+                          />
+                        </div>
+                      ))}
+                      <p className="mt-2 text-xs text-gray-500">*Kosongkan skor 0 - 0 pada Set 3 jika tidak dimainkan (Straight Game).</p>
                     </div>
-                  ))}
-                  <p className="mt-2 text-xs text-gray-500">*Kosongkan skor 0 - 0 pada Set 3 jika tidak dimainkan (Straight Game).</p>
-                </div>
+                  </div>
+                )}
               </div>
             )}
           </div>

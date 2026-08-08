@@ -24,6 +24,14 @@ interface DataTableProps<T extends { id: string }> {
   searchPlaceholder?: string;
 }
 
+function getSearchableString(val: unknown): string {
+  if (val == null) return "";
+  if (typeof val === "string" || typeof val === "number") return String(val);
+  if (Array.isArray(val)) return val.map(getSearchableString).join(" ");
+  if (typeof val === "object") return Object.values(val).map(getSearchableString).join(" ");
+  return "";
+}
+
 export function DataTable<T extends { id: string }>({
   columns,
   data,
@@ -38,7 +46,6 @@ export function DataTable<T extends { id: string }>({
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
 
-  // Filter by search across searchable columns (key only, not rendered)
   const filtered = useMemo(() => {
     if (!search.trim()) return data;
     const q = search.toLowerCase();
@@ -47,8 +54,8 @@ export function DataTable<T extends { id: string }>({
         if (col.getSearchValue) {
           return col.getSearchValue(row).toLowerCase().includes(q);
         }
-        const val = (row as Record<string, unknown>)[col.key];
-        return typeof val === "string" && val.toLowerCase().includes(q);
+        const str = getSearchableString((row as Record<string, unknown>)[col.key]);
+        return str.toLowerCase().includes(q);
       })
     );
   }, [data, search, columns]);

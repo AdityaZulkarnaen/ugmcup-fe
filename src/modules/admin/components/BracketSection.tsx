@@ -4,7 +4,92 @@ import { Modal, ModalCancelButton, ModalSubmitButton } from "@/components/dashbo
 import { getBracket, setupBracket, deleteBracket, getParticipants, getTeams, reassignBracketNode } from "@/lib/api/admin";
 import { LEVELS, getDisciplinesByLevel, DISCIPLINES } from "@/lib/constants";
 import type { BracketNode, Participant, Team } from "@/lib/types";
-import { GitMerge, Edit, Trash2 } from "lucide-react";
+import { GitMerge, Edit, Trash2, Search, ChevronDown } from "lucide-react";
+
+function SearchableSelect({
+  value,
+  onChange,
+  options,
+  placeholder = "Pilih peserta..."
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  options: { value: string; label: string }[];
+  placeholder?: string;
+}) {
+  const [search, setSearch] = useState("");
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const selectedOpt = options.find(o => o.value === value);
+  const filtered = options.filter(o =>
+    o.label.toLowerCase().includes(search.toLowerCase())
+  );
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setIsOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  return (
+    <div ref={dropdownRef} className="relative w-full">
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        className="flex w-full items-center justify-between rounded-lg border bg-gray-50 px-3 py-2.5 text-xs text-left outline-none transition focus:border-purple-400 focus:ring-2 focus:ring-purple-100"
+        style={{ borderColor: "#D1D5DB", color: "#111827" }}
+      >
+        <span className="truncate font-medium">{selectedOpt ? selectedOpt.label : placeholder}</span>
+        <ChevronDown size={14} className="ml-2 shrink-0 text-gray-400" />
+      </button>
+
+      {isOpen && (
+        <div className="absolute left-0 right-0 top-full z-50 mt-1 rounded-lg border border-gray-200 bg-white p-2 shadow-xl">
+          <div className="relative mb-2">
+            <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Cari nama / instansi..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full rounded-md border border-gray-200 bg-gray-50 pl-8 pr-3 py-1.5 text-xs text-gray-800 outline-none focus:border-purple-500"
+              autoFocus
+            />
+          </div>
+          <div className="max-h-48 overflow-y-auto space-y-0.5" data-lenis-prevent>
+            {filtered.length === 0 ? (
+              <p className="py-2 text-center text-xs text-gray-400">Tidak ada peserta ditemukan</p>
+            ) : (
+              filtered.map((opt) => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => {
+                    onChange(opt.value);
+                    setIsOpen(false);
+                    setSearch("");
+                  }}
+                  className={`w-full rounded px-2 py-1.5 text-left text-xs font-medium transition-colors ${
+                    opt.value === value
+                      ? "bg-purple-50 text-[#6C47D1] font-semibold"
+                      : "text-gray-700 hover:bg-gray-100"
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 export function BracketSection() {
   const [filterLevel, setFilterLevel] = useState(LEVELS[0].value);
@@ -190,6 +275,34 @@ export function BracketSection() {
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
     e.dataTransfer.dropEffect = "move";
+
+    if (!containerRef.current) return;
+    const scrollContainer = containerRef.current.parentElement;
+    if (!scrollContainer) return;
+
+    const rect = scrollContainer.getBoundingClientRect();
+    const edgeThreshold = 70;
+    const scrollSpeed = 15;
+
+    let deltaX = 0;
+    let deltaY = 0;
+
+    if (e.clientY - rect.top < edgeThreshold) {
+      deltaY = -scrollSpeed * (1 - Math.max(0, e.clientY - rect.top) / edgeThreshold);
+    } else if (rect.bottom - e.clientY < edgeThreshold) {
+      deltaY = scrollSpeed * (1 - Math.max(0, rect.bottom - e.clientY) / edgeThreshold);
+    }
+
+    if (e.clientX - rect.left < edgeThreshold) {
+      deltaX = -scrollSpeed * (1 - Math.max(0, e.clientX - rect.left) / edgeThreshold);
+    } else if (rect.right - e.clientX < edgeThreshold) {
+      deltaX = scrollSpeed * (1 - Math.max(0, rect.right - e.clientX) / edgeThreshold);
+    }
+
+    if (deltaX !== 0 || deltaY !== 0) {
+      scrollContainer.scrollBy({ left: deltaX, top: deltaY, behavior: "instant" });
+      drawLines();
+    }
   };
 
   const handleDrop = (e: React.DragEvent, targetNodeId: string, targetSlotType: "A" | "B", targetEntityId: string | null) => {
@@ -356,8 +469,8 @@ export function BracketSection() {
           <p className="text-sm mt-1" style={{ color: "#6B7280" }}>Klik "Buat Bracket" untuk membuat struktur bagan fase gugur.</p>
         </div>
       ) : roundsArray.length > 0 ? (
-        <div className="overflow-x-auto rounded-xl border bg-[#F8FAFC] p-8" style={{ borderColor: "#E2E8F0" }}>
-          <div ref={containerRef} className="flex flex-row gap-16 min-w-max items-stretch relative">
+        <div className="overflow-auto max-h-[75vh] rounded-xl border bg-[#F8FAFC] p-6 relative" style={{ borderColor: "#E2E8F0" }} data-lenis-prevent>
+          <div ref={containerRef} className="flex flex-row gap-10 min-w-max items-stretch relative">
             <svg className="absolute inset-0 pointer-events-none w-full h-full" style={{ zIndex: 0 }}>
               {lines.map((l, i) => {
                 const midX = (l.startX + l.endX) / 2;
@@ -376,8 +489,8 @@ export function BracketSection() {
             {roundsArray.map(([round, nodes], rIdx) => {
               const isFirstRound = rIdx === 0;
               return (
-                <div key={round} className="flex flex-col justify-around gap-6 w-72 shrink-0 relative">
-                  <div className="absolute -top-6 left-0 right-0 text-center text-sm font-bold text-slate-500">{round}</div>
+                <div key={round} className="flex flex-col justify-around gap-3 w-56 shrink-0 relative">
+                  <div className="absolute -top-6 left-0 right-0 text-center text-xs font-bold text-slate-500">{round}</div>
                   {nodes.map((node) => {
                     const getMatchEntityLabel = (p: any, t: any, isFirst: boolean) => {
                       if (p) {
@@ -398,18 +511,17 @@ export function BracketSection() {
                     const nameB = getMatchEntityLabel(node.match?.participantB, node.match?.teamB, isFirstRound);
 
                     return (
-                      <div id={`node-${node.id}`} key={node.id} className="relative bg-white border rounded-lg shadow-sm overflow-hidden text-sm flex flex-col group z-10" style={{ borderColor: "#CBD5E1" }}>
-
+                      <div id={`node-${node.id}`} key={node.id} className="relative bg-white border rounded-lg shadow-sm overflow-hidden text-xs flex flex-col group z-10" style={{ borderColor: "#CBD5E1" }}>
                         <div
                           draggable={isFirstRound}
                           onDragStart={(e) => isFirstRound && handleDragStart(e, node.id, "A", entityAId)}
                           onDragOver={isFirstRound ? handleDragOver : undefined}
                           onDrop={(e) => isFirstRound && handleDrop(e, node.id, "A", entityAId)}
-                          className={`p-3 border-b flex justify-between items-center ${isFirstRound ? 'cursor-grab active:cursor-grabbing hover:bg-slate-50 transition-colors' : ''}`}
+                          className={`p-2 border-b flex justify-between items-center ${isFirstRound ? 'cursor-grab active:cursor-grabbing hover:bg-slate-50 transition-colors' : ''}`}
                           style={{ borderColor: "#E2E8F0" }}
                         >
-                          <span className={!entityAId ? (isFirstRound ? "text-amber-500 italic" : "text-slate-400 italic font-medium") : "font-semibold text-slate-800"}>{nameA}</span>
-                          <span className="font-bold text-slate-500">{node.match?.sets?.[0]?.scoreA ?? 0}</span>
+                          <span className={`truncate mr-1 ${!entityAId ? (isFirstRound ? "text-amber-500 italic" : "text-slate-400 italic font-medium") : "font-semibold text-slate-800"}`}>{nameA}</span>
+                          <span className="font-bold text-slate-500 shrink-0">{node.match?.sets?.[0]?.scoreA ?? 0}</span>
                         </div>
 
                         <div
@@ -417,22 +529,22 @@ export function BracketSection() {
                           onDragStart={(e) => isFirstRound && handleDragStart(e, node.id, "B", entityBId)}
                           onDragOver={isFirstRound ? handleDragOver : undefined}
                           onDrop={(e) => isFirstRound && handleDrop(e, node.id, "B", entityBId)}
-                          className={`p-3 flex justify-between items-center ${isFirstRound ? 'cursor-grab active:cursor-grabbing hover:bg-slate-50 transition-colors' : ''}`}
+                          className={`p-2 flex justify-between items-center ${isFirstRound ? 'cursor-grab active:cursor-grabbing hover:bg-slate-50 transition-colors' : ''}`}
                         >
-                          <span className={!entityBId ? (isFirstRound ? "text-amber-500 italic" : "text-slate-400 italic font-medium") : "font-semibold text-slate-800"}>{nameB}</span>
-                          <span className="font-bold text-slate-500">{node.match?.sets?.[0]?.scoreB ?? 0}</span>
+                          <span className={`truncate mr-1 ${!entityBId ? (isFirstRound ? "text-amber-500 italic" : "text-slate-400 italic font-medium") : "font-semibold text-slate-800"}`}>{nameB}</span>
+                          <span className="font-bold text-slate-500 shrink-0">{node.match?.sets?.[0]?.scoreB ?? 0}</span>
                         </div>
 
-                        <div className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-[calc(100%+8px)] text-[10px] font-mono text-slate-400 bg-slate-100 px-1 rounded">
+                        <div className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-[calc(100%+6px)] text-[9px] font-mono text-slate-400 bg-slate-100 px-1 rounded">
                           #{node.position}
                         </div>
 
                         <button
                           onClick={() => openEditModal(node)}
-                          className="absolute right-2 top-1/2 -translate-y-1/2 bg-white border shadow-sm p-1.5 rounded-md text-slate-500 hover:text-slate-800 opacity-0 group-hover:opacity-100 transition-opacity"
+                          className="absolute right-1 top-1/2 -translate-y-1/2 bg-white border shadow-sm p-1 rounded text-slate-500 hover:text-slate-800 opacity-0 group-hover:opacity-100 transition-opacity"
                           title="Edit Slot"
                         >
-                          <Edit size={14} />
+                          <Edit size={12} />
                         </button>
                       </div>
                     );
@@ -487,11 +599,22 @@ export function BracketSection() {
           <span className="rounded-full px-3 py-1 text-xs font-bold" style={{ background: "#F3F0FB", color: "#6C47D1" }}>
             {selectedIds.length} dipilih
           </span>
-          {selectedIds.length > 0 && (
-            <button onClick={() => setSelectedIds([])} className="text-xs font-semibold text-gray-400 hover:text-red-500 transition-colors">
-              Kosongkan pilihan
-            </button>
-          )}
+          <div className="flex items-center gap-3">
+            {entityList.length > 0 && selectedIds.length < entityList.length && (
+              <button
+                type="button"
+                onClick={() => setSelectedIds(entityList.map(e => e.id))}
+                className="text-xs font-semibold text-[#6C47D1] hover:underline transition-colors"
+              >
+                Pilih semua
+              </button>
+            )}
+            {selectedIds.length > 0 && (
+              <button type="button" onClick={() => setSelectedIds([])} className="text-xs font-semibold text-gray-400 hover:text-red-500 transition-colors">
+                Kosongkan pilihan
+              </button>
+            )}
+          </div>
         </div>
 
         <div className="space-y-2 max-h-72 overflow-y-auto pr-1" data-lenis-prevent>
@@ -544,10 +667,10 @@ export function BracketSection() {
         <p className="mb-4 text-sm" style={{ color: "#6B7280" }}>Tentukan peserta/tim untuk slot A dan slot B match ini sesuai dengan bracket yang telah Anda buat di luar sistem.</p>
         <div className="space-y-4">
           <FormField label="Peserta / Tim Sisi A">
-            <DashSelect value={slotAId} onChange={setSlotAId} options={optionsWithBye} />
+            <SearchableSelect value={slotAId} onChange={setSlotAId} options={optionsWithBye} placeholder="Cari / Pilih Peserta Sisi A..." />
           </FormField>
           <FormField label="Peserta / Tim Sisi B">
-            <DashSelect value={slotBId} onChange={setSlotBId} options={optionsWithBye} />
+            <SearchableSelect value={slotBId} onChange={setSlotBId} options={optionsWithBye} placeholder="Cari / Pilih Peserta Sisi B..." />
           </FormField>
         </div>
       </Modal>

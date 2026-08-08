@@ -139,27 +139,44 @@ export function AtletSection() {
         isLoading={isLoading}
         data={data}
         emptyText="Belum ada atlet terdaftar"
+        searchPlaceholder="Cari nama atlet, institusi, NIM/NIS, gender..."
         columns={[
-          { key: "name", header: "Nama Atlet", render: (row) => (
-            <div className="flex items-center gap-2">
-              <span>{row.name}</span>
-              {row.isSeeded && <span className="rounded bg-purple-100 px-1.5 py-0.5 text-[10px] font-bold text-purple-700">UNGGULAN</span>}
-            </div>
-          )},
+          {
+            key: "name",
+            header: "Nama Atlet",
+            getSearchValue: (row) => `${row.name} ${row.isSeeded ? "unggulan seeded" : ""}`,
+            render: (row) => (
+              <div className="flex items-center gap-2">
+                <span>{row.name}</span>
+                {row.isSeeded && <span className="rounded bg-purple-100 px-1.5 py-0.5 text-[10px] font-bold text-purple-700">UNGGULAN</span>}
+              </div>
+            )
+          },
           {
             key: "gender",
             header: "Gender",
+            getSearchValue: (row) => `${row.gender} ${row.gender === "LAKI_LAKI" ? "putra L laki" : "putri P perempuan"}`,
             render: (row) => (
               <span className="font-bold"
                 style={row.gender === "LAKI_LAKI"
-                  ? { color: "#1E3A8A" } // Dark Blue for L
+                  ? { color: "#1E3A8A" }
                   : { color: "#991B1B" }}> 
                 {row.gender === "LAKI_LAKI" ? "L" : "P"}
               </span>
             ),
           },
-          { key: "studentId", header: "NIM/NIS", render: (row) => row.studentId ?? "-" },
-          { key: "institution", header: "Institusi", render: (row) => row.institution?.name ?? institutions.find(i => i.id === row.institutionId)?.name ?? "-" },
+          {
+            key: "studentId",
+            header: "NIM/NIS",
+            getSearchValue: (row) => row.studentId ?? "",
+            render: (row) => row.studentId ?? "-"
+          },
+          {
+            key: "institution",
+            header: "Institusi",
+            getSearchValue: (row) => row.institution?.name ?? institutions.find(i => i.id === row.institutionId)?.name ?? "",
+            render: (row) => row.institution?.name ?? institutions.find(i => i.id === row.institutionId)?.name ?? "-"
+          },
         ]}
         actions={(row) => (
           <div className="flex gap-2">
