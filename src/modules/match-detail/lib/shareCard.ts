@@ -47,6 +47,36 @@ export interface ShareCardData {
   sideB: ShareSide;
 }
 
+/** Satu partai di dalam kartu beregu — papan skornya sama, judulnya kode partai. */
+export interface TiePartai {
+  code: string;
+  sideA: ShareSide;
+  sideB: ShareSide;
+}
+
+/**
+ * Kartu beregu: satu frame berisi seluruh partai yang sudah dimainkan.
+ * Jumlahnya tidak tetap — tie berhenti begitu satu tim mengunci kemenangan,
+ * jadi isinya bisa 3 sampai 5 partai dan tinggi barisnya menyesuaikan.
+ */
+export interface TieCardData {
+  roundLabel: string;
+  /** Baris di bawah wordmark, mis. "GROUP STAGE - Beregu". */
+  subtitle: string;
+  teamA: string;
+  teamB: string;
+  logoAUrl?: string;
+  logoBUrl?: string;
+  /** Partai yang dimenangkan tiap tim (skor tie). */
+  gamesA: number;
+  gamesB: number;
+  partais: TiePartai[];
+}
+
+export type CardModel =
+  | { kind: "single"; data: ShareCardData }
+  | { kind: "tie"; data: TieCardData };
+
 export interface PhotoTransform {
   /** Kelipatan dari skala "cover"; 1 = pas menutupi kanvas. */
   scale: number;
@@ -231,6 +261,77 @@ export function buildShareCardData(match: Match, parentMatch?: Match): ShareCard
   };
 }
 
+/**
+ * Kode partai untuk kartu beregu. Nomor slot dibuang supaya tampil sebagai
+ * `MS`/`WS`/`MD`/`WD`/`XD` seperti template — nomornya baru dipakai lagi kalau
+ * ada dua partai berkode sama (mis. dua tunggal putra jadi `MS1` dan `MS2`).
+ */
+function tiePartaiCodes(rows: Match[], parent: Match): string[] {
+  const bases = rows.map((row) => {
+    const code = disciplineCode(row, parent);
+    return code.replace(/\d+$/, "") || code;
+  });
+
+  const total = new Map<string, number>();
+  for (const base of bases) total.set(base, (total.get(base) ?? 0) + 1);
+
+  const seen = new Map<string, number>();
+  return bases.map((base) => {
+    if ((total.get(base) ?? 0) < 2) return base;
+    const nth = (seen.get(base) ?? 0) + 1;
+    seen.set(base, nth);
+    return `${base}${nth}`;
+  });
+}
+
+/**
+ * Rangkum satu match beregu menjadi kartu multi-partai.
+ *
+ * Yang ditampilkan hanya partai yang sudah jalan (punya skor atau sudah
+ * selesai). Kalau belum ada satu pun, seluruh partai tetap digambar supaya
+ * kartunya tidak kosong.
+ */
+export function buildTieCardData(match: Match): TieCardData {
+  const children = match.childMatches ?? [];
+  const played = children.filter(
+    (c) => (c.sets?.length ?? 0) > 0 || c.status === "FINISHED" || c.status === "RETIRED"
+  );
+  const rows = played.length > 0 ? played : children;
+
+  const codes = tiePartaiCodes(rows, match);
+  const { nameA, logoA, nameB, logoB } = getMatchSideDetails(match);
+  const label = roundLabel(match);
+
+  return {
+    roundLabel: label,
+    subtitle: `${label} - Beregu`,
+    teamA: nameA,
+    teamB: nameB,
+    logoAUrl: logoA,
+    logoBUrl: logoB,
+    gamesA: tieScore(match, "A"),
+    gamesB: tieScore(match, "B"),
+    partais: rows.map((row, i) => {
+      const card = buildShareCardData(row, match);
+      return { code: codes[i], sideA: card.sideA, sideB: card.sideB };
+    }),
+  };
+}
+
+/**
+ * Pilih bentuk kartu: ringkasan beregu digambar sebagai kartu multi-partai,
+ * sisanya (termasuk satu partai yang dibuka dari dalam beregu) tetap kartu
+ * tunggal.
+ */
+export function buildCardModel(match: Match, parentMatch?: Match): CardModel {
+  const isTie =
+    match.matchType === "TEAM" && !parentMatch && (match.childMatches?.length ?? 0) > 0;
+
+  return isTie
+    ? { kind: "tie", data: buildTieCardData(match) }
+    : { kind: "single", data: buildShareCardData(match, parentMatch) };
+}
+
 // =========================================================== util gambar
 
 const imageCache = new Map<string, Promise<HTMLImageElement | null>>();
@@ -261,14 +362,19 @@ export function loadImage(src: string, crossOrigin = false): Promise<HTMLImageEl
   return promise;
 }
 
-export async function loadShareAssets(data: ShareCardData): Promise<ShareAssets> {
+export async function loadShareAssets(model: CardModel): Promise<ShareAssets> {
   const isRemote = (url?: string) => !!url && /^https?:\/\//i.test(url);
+
+  // Semua partai beregu dimainkan oleh dua institusi yang sama, jadi cukup
+  // sepasang logo untuk seluruh baris.
+  const urlA = model.kind === "tie" ? model.data.logoAUrl : model.data.sideA.logoUrl;
+  const urlB = model.kind === "tie" ? model.data.logoBUrl : model.data.sideB.logoUrl;
 
   const [logo, mascot, logoA, logoB] = await Promise.all([
     loadImage(LOGO_SRC),
     loadImage(MASCOT_SRC),
-    data.sideA.logoUrl ? loadImage(data.sideA.logoUrl, isRemote(data.sideA.logoUrl)) : Promise.resolve(null),
-    data.sideB.logoUrl ? loadImage(data.sideB.logoUrl, isRemote(data.sideB.logoUrl)) : Promise.resolve(null),
+    urlA ? loadImage(urlA, isRemote(urlA)) : Promise.resolve(null),
+    urlB ? loadImage(urlB, isRemote(urlB)) : Promise.resolve(null),
   ]);
 
   return { logo, mascot, logoA, logoB };
@@ -379,6 +485,60 @@ const ROW_TOP_A = 1525;
 const ROW_TOP_B = ROW_TOP_A + ROW_H + 9;
 const ACCENT_BAR_Y = ROW_TOP_B + ROW_H + 7;
 const ACCENT_BAR_H = 10;
+
+/**
+ * Ukuran satu baris papan skor. Kartu tunggal memakai satu set angka tetap,
+ * kartu beregu menghitungnya ulang dari tinggi baris yang tersedia.
+ */
+interface RowMetrics {
+  h: number;
+  /** Jari-jari lencana logo dan jarak pusatnya dari tepi kiri baris. */
+  badgeR: number;
+  badgeDX: number;
+  nameDX: number;
+  nameSize: number;
+  /** Baseline dua baris nama, diukur dari atas baris. */
+  line1DY: number;
+  line2DY: number;
+  scoreSize: number;
+  totalSize: number;
+  /**
+   * Panel dan sel skor digambar semi-transparan supaya foto di belakangnya
+   * masih tembus. Kartu tunggal memakai panel pekat karena bagian itu memang
+   * sudah tertutup blok hitam.
+   */
+  translucent: boolean;
+}
+
+/** Warna panel nama dan sel skor, versi pekat dan versi tembus pandang. */
+const ROW_TINTS = {
+  opaque: {
+    panel: { won: ["#3A3A3A", "#262626", "#050505"], lost: ["#1A1A1A", "#101010", "#020202"] },
+    total: { won: "#2B2B2B", lost: "#151515" },
+    cell: { won: "#202020", lost: "#0E0E0E" },
+  },
+  translucent: {
+    panel: {
+      won: ["rgba(64,64,64,0.82)", "rgba(38,38,38,0.72)", "rgba(5,5,5,0.55)"],
+      lost: ["rgba(26,26,26,0.72)", "rgba(16,16,16,0.62)", "rgba(2,2,2,0.5)"],
+    },
+    total: { won: "rgba(43,43,43,0.8)", lost: "rgba(21,21,21,0.72)" },
+    cell: { won: "rgba(32,32,32,0.76)", lost: "rgba(14,14,14,0.68)" },
+  },
+} as const;
+
+const SINGLE_ROW: RowMetrics = {
+  h: ROW_H,
+  badgeR: 20,
+  badgeDX: 29,
+  nameDX: 83,
+  nameSize: 20,
+  line1DY: 24,
+  line2DY: 48,
+  scoreSize: 37,
+  totalSize: 40,
+  translucent: false,
+};
 
 /** Pita putih paling bawah tempat akun sosial — bukan hitam seperti body. */
 const FOOTER_Y = 1769;
@@ -493,23 +653,29 @@ function drawSideRow(
   logo: HTMLImageElement | null,
   top: number,
   cellW: number,
-  cellCount: number
+  cellCount: number,
+  m: RowMetrics
 ) {
   const scoreX = ROW_R - cellCount * cellW;
-  const centerY = top + ROW_H / 2;
+  const centerY = top + m.h / 2;
+
+  const tint = m.translucent ? ROW_TINTS.translucent : ROW_TINTS.opaque;
+  const shade = side.won ? "won" : "lost";
 
   // Panel nama — abu di kiri, meleleh jadi hitam sebelum sampai ke sel skor.
   // Baris pemenang sedikit lebih terang daripada baris lawannya.
+  const stops = tint.panel[shade];
   const panel = ctx.createLinearGradient(ROW_L, 0, scoreX, 0);
-  panel.addColorStop(0, side.won ? "#3A3A3A" : "#1A1A1A");
-  panel.addColorStop(0.62, side.won ? "#262626" : "#101010");
-  panel.addColorStop(1, side.won ? "#050505" : "#020202");
+  panel.addColorStop(0, stops[0]);
+  panel.addColorStop(0.62, stops[1]);
+  panel.addColorStop(1, stops[2]);
   ctx.fillStyle = panel;
-  ctx.fillRect(ROW_L, top, scoreX - ROW_L, ROW_H);
+  ctx.fillRect(ROW_L, top, scoreX - ROW_L, m.h);
 
   // Lencana logo institusi.
-  const badgeR = 20;
-  const badgeX = ROW_L + 29;
+  const badgeR = m.badgeR;
+  const badgeX = ROW_L + m.badgeDX;
+  const logoBox = badgeR * 1.7;
   ctx.save();
   ctx.beginPath();
   ctx.arc(badgeX, centerY, badgeR, 0, Math.PI * 2);
@@ -517,10 +683,10 @@ function drawSideRow(
   ctx.fill();
   ctx.clip();
   if (logo) {
-    drawContained(ctx, logo, badgeX - 17, centerY - 17, 34, 34);
+    drawContained(ctx, logo, badgeX - logoBox / 2, centerY - logoBox / 2, logoBox, logoBox);
   } else {
     ctx.fillStyle = VIOLET;
-    ctx.font = font(family, "normal", 800, 22);
+    ctx.font = font(family, "normal", 800, Math.round(badgeR * 1.1));
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     ctx.fillText(side.initial, badgeX, centerY + 1);
@@ -530,13 +696,13 @@ function drawSideRow(
   // Dua baris nama.
   ctx.textAlign = "left";
   ctx.textBaseline = "alphabetic";
-  ctx.font = font(family, "italic", 700, 20);
-  const nameX = ROW_L + 83;
+  ctx.font = font(family, "italic", 700, m.nameSize);
+  const nameX = ROW_L + m.nameDX;
   const nameMax = scoreX - nameX - 18;
   ctx.fillStyle = side.won ? "#FFFFFF" : "rgba(255,255,255,0.78)";
-  ctx.fillText(truncate(ctx, side.lines[0], nameMax), nameX, top + 24);
+  ctx.fillText(truncate(ctx, side.lines[0], nameMax), nameX, top + m.line1DY);
   if (side.lines[1]) {
-    ctx.fillText(truncate(ctx, side.lines[1], nameMax), nameX, top + 48);
+    ctx.fillText(truncate(ctx, side.lines[1], nameMax), nameX, top + m.line2DY);
   }
 
   // Sel skor: satu per set, lalu sel terakhir untuk total game.
@@ -546,27 +712,21 @@ function drawSideRow(
     const isTotal = i === cellCount - 1;
     const x = scoreX + i * cellW;
 
-    ctx.fillStyle = isTotal
-      ? side.won
-        ? "#2B2B2B"
-        : "#151515"
-      : side.won
-        ? "#202020"
-        : "#0E0E0E";
+    ctx.fillStyle = isTotal ? tint.total[shade] : tint.cell[shade];
     // Sisakan 3px sebagai pemisah antar sel.
-    ctx.fillRect(x, top, cellW - 3, ROW_H);
+    ctx.fillRect(x, top, cellW - 3, m.h);
 
     const value = isTotal ? side.games : side.scores[i];
     if (value === undefined) continue;
 
     if (isTotal) {
       ctx.fillStyle = MINT;
-      ctx.font = font(family, "normal", 900, 40);
+      ctx.font = font(family, "normal", 900, m.totalSize);
     } else {
       // Set yang dimenangkan tampil putih penuh, yang kalah diredupkan.
       const wonSet = side.scores[i] > (opponentScores[i] ?? -1);
       ctx.fillStyle = wonSet ? "#FFFFFF" : "rgba(255,255,255,0.5)";
-      ctx.font = font(family, "normal", 900, 37);
+      ctx.font = font(family, "normal", 900, m.scoreSize);
     }
     ctx.fillText(String(value), x + (cellW - 3) / 2, centerY + 2);
   }
@@ -577,8 +737,8 @@ function drawScoreboard(ctx: CanvasRenderingContext2D, family: string, data: Sha
   const cellCount = setCount + 1;
   const cellW = Math.min(100, Math.floor(455 / cellCount));
 
-  drawSideRow(ctx, family, data.sideA, data.sideB.scores, assets.logoA, ROW_TOP_A, cellW, cellCount);
-  drawSideRow(ctx, family, data.sideB, data.sideA.scores, assets.logoB, ROW_TOP_B, cellW, cellCount);
+  drawSideRow(ctx, family, data.sideA, data.sideB.scores, assets.logoA, ROW_TOP_A, cellW, cellCount, SINGLE_ROW);
+  drawSideRow(ctx, family, data.sideB, data.sideA.scores, assets.logoB, ROW_TOP_B, cellW, cellCount, SINGLE_ROW);
 
   // Garis aksen mint di bawah papan skor.
   const bar = ctx.createLinearGradient(ROW_L, 0, ROW_R, 0);
@@ -664,13 +824,205 @@ function drawFooter(ctx: CanvasRenderingContext2D, family: string) {
   ctx.textBaseline = "alphabetic";
 }
 
+// ======================================================= layout kartu beregu
+
+/** Papan skor beregu mulai tepat di samping baris judul dan berhenti di footer. */
+const TIE_TOP = 252;
+const TIE_BOTTOM = FOOTER_Y - 30;
+const TIE_ROW_GAP = 9;
+const TIE_BAR_GAP = 7;
+const TIE_BAR_H = 9;
+/** Batas atas tinggi baris — tanpa ini, kartu 3 partai jadi terlalu gemuk. */
+const TIE_ROW_H_MAX = 120;
+
+/** Turunkan seluruh ukuran teks satu baris beregu dari tingginya. */
+function tieRowMetrics(h: number): RowMetrics {
+  const nameSize = Math.round(h * 0.28);
+  const badgeR = Math.round(h * 0.26);
+  return {
+    h,
+    badgeR,
+    badgeDX: badgeR + 26,
+    nameDX: badgeR * 2 + 46,
+    nameSize,
+    line1DY: Math.round(h / 2 - 6),
+    line2DY: Math.round(h / 2 - 6) + nameSize + 8,
+    scoreSize: Math.round(h * 0.44),
+    totalSize: Math.round(h * 0.47),
+    translucent: true,
+  };
+}
+
+interface TieLayout {
+  pitch: number;
+  labelH: number;
+  codeSize: number;
+  cellW: number;
+  row: RowMetrics;
+}
+
+/**
+ * Bagi ruang vertikal rata untuk `count` partai. Tinggi baris ikut membesar
+ * saat partainya sedikit, tapi dibatasi supaya proporsinya tetap masuk akal —
+ * sisa ruangnya dibiarkan jadi jarak antar partai.
+ */
+function tieLayout(count: number, maxCellCount: number): TieLayout {
+  const pitch = (TIE_BOTTOM - TIE_TOP) / count;
+  const contentH = pitch - TIE_ROW_GAP - TIE_BAR_GAP - TIE_BAR_H;
+
+  const rowH = Math.min(TIE_ROW_H_MAX, Math.floor(contentH * 0.35));
+  const labelH = Math.min(rowH + 20, contentH - rowH * 2);
+
+  return {
+    pitch,
+    labelH,
+    codeSize: Math.min(104, Math.round(labelH * 0.95)),
+    // Lebar sel dipakai bersama semua partai supaya kolom total sejajar,
+    // meski ada partai yang main tiga gim dan lainnya dua.
+    cellW: Math.min(Math.round(rowH * 1.15), Math.floor(470 / maxCellCount)),
+    row: tieRowMetrics(rowH),
+  };
+}
+
+/** Foto berhenti terlihat di 70% tinggi kartu; sisanya hitam pekat. */
+const TIE_FADE_END = Math.round(CARD_H * 0.7);
+const TIE_FADE_START = TIE_FADE_END - 320;
+
+/**
+ * Susunannya sama dengan `drawScrim()` milik kartu tunggal, cuma titik
+ * pudarnya digeser: lapisan gelap tipis selama foto masih boleh terlihat,
+ * lalu turun halus jadi hitam pekat sampai pita footer.
+ */
+function drawTieScrim(ctx: CanvasRenderingContext2D) {
+  const wash = ctx.createLinearGradient(0, HEADER_H, 0, TIE_FADE_START);
+  wash.addColorStop(0, "rgba(0,0,0,0.34)");
+  wash.addColorStop(0.18, "rgba(0,0,0,0.46)");
+  wash.addColorStop(1, "rgba(0,0,0,0.52)");
+  ctx.fillStyle = wash;
+  ctx.fillRect(0, HEADER_H, CARD_W, TIE_FADE_START - HEADER_H);
+
+  // Ramp-nya landai di awal supaya perpindahannya tidak terlihat sebagai garis.
+  const fade = ctx.createLinearGradient(0, TIE_FADE_START, 0, TIE_FADE_END);
+  fade.addColorStop(0, "rgba(0,0,0,0.52)");
+  fade.addColorStop(0.45, "rgba(0,0,0,0.72)");
+  fade.addColorStop(0.78, "rgba(0,0,0,0.94)");
+  fade.addColorStop(1, "rgba(0,0,0,1)");
+  ctx.fillStyle = fade;
+  ctx.fillRect(0, TIE_FADE_START, CARD_W, TIE_FADE_END - TIE_FADE_START);
+
+  ctx.fillStyle = "#000000";
+  ctx.fillRect(0, TIE_FADE_END, CARD_W, FOOTER_Y - TIE_FADE_END);
+}
+
+function drawTieTitles(ctx: CanvasRenderingContext2D, family: string, data: TieCardData) {
+  ctx.textAlign = "left";
+  ctx.textBaseline = "alphabetic";
+  ctx.font = font(family, "italic", 900, 76);
+
+  let x = 92;
+  const baseline = 246;
+  const segments: Array<[string, string]> = [
+    ["UGM", "#FFFFFF"],
+    ["CUP", VIOLET],
+    [" 2026", "#FFFFFF"],
+  ];
+  for (const [text, color] of segments) {
+    ctx.fillStyle = color;
+    ctx.fillText(text, x, baseline);
+    x += ctx.measureText(text).width;
+  }
+
+  // Sisakan ruang di kanan untuk kode partai pertama.
+  ctx.font = font(family, "normal", 400, 50);
+  ctx.fillStyle = "#FFFFFF";
+  ctx.fillText(truncate(ctx, data.subtitle, 690), 92, 318);
+}
+
+function drawTieSections(
+  ctx: CanvasRenderingContext2D,
+  family: string,
+  data: TieCardData,
+  assets: ShareAssets
+) {
+  const maxCellCount = data.partais.reduce(
+    (max, p) => Math.max(max, Math.max(p.sideA.scores.length, p.sideB.scores.length) + 1),
+    2
+  );
+  const layout = tieLayout(data.partais.length, maxCellCount);
+
+  data.partais.forEach((partai, i) => {
+    const top = TIE_TOP + i * layout.pitch;
+    const rowsTop = Math.round(top + layout.labelH);
+
+    // Kode partai — besar, rata kanan, duduk tepat di atas barisnya.
+    ctx.textAlign = "right";
+    ctx.textBaseline = "alphabetic";
+    ctx.font = font(family, "normal", 800, layout.codeSize);
+    ctx.fillStyle = "#FFFFFF";
+    ctx.fillText(partai.code, ROW_R, rowsTop - Math.round(layout.labelH * 0.1));
+    ctx.textAlign = "left";
+
+    const cellCount = Math.max(partai.sideA.scores.length, partai.sideB.scores.length) + 1;
+    const rowBTop = rowsTop + layout.row.h + TIE_ROW_GAP;
+
+    drawSideRow(
+      ctx, family, partai.sideA, partai.sideB.scores, assets.logoA,
+      rowsTop, layout.cellW, cellCount, layout.row
+    );
+    drawSideRow(
+      ctx, family, partai.sideB, partai.sideA.scores, assets.logoB,
+      rowBTop, layout.cellW, cellCount, layout.row
+    );
+
+    const bar = ctx.createLinearGradient(ROW_L, 0, ROW_R, 0);
+    bar.addColorStop(0, MINT);
+    bar.addColorStop(1, "#34E5A6");
+    ctx.fillStyle = bar;
+    ctx.fillRect(ROW_L, rowBTop + layout.row.h + TIE_BAR_GAP, ROW_R - ROW_L, TIE_BAR_H);
+  });
+}
+
+// ================================================================== render
+
+function drawSingleCard(
+  ctx: CanvasRenderingContext2D,
+  data: ShareCardData,
+  assets: ShareAssets,
+  photo: HTMLImageElement | null,
+  transform: PhotoTransform,
+  family: string
+) {
+  drawBackdrop(ctx, photo, transform);
+  drawHeader(ctx, assets);
+  drawScrim(ctx);
+  drawTitles(ctx, family, data);
+  drawScoreboard(ctx, family, data, assets);
+  drawFooter(ctx, family);
+}
+
+function drawTieCard(
+  ctx: CanvasRenderingContext2D,
+  data: TieCardData,
+  assets: ShareAssets,
+  photo: HTMLImageElement | null,
+  transform: PhotoTransform,
+  family: string
+) {
+  drawBackdrop(ctx, photo, transform);
+  drawTieScrim(ctx);
+  drawHeader(ctx, assets);
+  drawTieTitles(ctx, family, data);
+  drawTieSections(ctx, family, data, assets);
+  drawFooter(ctx, family);
+}
+
 /**
  * Gambar seluruh kartu ke `canvas`. Canvas selalu di-resize ke 1080x1920 agar
  * hasil unduhan punya resolusi penuh, berapa pun ukuran tampilannya di layar.
  */
-export function renderShareCard(
+export function renderCard(
   canvas: HTMLCanvasElement,
-  data: ShareCardData,
+  model: CardModel,
   assets: ShareAssets,
   photo: HTMLImageElement | null,
   transform: PhotoTransform,
@@ -683,10 +1035,9 @@ export function renderShareCard(
   if (!ctx) return;
 
   ctx.clearRect(0, 0, CARD_W, CARD_H);
-  drawBackdrop(ctx, photo, transform);
-  drawHeader(ctx, assets);
-  drawScrim(ctx);
-  drawTitles(ctx, family, data);
-  drawScoreboard(ctx, family, data, assets);
-  drawFooter(ctx, family);
+  if (model.kind === "tie") {
+    drawTieCard(ctx, model.data, assets, photo, transform, family);
+  } else {
+    drawSingleCard(ctx, model.data, assets, photo, transform, family);
+  }
 }

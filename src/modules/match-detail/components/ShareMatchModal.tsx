@@ -10,14 +10,14 @@ import {
 } from "@/components/ui/icons";
 import type { Match } from "@/lib/types";
 import {
-  buildShareCardData,
+  buildCardModel,
   cardFontFamily,
   clampTransform,
   DEFAULT_TRANSFORM,
   ensureCardFonts,
   loadShareAssets,
   panBounds,
-  renderShareCard,
+  renderCard,
   CARD_H,
   CARD_W,
   type PhotoTransform,
@@ -56,7 +56,8 @@ export function ShareMatchModal({
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
 
-  const data = useMemo(() => buildShareCardData(match, parentMatch), [match, parentMatch]);
+  const model = useMemo(() => buildCardModel(match, parentMatch), [match, parentMatch]);
+  const isTie = model.kind === "tie";
 
   // Kunci scroll halaman selama modal terbuka.
   useEffect(() => {
@@ -88,7 +89,7 @@ export function ShareMatchModal({
     let active = true;
     async function prepare() {
       const resolvedFamily = cardFontFamily();
-      const [loaded] = await Promise.all([loadShareAssets(data), ensureCardFonts(resolvedFamily)]);
+      const [loaded] = await Promise.all([loadShareAssets(model), ensureCardFonts(resolvedFamily)]);
       if (!active) return;
       setFamily(resolvedFamily);
       setAssets(loaded);
@@ -97,14 +98,14 @@ export function ShareMatchModal({
     return () => {
       active = false;
     };
-  }, [data]);
+  }, [model]);
 
   // Gambar ulang setiap kali data, aset, foto, atau posisi foto berubah.
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas || !assets) return;
-    renderShareCard(canvas, data, assets, photo, transform, family);
-  }, [assets, data, family, photo, transform]);
+    renderCard(canvas, model, assets, photo, transform, family);
+  }, [assets, model, family, photo, transform]);
 
   const handlePickPhoto = useCallback((file: File) => {
     if (photoUrlRef.current) URL.revokeObjectURL(photoUrlRef.current);
@@ -159,7 +160,8 @@ export function ShareMatchModal({
 
   // --------------------------------------------------------- ekspor gambar
 
-  const fileName = `ugmcup2026-${data.disciplineCode.toLowerCase()}-${match.id}.png`;
+  const slug = model.kind === "tie" ? "beregu" : model.data.disciplineCode.toLowerCase();
+  const fileName = `ugmcup2026-${slug}-${match.id}.png`;
 
   const toBlob = useCallback(async (): Promise<Blob | null> => {
     const canvas = canvasRef.current;
@@ -201,10 +203,14 @@ export function ShareMatchModal({
     }
 
     const file = new File([blob], fileName, { type: "image/png" });
+    const [labelA, labelB] =
+      model.kind === "tie"
+        ? [model.data.teamA, model.data.teamB]
+        : [model.data.sideA.lines[0], model.data.sideB.lines[0]];
     const shareData: ShareData = {
       files: [file],
-      title: `UGM CUP 2026 — ${data.roundLabel}`,
-      text: `${data.sideA.lines[0]} vs ${data.sideB.lines[0]} — UGM CUP 2026`,
+      title: `UGM CUP 2026 — ${model.data.roundLabel}`,
+      text: `${labelA} vs ${labelB} — UGM CUP 2026`,
     };
 
     // Web Share API level 2 adalah jalan masuk ke Instagram Story dkk.
@@ -231,7 +237,7 @@ export function ShareMatchModal({
     link.download = fileName;
     link.click();
     URL.revokeObjectURL(url);
-  }, [data, fileName, toBlob]);
+  }, [model, fileName, toBlob]);
 
   // ------------------------------------------------------------------ ui
 
@@ -266,7 +272,9 @@ export function ShareMatchModal({
           <div>
             <h2 className={`text-base font-bold ${titleColor}`}>Bagikan Pertandingan</h2>
             <p className={`mt-0.5 text-xs ${mutedColor}`}>
-              Pilih fotomu sebagai background, lalu bagikan ke Instagram Story.
+              {isTie
+                ? "Rekap seluruh partai beregu. Pilih fotomu sebagai background, lalu bagikan ke Instagram Story."
+                : "Pilih fotomu sebagai background, lalu bagikan ke Instagram Story."}
             </p>
           </div>
           <button
@@ -392,19 +400,31 @@ export function ShareMatchModal({
               <dl className={`mt-2 space-y-1 text-[11px] ${mutedColor}`}>
                 <div className="flex justify-between gap-3">
                   <dt>Babak</dt>
-                  <dd className={`font-semibold ${titleColor}`}>{data.roundLabel}</dd>
+                  <dd className={`font-semibold ${titleColor}`}>{model.data.roundLabel}</dd>
                 </div>
                 <div className="flex justify-between gap-3">
                   <dt>Partai</dt>
-                  <dd className={`font-semibold ${titleColor}`}>{data.disciplineCode}</dd>
+                  <dd className={`font-semibold ${titleColor}`}>
+                    {model.kind === "tie"
+                      ? model.data.partais.map((p) => p.code).join(" · ")
+                      : model.data.disciplineCode}
+                  </dd>
                 </div>
                 <div className="flex justify-between gap-3">
                   <dt>Skor</dt>
                   <dd className={`font-semibold ${titleColor}`}>
-                    {data.sideA.games} – {data.sideB.games}
+                    {model.kind === "tie"
+                      ? `${model.data.gamesA} – ${model.data.gamesB}`
+                      : `${model.data.sideA.games} – ${model.data.sideB.games}`}
                   </dd>
                 </div>
               </dl>
+              {model.kind === "tie" && (
+                <p className={`mt-2 text-[11px] leading-relaxed ${mutedColor}`}>
+                  Hanya partai yang sudah dimainkan yang masuk kartu — tinggi barisnya
+                  menyesuaikan jumlahnya.
+                </p>
+              )}
             </div>
 
             {notice && (
