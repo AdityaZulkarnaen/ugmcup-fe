@@ -3,6 +3,7 @@ import type { Match } from "@/lib/types";
 import { TrophyIcon, ChevronIcon, CourtIcon } from "@/components/ui/icons";
 import { CategoryPill } from "@/components/ui/CategoryPill";
 import { StatusBadge } from "@/components/ui/StatusBadge";
+import { resolveInstLabel } from "@/lib/utils/resolveInstLabel";
 
 interface ScheduleRowProps {
   match: Match;
@@ -65,10 +66,9 @@ export function ScheduleRow({ match, isLight = false }: ScheduleRowProps) {
   const isScheduled = match.status === "SCHEDULED";
 
   // Team / Participant A
+  const rawInstA = match.teamA?.institution?.name || "Tim A";
   const instA =
-    match.participantA?.institution?.name ||
-    match.teamA?.institution?.name ||
-    "Tim A";
+    resolveInstLabel(match.participantA, rawInstA, match.disciplineId) || rawInstA;
   const athleteNamesA =
     match.participantA?.athletes
       ?.map((a) => a.athlete?.name)
@@ -83,10 +83,9 @@ export function ScheduleRow({ match, isLight = false }: ScheduleRowProps) {
     (!!match.winnerTeamId && match.winnerTeamId === match.teamAId);
 
   // Team / Participant B
+  const rawInstB = match.teamB?.institution?.name || "Tim B";
   const instB =
-    match.participantB?.institution?.name ||
-    match.teamB?.institution?.name ||
-    "Tim B";
+    resolveInstLabel(match.participantB, rawInstB, match.disciplineId) || rawInstB;
   const athleteNamesB =
     match.participantB?.athletes
       ?.map((a) => a.athlete?.name)

@@ -68,6 +68,7 @@ export function DashInput({
   required?: boolean;
 }) {
   const isPickerType = ["date", "datetime-local", "time", "month", "week"].includes(type);
+  const isNumberType = type === "number";
   return (
     <input
       type={type}
@@ -87,8 +88,17 @@ export function DashInput({
           : undefined
       }
       required={required}
-      className="w-full rounded-lg border bg-gray-50 px-3 py-2.5 text-sm outline-none transition focus:border-purple-400 focus:ring-2 focus:ring-purple-100"
-      style={{ borderColor: "#D1D5DB", color: "#111827" }}
+      className={`w-full rounded-lg border px-3 py-2.5 text-sm outline-none transition focus:border-purple-400 focus:ring-2 focus:ring-purple-100 ${
+        isNumberType
+          ? "[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+          : ""
+      }`}
+      style={{
+        borderColor: "#D1D5DB",
+        color: "#111827",
+        backgroundColor: "#F9FAFB",
+        colorScheme: "light",
+      }}
     />
   );
 }
@@ -110,24 +120,31 @@ export function DashSelect({
     <select
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      className="w-full rounded-lg border bg-gray-50 px-3 py-2.5 text-sm outline-none transition focus:border-purple-400 focus:ring-2 focus:ring-purple-100"
-      style={{ borderColor: "#D1D5DB", color: "#111827" }}
+      className="w-full rounded-lg border px-3 py-2.5 text-sm outline-none transition focus:border-purple-400 focus:ring-2 focus:ring-purple-100"
+      style={{
+        borderColor: "#D1D5DB",
+        color: "#111827",
+        backgroundColor: "#F9FAFB",
+        colorScheme: "light",
+      }}
     >
       {placeholder && <option value="">{placeholder}</option>}
-      {options && options.map((opt) => (
-        <option key={opt.value} value={opt.value}>
-          {opt.label}
-        </option>
-      ))}
-      {groups && groups.map((g) => (
-        <optgroup key={g.label} label={g.label}>
-          {g.options.map((opt) => (
-            <option key={opt.value} value={opt.value}>
-              {opt.label}
-            </option>
-          ))}
-        </optgroup>
-      ))}
+      {options &&
+        options.map((opt) => (
+          <option key={opt.value} value={opt.value}>
+            {opt.label}
+          </option>
+        ))}
+      {groups &&
+        groups.map((g) => (
+          <optgroup key={g.label} label={g.label}>
+            {g.options.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
+          </optgroup>
+        ))}
     </select>
   );
 }
@@ -149,8 +166,13 @@ export function DashTextarea({
       placeholder={placeholder}
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      className="w-full resize-none rounded-lg border bg-gray-50 px-3 py-2.5 text-sm outline-none transition focus:border-purple-400 focus:ring-2 focus:ring-purple-100"
-      style={{ borderColor: "#D1D5DB", color: "#111827" }}
+      className="w-full resize-none rounded-lg border px-3 py-2.5 text-sm outline-none transition focus:border-purple-400 focus:ring-2 focus:ring-purple-100"
+      style={{
+        borderColor: "#D1D5DB",
+        color: "#111827",
+        backgroundColor: "#F9FAFB",
+        colorScheme: "light",
+      }}
     />
   );
 }

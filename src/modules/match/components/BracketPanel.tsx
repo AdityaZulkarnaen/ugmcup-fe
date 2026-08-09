@@ -14,9 +14,11 @@ import { BracketBoardSkeleton } from "./MatchSkeletons";
 import { BracketBoard } from "./BracketBoard";
 import { type CategoryBracket, type BracketRound, type BracketSide, type BracketMatch } from "@/lib/constants/matches";
 
+import { resolveInstLabel } from "@/lib/utils/resolveInstLabel";
+
 function mapSide(p: any, t: any, isFirstRound: boolean, matchStatus: string, won: boolean): BracketSide {
   if (p) {
-    const inst = p.institution?.name;
+    const inst = resolveInstLabel(p, p.institution?.name, p.disciplineId);
     const names = p.athletes?.length > 0
       ? p.athletes.map((a: any) => a.athlete?.name).filter(Boolean).join(" - ")
       : undefined;

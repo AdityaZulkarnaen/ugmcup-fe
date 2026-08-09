@@ -9,6 +9,44 @@ import { CheckCircle, ArrowLeftRight } from "lucide-react";
 import { getMatches, deleteMatch, updateMatchSchedule, finishMatch, swapMatchSides } from "@/lib/api/matches";
 import type { Match, MatchStatus } from "@/lib/types";
 
+export function validateBadmintonSets(sets: { setNumber: number; scoreA: number; scoreB: number }[]): string | null {
+  const activeSets = sets.filter(s => s.scoreA > 0 || s.scoreB > 0);
+  if (activeSets.length === 0) return null;
+
+  for (const s of sets) {
+    const { scoreA, scoreB, setNumber } = s;
+    if (scoreA === 0 && scoreB === 0) continue;
+
+    if (scoreA < 0 || scoreB < 0) {
+      return `Set ${setNumber}: Skor tidak boleh negatif.`;
+    }
+    if (scoreA === scoreB) {
+      return `Set ${setNumber}: Skor seri (${scoreA}-${scoreB}) tidak valid. Harus ada pemenang.`;
+    }
+
+    const W = Math.max(scoreA, scoreB);
+    const L = Math.min(scoreA, scoreB);
+
+    if (W < 21) {
+      return `Set ${setNumber}: Skor pemenang (${W}) belum mencapai minimal 21 poin.`;
+    }
+    if (W === 21 && L > 19) {
+      return `Set ${setNumber}: Pada skor 20-20 berlaku deuce, pemenang harus unggul 2 poin (misal 22-20).`;
+    }
+    if (W > 21 && W < 30 && W - L !== 2) {
+      return `Set ${setNumber}: Pada skor deuce (di atas 20), pemenang harus selisih tepat 2 poin (misal 22-20 atau 23-21).`;
+    }
+    if (W === 30 && L < 28) {
+      return `Set ${setNumber}: Skor 30 hanya terjadi pada deuce 29-29 (skor valid: 30-28 atau 30-29).`;
+    }
+    if (W > 30) {
+      return `Set ${setNumber}: Poin maksimal set badminton adalah 30.`;
+    }
+  }
+
+  return null;
+}
+
 const STATUS_STYLE: Record<MatchStatus | "WALK_OVER", { bg: string; color: string }> = {
   SCHEDULED: { bg: "#FEF3C7", color: "#92400E" },
   ONGOING:   { bg: "#DBEAFE", color: "#1E40AF" },
@@ -82,6 +120,13 @@ export function MatchSection() {
     try {
       const isTeam = selectedMatch?.matchType === "TEAM" || subMatchForms.length > 0;
       if (isTeam && selectedMatch) {
+        for (const sub of subMatchForms) {
+          if (sub.status === "FINISHED") {
+            const err = validateBadmintonSets(sub.sets);
+            if (err) { setIsSaving(false); return setError(`[${sub.label}] ${err}`); }
+          }
+        }
+
         let winsA = 0;
         let winsB = 0;
 
@@ -139,6 +184,10 @@ export function MatchSection() {
           sets: [],
         });
       } else {
+        if (finishForm.status === "FINISHED") {
+          const err = validateBadmintonSets(finishForm.sets);
+          if (err) { setIsSaving(false); return setError(err); }
+        }
         await finishMatch(finishForm.id, {
           status: finishForm.status,
           winnerId: finishForm.winnerId,
@@ -195,6 +244,9 @@ export function MatchSection() {
       const validSets = sub.sets.filter(s => s.scoreA > 0 || s.scoreB > 0);
 
       if (sub.status === "FINISHED") {
+        const err = validateBadmintonSets(sub.sets);
+        if (err) { setIsSavingSubMatch(null); return setError(`[${sub.label}] ${err}`); }
+
         const wonA = validSets.filter(s => s.scoreA > s.scoreB).length;
         const wonB = validSets.filter(s => s.scoreB > s.scoreA).length;
         if (wonA > wonB) subWinner = selectedMatch.teamAId || "";
@@ -227,7 +279,7 @@ export function MatchSection() {
     setSelectedMatch(match);
     setFinishForm({
       id: match.id,
-      status: "FINISHED",
+      status: (match.status === "WALK_OVER" || match.status === "RETIRED") ? match.status : "FINISHED",
       winnerId: match.winnerParticipantId || match.winnerTeamId || "",
       sets: [
         { setNumber: 1, scoreA: match.sets?.[0]?.scoreA ?? 0, scoreB: match.sets?.[0]?.scoreB ?? 0 },
@@ -380,13 +432,12 @@ export function MatchSection() {
           
           return (
           <div className="flex gap-2">
-            {(row.status === "SCHEDULED" || row.status === "ONGOING") && hasBothParticipants && (
+            {hasBothParticipants && (
               <button onClick={() => openFinishModal(row)} className="flex items-center gap-1.5 rounded-lg px-3 py-1 text-xs font-semibold text-white transition hover:opacity-90" style={{ background: "#6C47D1" }}>
-                <CheckCircle size={12} /> {row.status === "ONGOING" ? "Lanjut Input Hasil" : "Input Hasil"}
+                <CheckCircle size={12} /> {row.status === "FINISHED" || row.status === "WALK_OVER" || row.status === "RETIRED" ? "Edit Hasil" : row.status === "ONGOING" ? "Lanjut Input Hasil" : "Input Hasil"}
               </button>
             )}
             <button onClick={() => openEditModal(row)} className="rounded-lg px-3 py-1 text-xs font-semibold text-blue-600 border border-blue-200 bg-blue-50 hover:bg-blue-100 transition">Edit</button>
-            <button onClick={() => handleDelete(row.id)} className="rounded-lg px-3 py-1 text-xs font-semibold text-red-600 border border-red-200 bg-red-50 hover:bg-red-100 transition">Hapus</button>
           </div>
           );
         }}

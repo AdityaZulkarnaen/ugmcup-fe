@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { Match } from "@/lib/types";
 import { ChevronIcon, CourtIcon } from "@/components/ui/icons";
 import { CategoryPill } from "@/components/ui/CategoryPill";
+import { resolveInstLabel } from "@/lib/utils/resolveInstLabel";
 
 interface LiveScoreCardProps {
   match: Match;
@@ -93,17 +94,15 @@ export function LiveScoreCard({ match, isLight = false }: LiveScoreCardProps) {
   const displayScoreB = isTeamMatch ? winsB : liveScoreB;
 
   // Names
+  const rawInstA = match.teamA?.institution?.name || "Tim A";
   const instA =
-    match.participantA?.institution?.name ||
-    match.teamA?.institution?.name ||
-    "Tim A";
+    resolveInstLabel(match.participantA, rawInstA, match.disciplineId) || rawInstA;
   const athletesA =
     match.participantA?.athletes?.map((a) => a.athlete?.name).filter(Boolean) ?? [];
 
+  const rawInstB = match.teamB?.institution?.name || "Tim B";
   const instB =
-    match.participantB?.institution?.name ||
-    match.teamB?.institution?.name ||
-    "Tim B";
+    resolveInstLabel(match.participantB, rawInstB, match.disciplineId) || rawInstB;
   const athletesB =
     match.participantB?.athletes?.map((a) => a.athlete?.name).filter(Boolean) ?? [];
 

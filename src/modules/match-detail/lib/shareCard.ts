@@ -550,15 +550,14 @@ function font(family: string, style: "normal" | "italic", weight: number, size: 
 }
 
 function drawBackdrop(ctx: CanvasRenderingContext2D, photo: HTMLImageElement | null, transform: PhotoTransform) {
-  // Dasar bermerek supaya hasil ekspor tidak pernah transparan/hitam polos.
+  if (!photo) return;
+
   const base = ctx.createLinearGradient(0, 0, 0, CARD_H);
   base.addColorStop(0, "#1A162B");
   base.addColorStop(0.55, "#14183B");
   base.addColorStop(1, "#000033");
   ctx.fillStyle = base;
   ctx.fillRect(0, 0, CARD_W, CARD_H);
-
-  if (!photo) return;
 
   const s = coverScale(photo) * transform.scale;
   const w = photo.naturalWidth * s;
@@ -570,7 +569,6 @@ function drawHeader(ctx: CanvasRenderingContext2D, assets: ShareAssets) {
   ctx.fillStyle = "#FFFFFF";
   ctx.fillRect(0, 0, CARD_W, HEADER_H);
 
-  // Bidang mint miring di kanan.
   ctx.beginPath();
   ctx.moveTo(735, 0);
   ctx.lineTo(CARD_W, 0);
@@ -585,16 +583,12 @@ function drawHeader(ctx: CanvasRenderingContext2D, assets: ShareAssets) {
   }
 
   if (assets.logo) {
-    // Sumbernya sudah varian hitam, jadi digambar apa adanya — di-tint malah
-    // meratakan gradasi di ikon kok jadi siluet polos. Lebar mengikuti rasio
-    // asli SVG (223x68) supaya tidak gepeng.
     ctx.drawImage(assets.logo, 40, 32, 269, 82);
   }
 }
 
-function drawScrim(ctx: CanvasRenderingContext2D) {
-  // Foto memudar jadi hitam pekat tepat sebelum papan skor mulai. Ramp-nya
-  // sengaja landai di awal supaya foto masih tembus di belakang wordmark.
+function drawScrim(ctx: CanvasRenderingContext2D, hasPhoto = true) {
+  if (!hasPhoto) return;
   const fade = ctx.createLinearGradient(0, 1150, 0, 1560);
   fade.addColorStop(0, "rgba(0,0,0,0)");
   fade.addColorStop(0.45, "rgba(0,0,0,0.45)");
@@ -603,7 +597,6 @@ function drawScrim(ctx: CanvasRenderingContext2D) {
   ctx.fillStyle = fade;
   ctx.fillRect(0, 1150, CARD_W, 410);
 
-  // Blok hitam berhenti di pita putih, bukan di dasar kartu.
   ctx.fillStyle = "#000000";
   ctx.fillRect(0, 1540, CARD_W, FOOTER_Y - 1540);
 }
@@ -893,7 +886,8 @@ const TIE_FADE_START = TIE_FADE_END - 320;
  * pudarnya digeser: lapisan gelap tipis selama foto masih boleh terlihat,
  * lalu turun halus jadi hitam pekat sampai pita footer.
  */
-function drawTieScrim(ctx: CanvasRenderingContext2D) {
+function drawTieScrim(ctx: CanvasRenderingContext2D, hasPhoto = true) {
+  if (!hasPhoto) return;
   const wash = ctx.createLinearGradient(0, HEADER_H, 0, TIE_FADE_START);
   wash.addColorStop(0, "rgba(0,0,0,0.34)");
   wash.addColorStop(0.18, "rgba(0,0,0,0.46)");
@@ -901,7 +895,6 @@ function drawTieScrim(ctx: CanvasRenderingContext2D) {
   ctx.fillStyle = wash;
   ctx.fillRect(0, HEADER_H, CARD_W, TIE_FADE_START - HEADER_H);
 
-  // Ramp-nya landai di awal supaya perpindahannya tidak terlihat sebagai garis.
   const fade = ctx.createLinearGradient(0, TIE_FADE_START, 0, TIE_FADE_END);
   fade.addColorStop(0, "rgba(0,0,0,0.52)");
   fade.addColorStop(0.45, "rgba(0,0,0,0.72)");
@@ -994,7 +987,7 @@ function drawSingleCard(
 ) {
   drawBackdrop(ctx, photo, transform);
   drawHeader(ctx, assets);
-  drawScrim(ctx);
+  drawScrim(ctx, !!photo);
   drawTitles(ctx, family, data);
   drawScoreboard(ctx, family, data, assets);
   drawFooter(ctx, family);
@@ -1009,7 +1002,7 @@ function drawTieCard(
   family: string
 ) {
   drawBackdrop(ctx, photo, transform);
-  drawTieScrim(ctx);
+  drawTieScrim(ctx, !!photo);
   drawHeader(ctx, assets);
   drawTieTitles(ctx, family, data);
   drawTieSections(ctx, family, data, assets);

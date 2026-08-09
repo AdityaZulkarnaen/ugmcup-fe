@@ -1,5 +1,5 @@
 import type { Match } from "@/lib/types";
-
+import { resolveInstLabel } from "@/lib/utils/resolveInstLabel";
 
 function statusLine(match: Match): string {
   if (match.matchType === "TEAM") {
@@ -77,30 +77,40 @@ function SideColumn({
   );
 }
 
+
 export function getMatchSideDetails(match: Match, parentMatch?: Match) {
   const effectiveParent = parentMatch || match;
   const slotPrefix = match.slotType?.replace(/_[12]$/, "") || "";
+  const disciplineId = match.discipline?.id || effectiveParent.discipline?.id || match.disciplineId;
 
-  // Side A athletes
-  let athletesA = match.participantA?.athletes?.map((a) => a.athlete?.name).filter(Boolean).join(" - ");
-  if (!athletesA && effectiveParent.teamA?.members) {
-    const membersA = effectiveParent.teamA.members.filter(
-      (m: any) => m.assignedSlot === slotPrefix || m.assignedSlot === match.slotType
-    );
-    if (membersA.length > 0) {
-      athletesA = membersA.map((m: any) => m.athlete?.name).filter(Boolean).join(" - ");
+  // Whether this is a beregu sub-match (TEAM parent) — in that case show only institution, not athlete names
+  const isBereguSubmatch = !!parentMatch && parentMatch.matchType === "TEAM";
+
+  // Side A athletes (skipped for beregu sub-matches)
+  let athletesA: string | undefined;
+  if (!isBereguSubmatch) {
+    athletesA = match.participantA?.athletes?.map((a) => a.athlete?.name).filter(Boolean).join(" - ");
+    if (!athletesA && effectiveParent.teamA?.members) {
+      const membersA = effectiveParent.teamA.members.filter(
+        (m: any) => m.assignedSlot === slotPrefix || m.assignedSlot === match.slotType
+      );
+      if (membersA.length > 0) {
+        athletesA = membersA.map((m: any) => m.athlete?.name).filter(Boolean).join(" - ");
+      }
+    }
+    if (!athletesA && effectiveParent.participantA?.athletes) {
+      athletesA = effectiveParent.participantA.athletes.map((a) => a.athlete?.name).filter(Boolean).join(" - ");
     }
   }
-  if (!athletesA && effectiveParent.participantA?.athletes) {
-    athletesA = effectiveParent.participantA.athletes.map((a) => a.athlete?.name).filter(Boolean).join(" - ");
-  }
 
-  // Side A institution
-  const instA =
-    match.participantA?.institution?.name ||
+  // Side A institution — multi-school support for SMA doubles
+  const rawInstA =
     match.teamA?.institution?.name ||
-    effectiveParent.participantA?.institution?.name ||
     effectiveParent.teamA?.institution?.name;
+  const instA =
+    resolveInstLabel(match.participantA, undefined, disciplineId) ||
+    resolveInstLabel(effectiveParent.participantA, rawInstA, disciplineId) ||
+    rawInstA;
 
   const logoA =
     match.participantA?.institution?.logoUrl ||
@@ -111,26 +121,31 @@ export function getMatchSideDetails(match: Match, parentMatch?: Match) {
   const nameA = athletesA || instA || "UGM";
   const subA = athletesA ? instA : (match.discipline?.name || effectiveParent.discipline?.name);
 
-  // Side B athletes
-  let athletesB = match.participantB?.athletes?.map((a) => a.athlete?.name).filter(Boolean).join(" - ");
-  if (!athletesB && effectiveParent.teamB?.members) {
-    const membersB = effectiveParent.teamB.members.filter(
-      (m: any) => m.assignedSlot === slotPrefix || m.assignedSlot === match.slotType
-    );
-    if (membersB.length > 0) {
-      athletesB = membersB.map((m: any) => m.athlete?.name).filter(Boolean).join(" - ");
+  // Side B athletes (skipped for beregu sub-matches)
+  let athletesB: string | undefined;
+  if (!isBereguSubmatch) {
+    athletesB = match.participantB?.athletes?.map((a) => a.athlete?.name).filter(Boolean).join(" - ");
+    if (!athletesB && effectiveParent.teamB?.members) {
+      const membersB = effectiveParent.teamB.members.filter(
+        (m: any) => m.assignedSlot === slotPrefix || m.assignedSlot === match.slotType
+      );
+      if (membersB.length > 0) {
+        athletesB = membersB.map((m: any) => m.athlete?.name).filter(Boolean).join(" - ");
+      }
+    }
+    if (!athletesB && effectiveParent.participantB?.athletes) {
+      athletesB = effectiveParent.participantB.athletes.map((a) => a.athlete?.name).filter(Boolean).join(" - ");
     }
   }
-  if (!athletesB && effectiveParent.participantB?.athletes) {
-    athletesB = effectiveParent.participantB.athletes.map((a) => a.athlete?.name).filter(Boolean).join(" - ");
-  }
 
-  // Side B institution
-  const instB =
-    match.participantB?.institution?.name ||
+  // Side B institution — multi-school support for SMA doubles
+  const rawInstB =
     match.teamB?.institution?.name ||
-    effectiveParent.participantB?.institution?.name ||
     effectiveParent.teamB?.institution?.name;
+  const instB =
+    resolveInstLabel(match.participantB, undefined, disciplineId) ||
+    resolveInstLabel(effectiveParent.participantB, rawInstB, disciplineId) ||
+    rawInstB;
 
   const logoB =
     match.participantB?.institution?.logoUrl ||
