@@ -24,12 +24,14 @@ function SideColumn({
   name,
   subName,
   logoUrl,
+  initialText,
   won,
   isLight,
 }: {
   name: string;
   subName?: string;
   logoUrl?: string;
+  initialText?: string;
   won: boolean;
   isLight: boolean;
 }) {
@@ -38,7 +40,7 @@ function SideColumn({
   const subColor = isLight ? "text-[rgba(26,22,43,0.45)]" : "text-[rgba(255,255,255,0.85)]";
   const logoBorder = isLight ? "border-[rgba(0,0,0,0.08)]" : "border-white/[0.08]";
   const logoBg = isLight ? "bg-white" : "bg-white/[0.04]";
-  const logoFallbackColor = isLight ? "text-[#9ca3af]" : "text-gray-400";
+  const logoFallbackColor = isLight ? "text-[#6C47D1]" : "text-[#02F5D4]";
   const logoShadow = isLight
     ? "shadow-[0px_2px_8px_0px_rgba(0,0,0,0.06)]"
     : "shadow-[0px_4px_24px_0px_rgba(0,0,0,0.4)]";
@@ -54,7 +56,9 @@ function SideColumn({
             className="h-full w-full object-contain p-[3px]"
           />
         ) : (
-          <span className={`text-xl font-bold ${logoFallbackColor}`}>?</span>
+          <span className={`text-lg font-extrabold tracking-wider ${logoFallbackColor}`}>
+            {initialText || "?"}
+          </span>
         )}
       </div>
       <div className="min-w-0">
@@ -78,10 +82,33 @@ function SideColumn({
 }
 
 
+function getInitials(participant: import("@/lib/types").Participant | undefined, athletesStr?: string): string {
+  if (participant?.athletes && participant.athletes.length >= 2) {
+    const a0 = participant.athletes[0]?.athlete?.name;
+    const a1 = participant.athletes[1]?.athlete?.name;
+    if (a0 && a1) {
+      return (a0.trim().charAt(0) + a1.trim().charAt(0)).toUpperCase();
+    }
+  }
+  if (athletesStr) {
+    const parts = athletesStr.split(" - ").map((p) => p.trim()).filter(Boolean);
+    if (parts.length >= 2) {
+      return (parts[0].charAt(0) + parts[1].charAt(0)).toUpperCase();
+    }
+    if (parts.length === 1 && parts[0].length > 0) {
+      return parts[0].substring(0, 2).toUpperCase();
+    }
+  }
+  return "?";
+}
+
 export function getMatchSideDetails(match: Match, parentMatch?: Match) {
   const effectiveParent = parentMatch || match;
   const slotPrefix = match.slotType?.replace(/_[12]$/, "") || "";
   const disciplineId = match.discipline?.id || effectiveParent.discipline?.id || match.disciplineId;
+
+  // Whether this is SMA doubles (sma-gp, sma-gpi, sma-gc)
+  const isSMADoubles = !!disciplineId?.startsWith("sma-g");
 
   // Whether this is a beregu sub-match (TEAM parent) — in that case show only institution, not athlete names
   const isBereguSubmatch = !!parentMatch && parentMatch.matchType === "TEAM";
@@ -112,11 +139,14 @@ export function getMatchSideDetails(match: Match, parentMatch?: Match) {
     resolveInstLabel(effectiveParent.participantA, rawInstA, disciplineId) ||
     rawInstA;
 
-  const logoA =
+  const rawLogoA =
     match.participantA?.institution?.logoUrl ||
     match.teamA?.institution?.logoUrl ||
     effectiveParent.participantA?.institution?.logoUrl ||
     effectiveParent.teamA?.institution?.logoUrl;
+
+  const logoA = isSMADoubles ? undefined : rawLogoA;
+  const initialA = getInitials(match.participantA || effectiveParent.participantA, athletesA);
 
   const nameA = athletesA || instA || "UGM";
   const subA = athletesA ? instA : (match.discipline?.name || effectiveParent.discipline?.name);
@@ -147,11 +177,14 @@ export function getMatchSideDetails(match: Match, parentMatch?: Match) {
     resolveInstLabel(effectiveParent.participantB, rawInstB, disciplineId) ||
     rawInstB;
 
-  const logoB =
+  const rawLogoB =
     match.participantB?.institution?.logoUrl ||
     match.teamB?.institution?.logoUrl ||
     effectiveParent.participantB?.institution?.logoUrl ||
     effectiveParent.teamB?.institution?.logoUrl;
+
+  const logoB = isSMADoubles ? undefined : rawLogoB;
+  const initialB = getInitials(match.participantB || effectiveParent.participantB, athletesB);
 
   const nameB = athletesB || instB || "UI";
   const subB = athletesB ? instB : (match.discipline?.name || effectiveParent.discipline?.name);
@@ -160,9 +193,11 @@ export function getMatchSideDetails(match: Match, parentMatch?: Match) {
     nameA,
     subA,
     logoA,
+    initialA,
     nameB,
     subB,
     logoB,
+    initialB,
   };
 }
 
@@ -186,7 +221,7 @@ export function MatchScoreboard({
   setsWonA = sets.filter((s) => s.scoreA > s.scoreB).length;
   setsWonB = sets.filter((s) => s.scoreB > s.scoreA).length;
 
-  const { nameA, subA, logoA, nameB, subB, logoB } = getMatchSideDetails(match, parentMatch);
+  const { nameA, subA, logoA, initialA, nameB, subB, logoB, initialB } = getMatchSideDetails(match, parentMatch);
 
   const wonA =
     (!!match.winnerParticipantId && match.winnerParticipantId === match.participantAId) ||
@@ -285,6 +320,7 @@ export function MatchScoreboard({
           name={nameA}
           subName={subA}
           logoUrl={logoA}
+          initialText={initialA}
           won={wonA}
           isLight={isLight}
         />
@@ -313,6 +349,7 @@ export function MatchScoreboard({
           name={nameB}
           subName={subB}
           logoUrl={logoB}
+          initialText={initialB}
           won={wonB}
           isLight={isLight}
         />

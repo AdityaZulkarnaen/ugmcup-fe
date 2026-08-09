@@ -179,7 +179,14 @@ function roundLabel(match: Match): string {
   return raw ? raw.toUpperCase() : "UGM CUP 2026";
 }
 
-function initialOf(name: string): string {
+function initialOf(name: string, fallbackInitial?: string): string {
+  if (fallbackInitial && fallbackInitial !== "?") return fallbackInitial;
+  const parts = name.split(" - ").map((p) => p.trim()).filter(Boolean);
+  if (parts.length >= 2) {
+    const c1 = parts[0].charAt(0).toUpperCase();
+    const c2 = parts[1].charAt(0).toUpperCase();
+    return `${c1}${c2}`;
+  }
   const first = name.trim().charAt(0).toUpperCase();
   return first || "?";
 }
@@ -209,7 +216,7 @@ function tieScore(match: Match, side: "A" | "B"): number {
  * ter-embed di sub-match.
  */
 export function buildShareCardData(match: Match, parentMatch?: Match): ShareCardData {
-  const { nameA, subA, logoA, nameB, subB, logoB } = getMatchSideDetails(match, parentMatch);
+  const { nameA, subA, logoA, initialA, nameB, subB, logoB, initialB } = getMatchSideDetails(match, parentMatch);
 
   const isTie = match.matchType === "TEAM" && !parentMatch;
   const sets = [...(match.sets ?? [])].sort((a, b) => a.setNumber - b.setNumber);
@@ -245,7 +252,7 @@ export function buildShareCardData(match: Match, parentMatch?: Match): ShareCard
     sideA: {
       lines: toLines(nameA, subA),
       logoUrl: logoA,
-      initial: initialOf(nameA),
+      initial: initialOf(nameA, initialA),
       scores: isTie ? [] : sets.map((s) => s.scoreA),
       games: gamesA,
       won: wonA || (!wonB && gamesA > gamesB),
@@ -253,7 +260,7 @@ export function buildShareCardData(match: Match, parentMatch?: Match): ShareCard
     sideB: {
       lines: toLines(nameB, subB),
       logoUrl: logoB,
-      initial: initialOf(nameB),
+      initial: initialOf(nameB, initialB),
       scores: isTie ? [] : sets.map((s) => s.scoreB),
       games: gamesB,
       won: wonB || (!wonA && gamesB > gamesA),
