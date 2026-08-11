@@ -26,7 +26,9 @@ function mapSide(p: any, t: any, isFirstRound: boolean, matchStatus: string, won
       participantId: p.id,
       name: names,
       inst,
-      avatar: p.avatar,
+      // Logo berasal dari institusi peserta — Participant sendiri tidak punya
+      // field gambar. Sama seperti yang dipakai halaman detail match.
+      avatar: p.institution?.logoUrl,
       score: matchStatus === "SCHEDULED" ? null : 0,
       winner: won,
       retired: matchStatus === "RETIRED" && !won ? "cedera" : undefined
@@ -38,7 +40,7 @@ function mapSide(p: any, t: any, isFirstRound: boolean, matchStatus: string, won
       participantId: t.id,
       name: inst || "Tim",
       inst: undefined,
-      avatar: t.avatar,
+      avatar: t.institution?.logoUrl,
       score: matchStatus === "SCHEDULED" ? null : 0,
       winner: won,
       retired: matchStatus === "RETIRED" && !won ? "cedera" : undefined
