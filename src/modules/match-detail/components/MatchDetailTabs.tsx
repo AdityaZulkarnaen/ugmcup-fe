@@ -1,6 +1,7 @@
 ﻿"use client";
 
 import { useEffect, useState, useCallback } from "react";
+import dynamic from "next/dynamic";
 import type { Match } from "@/lib/types";
 import { getPublicMatch } from "@/lib/api/matches";
 import { MatchScoreboard } from "./MatchScoreboard";
@@ -8,12 +9,29 @@ import { ScoreTable } from "./ScoreTable";
 import { MatchInfo } from "./MatchInfo";
 import { BracketPanel } from "@/modules/match/components/BracketPanel";
 import { ChevronIcon, ShareIcon } from "@/components/ui/icons";
-import { ShareMatchModal } from "./ShareMatchModal";
+
+/**
+ * Modal share menggambar kartu hasil laga di atas <canvas> — kode penggambarnya
+ * (`lib/shareCard.ts`) besar dan hanya berguna setelah tombol "Bagikan" ditekan.
+ * Dimuat saat dibutuhkan supaya pembaca yang cuma mengecek skor tidak ikut
+ * mengunduhnya.
+ */
+const ShareMatchModal = dynamic(
+  () => import("./ShareMatchModal").then((mod) => mod.ShareMatchModal),
+  { ssr: false },
+);
 
 const tabs = [
   { id: "pertandingan", label: "Pertandingan" },
   { id: "bracket", label: "Bracket" },
 ];
+
+/** Status akhir — hasilnya tidak berubah lagi, jadi tidak perlu di-polling. */
+const TERMINAL_STATUSES = new Set<Match["status"]>([
+  "FINISHED",
+  "WALK_OVER",
+  "RETIRED",
+]);
 
 const subTabs = [
   { id: "ringkasan", label: "Ringkasan" },
@@ -237,14 +255,55 @@ export function MatchDetailTabs({
     }
   }, [match.id]);
 
-  // Polling fallback every 2 seconds to stream real-time updates seamlessly.
-  // Dijeda selagi modal share terbuka supaya kartu yang sedang diatur user
-  // tidak digambar ulang tiap dua detik.
+  // Polling fallback untuk menyiarkan update skor secara real-time.
+  //
+  // Endpoint detail match mengembalikan payload bersarang dalam (peserta, atlet,
+  // institusi, plus seluruh child match beregu), jadi frekuensinya dijaga agar
+  // hanya ditembak saat benar-benar ada yang bisa berubah:
+  //   - laga yang sudah selesai tidak pernah berubah lagi → berhenti total;
+  //   - tab yang tidak terlihat tidak dilihat siapa pun → dijeda, lalu langsung
+  //     menarik data terbaru begitu tab dibuka kembali;
+  //   - laga yang belum dimulai cukup dicek jarang — yang ditunggu cuma
+  //     pergantian status ke ONGOING.
+  // Dijeda juga selagi modal share terbuka supaya kartu yang sedang diatur user
+  // tidak digambar ulang di tengah jalan.
   useEffect(() => {
     if (shareOpen) return;
-    const interval = setInterval(refreshMatch, 2000);
-    return () => clearInterval(interval);
-  }, [refreshMatch, shareOpen]);
+    if (TERMINAL_STATUSES.has(match.status)) return;
+
+    const intervalMs = match.status === "ONGOING" ? 2000 : 30000;
+    let interval: ReturnType<typeof setInterval> | undefined;
+
+    const stop = () => {
+      if (interval !== undefined) {
+        clearInterval(interval);
+        interval = undefined;
+      }
+    };
+
+    const start = () => {
+      if (interval === undefined) interval = setInterval(refreshMatch, intervalMs);
+    };
+
+    const onVisibilityChange = () => {
+      if (document.hidden) {
+        stop();
+      } else {
+        // Tab baru dibuka lagi — tarik sekali di muka supaya tidak menunggu
+        // satu interval penuh sebelum skornya menyusul.
+        refreshMatch();
+        start();
+      }
+    };
+
+    if (!document.hidden) start();
+    document.addEventListener("visibilitychange", onVisibilityChange);
+
+    return () => {
+      stop();
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+    };
+  }, [refreshMatch, shareOpen, match.status]);
 
   // Light/dark token helpers for MatchDetailTabs shell
   const headingColor = isLight ? "text-[#1a162b]" : "text-white";

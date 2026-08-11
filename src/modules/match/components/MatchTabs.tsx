@@ -1,11 +1,38 @@
 "use client";
 
 import { useState } from "react";
+import dynamic from "next/dynamic";
 import { matchTabs } from "@/lib/constants/matches";
 import { SchedulePanel } from "./SchedulePanel";
-import { BracketPanel } from "./BracketPanel";
-import { PlayerPanel } from "./PlayerPanel";
-import { StandingsPanel } from "./StandingsPanel";
+
+/**
+ * Hanya satu panel yang terlihat dalam satu waktu, tapi kalau keempatnya diimpor
+ * biasa maka keempatnya ikut diunduh sekaligus di muka — termasuk bagan knockout
+ * dan tabel statistik pemain yang mungkin tidak pernah dibuka pengunjung.
+ *
+ * Jadwal tetap diimpor langsung karena ia tab default: memuatnya belakangan
+ * hanya akan menambah kedipan pada tampilan pertama. Tiga sisanya baru diambil
+ * saat tabnya benar-benar diklik.
+ */
+const BracketPanel = dynamic(
+  () => import("./BracketPanel").then((mod) => mod.BracketPanel),
+  { loading: () => <PanelFallback />, ssr: false },
+);
+const PlayerPanel = dynamic(
+  () => import("./PlayerPanel").then((mod) => mod.PlayerPanel),
+  { loading: () => <PanelFallback />, ssr: false },
+);
+const StandingsPanel = dynamic(
+  () => import("./StandingsPanel").then((mod) => mod.StandingsPanel),
+  { loading: () => <PanelFallback />, ssr: false },
+);
+
+/** Penahan tempat selagi kode panelnya diambil — biasanya sekejap saja. */
+function PanelFallback() {
+  return (
+    <div className="py-12 text-center text-sm text-[#7A7A83]">Memuat panel…</div>
+  );
+}
 
 interface MatchTabsProps {
   /** If true, renders the Figma Light Mode palette. */

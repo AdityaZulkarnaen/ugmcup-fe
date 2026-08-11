@@ -3,7 +3,7 @@ import { Navbar } from "@/components/layout/Navbar";
 import { Button } from "@/components/ui/Button";
 import { ArrowIcon } from "@/components/ui/icons";
 import { SponsorRow } from "./SponsorRow";
-import { HeroShuttles } from "./HeroShuttles";
+import { HeroShuttlesLazy } from "./HeroShuttlesLazy";
 
 /**
  * The still half of the hero decoration — the halos. Every knob lives in
@@ -46,7 +46,7 @@ export function Hero() {
         </div>
       ))}
 
-      <HeroShuttles />
+      <HeroShuttlesLazy />
 
       <Navbar />
 

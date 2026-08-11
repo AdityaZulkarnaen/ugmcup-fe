@@ -2,9 +2,7 @@
 
 import Image from "next/image";
 import {
-  getParticipant,
   retirementLabels,
-  sideName,
   type BracketMatch,
   type BracketSide,
   type RetirementReason,
@@ -83,18 +81,7 @@ function SideRow({
   onSelect,
 }: { side: BracketSide } & HighlightProps) {
   let name = side.name;
-  let inst = side.inst;
-  let avatar = side.avatar;
-  let participant = undefined;
-
-  if (!name && side.participantId) {
-    participant = getParticipant(side.participantId);
-    if (participant) {
-      name = sideName(participant.players);
-      avatar = participant.avatar;
-      inst = participant.team;
-    }
-  }
+  const avatar = side.avatar;
 
   // An empty side is either a walkover ("BYE") or a slot still waiting on the
   // round before it ("TBD"). Both are placeholders: no badge, muted italic.
@@ -116,7 +103,7 @@ function SideRow({
       onPointerLeave={() => onHover?.(undefined)}
       onFocus={() => onHover?.(side.participantId)}
       onBlur={() => onHover?.(undefined)}
-      onClick={() => (side.participantId || participant?.id) && onSelect?.(side.participantId || participant!.id)}
+      onClick={() => side.participantId && onSelect?.(side.participantId)}
       className={`flex w-full items-center gap-2 py-2 pl-3.5 pr-3 text-left transition-colors disabled:cursor-default ${
         isLight
           ? `enabled:hover:bg-[rgba(0,0,0,0.02)] ${isActive ? "bg-[#F3F0FF]" : ""}`

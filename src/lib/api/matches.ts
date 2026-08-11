@@ -1,6 +1,18 @@
 import { apiRequest } from "./client";
-import { DUMMY_DATA, findDummyMatch } from "./dummy";
 import type { Match, MatchStatus, MatchHistoryEntry } from "@/lib/types";
+
+/**
+ * Saklar data dummy untuk uji tampilan — lihat `src/lib/api/dummy.ts`.
+ *
+ * Dibaca dari env, bukan dari isi file dummy-nya, supaya bundler bisa melihat
+ * nilainya saat build. Kalau mati, seluruh modul dummy (beserta puluhan objek
+ * match, atlet, dan institusi palsu di dalamnya) tidak ikut terbawa ke bundle
+ * yang diunduh pengunjung sama sekali.
+ *
+ * Menyalakan: tambahkan `NEXT_PUBLIC_USE_DUMMY_MATCHES=true` ke `.env.local`
+ * lalu jalankan ulang dev server.
+ */
+const USE_DUMMY_MATCHES = process.env.NEXT_PUBLIC_USE_DUMMY_MATCHES === "true";
 
 // ================== READ ==================
 
@@ -28,8 +40,13 @@ export const getMatches = (filters?: {
  * dashboard admin — di sana aksi hapus/selesaikan match harus tetap menunjuk
  * ID asli. Saklar dummy-nya ada di src/lib/api/dummy.ts.
  */
-export const getPublicMatches = (): Promise<Match[]> =>
-  DUMMY_DATA.matches ? Promise.resolve(DUMMY_DATA.matches) : getMatches();
+export const getPublicMatches = async (): Promise<Match[]> => {
+  if (USE_DUMMY_MATCHES) {
+    const { DUMMY_DATA } = await import("./dummy");
+    if (DUMMY_DATA.matches) return DUMMY_DATA.matches;
+  }
+  return getMatches();
+};
 
 export const getMatch = (id: string) => apiRequest<Match>(`/matches/${id}`);
 
@@ -41,10 +58,13 @@ export const getMatch = (id: string) => apiRequest<Match>(`/matches/${id}`);
  * Mengembalikan `null` kalau id-nya tidak ketemu — halaman detail
  * menerjemahkannya jadi 404.
  */
-export const getPublicMatch = (id: string): Promise<Match | null> =>
-  DUMMY_DATA.matches
-    ? Promise.resolve(findDummyMatch(DUMMY_DATA.matches, id))
-    : getMatch(id);
+export const getPublicMatch = async (id: string): Promise<Match | null> => {
+  if (USE_DUMMY_MATCHES) {
+    const { DUMMY_DATA, findDummyMatch } = await import("./dummy");
+    if (DUMMY_DATA.matches) return findDummyMatch(DUMMY_DATA.matches, id);
+  }
+  return getMatch(id);
+};
 
 export const getMatchHistory = (id: string) =>
   apiRequest<MatchHistoryEntry[]>(`/matches/${id}/history`);

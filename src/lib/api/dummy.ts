@@ -7,9 +7,17 @@
  *  `getPublicMatches()` supaya halaman Pertandingan bisa dicek tampilannya.
  *  Dashboard admin TIDAK terpengaruh — di sana tetap memakai data asli.
  *
- *  ⬇️  UNTUK KEMBALI KE DATA ASLI: komentari SATU baris `matches:` pada objek
- *      `DUMMY_DATA` di bagian paling bawah file ini. Tidak ada file lain yang
- *      perlu disentuh.
+ *  ⬇️  UNTUK MENYALAKAN, dua langkah:
+ *      1. Set `NEXT_PUBLIC_USE_DUMMY_MATCHES=true` di `.env.local`, lalu
+ *         jalankan ulang dev server.
+ *      2. Hapus komentar pada baris `matches:` di objek `DUMMY_DATA` paling
+ *         bawah file ini.
+ *
+ *  ⬇️  UNTUK KEMBALI KE DATA ASLI: cukup buang/ubah env var di langkah 1.
+ *
+ *  Kenapa lewat env, bukan cuma baris di bawah? Karena nilainya harus terbaca
+ *  saat build. Dengan begitu, selama saklarnya mati, modul ini tidak ikut
+ *  dibundel dan pengunjung tidak perlu mengunduh satu pun data palsu di sini.
  * ============================================================================
  */
 

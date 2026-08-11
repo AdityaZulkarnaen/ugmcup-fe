@@ -1,10 +1,15 @@
 import type { StaticImageData } from "next/image";
-import galeri1 from "../../../public/images/about/about1.png";
-import galeri2 from "../../../public/images/about/about2.png";
-import galeri3 from "../../../public/images/about/about3.png";
-import galeri4 from "../../../public/images/about/about4.png";
-import galeri5 from "../../../public/images/about/about5.png";
-import galeri6 from "../../../public/images/about/about6.png";
+// WebP, bukan PNG: sumber PNG-nya nyaris tanpa kompresi — total 5,3 MB untuk
+// enam foto yang tidak satu pun lebih lebar dari 952 px. Versi WebP-nya 376 KB
+// pada dimensi yang sama persis. Ini penting karena `images.unoptimized` menyala
+// di `next.config.ts`, jadi berkasnya disajikan apa adanya tanpa dikompres ulang
+// oleh Next.
+import galeri1 from "../../../public/images/about/about1.webp";
+import galeri2 from "../../../public/images/about/about2.webp";
+import galeri3 from "../../../public/images/about/about3.webp";
+import galeri4 from "../../../public/images/about/about4.webp";
+import galeri5 from "../../../public/images/about/about5.webp";
+import galeri6 from "../../../public/images/about/about6.webp";
 
 /**
  * One of the three purple cards under "Di Balik UGM CUP" — the bodies behind
