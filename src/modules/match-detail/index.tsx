@@ -11,12 +11,17 @@ import type { Match } from "@/lib/types";
 import { MatchDetailTabs } from "./components/MatchDetailTabs";
 import { FloatingThemeToggle } from "@/modules/match/components/FloatingThemeToggle";
 import { useMatchTheme } from "@/lib/hooks/useMatchTheme";
+import { getMatchReturnUrl } from "@/lib/hooks/useMatchReturnUrl";
 
 export default function MatchDetailPage({ id }: { id: string }) {
   const [match, setMatch] = useState<Match | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const { isLight, toggle } = useMatchTheme();
+  // Baca URL kembali dari sessionStorage (termasuk semua filter params).
+  // useState + useEffect agar tidak crash saat SSR.
+  const [backUrl, setBackUrl] = useState("/pertandingan");
+  useEffect(() => { setBackUrl(getMatchReturnUrl()); }, []);
 
   useEffect(() => {
     let isMounted = true;
@@ -99,7 +104,7 @@ export default function MatchDetailPage({ id }: { id: string }) {
         <div className="mx-auto flex w-full max-w-6xl flex-col gap-4 px-6">
           <div>
             <Link
-              href="/pertandingan"
+              href={backUrl}
               className={`group flex w-fit items-center gap-1.5 rounded-full border py-2 pl-2.5 pr-4 text-xs font-semibold transition-colors ${
                 isLight
                   ? "border-[rgba(0,0,0,0.1)] bg-white text-[#6B6B73] hover:border-[rgba(0,0,0,0.2)] hover:text-[#1a162b] shadow-[0px_1px_3px_0px_rgba(0,0,0,0.08)]"

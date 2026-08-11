@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { getPublicMatches } from "@/lib/api/matches";
 import { cacheKeys } from "@/lib/api/cache";
 import { useCachedQuery } from "@/lib/hooks/useCachedQuery";
@@ -12,12 +12,14 @@ import { Pagination } from "@/components/ui/Pagination";
 import { ScheduleRow } from "./ScheduleRow";
 import { SkeletonPanel } from "@/components/ui/Skeleton";
 import { FilterBarSkeleton, ScheduleRowSkeleton } from "./MatchSkeletons";
+import type { useMatchFilters } from "@/lib/hooks/useMatchFilters";
 
 /** Jumlah pertandingan per halaman — grup jam tetap utuh di dalam halaman. */
 const PAGE_SIZE = 12;
 
 interface SchedulePanelProps {
   isLight?: boolean;
+  filters: ReturnType<typeof useMatchFilters>;
 }
 
 interface TimeGroup {
@@ -47,11 +49,11 @@ function toTimeSlot(scheduledTime?: string) {
   };
 }
 
-export function SchedulePanel({ isLight = false }: SchedulePanelProps) {
-  const [day, setDay] = useState("all");
-  const [category, setCategory] = useState("all");
-  const [level, setLevel] = useState("all");
-  const [page, setPage] = useState(1);
+export function SchedulePanel({ isLight = false, filters }: SchedulePanelProps) {
+  const day = filters.schedDay;
+  const category = filters.schedCategory;
+  const level = filters.schedLevel;
+  const page = filters.schedPage;
   const listTopRef = useRef<HTMLDivElement>(null);
 
   const { data, isLoading: loading } = useCachedQuery<Match[]>(
@@ -59,6 +61,47 @@ export function SchedulePanel({ isLight = false }: SchedulePanelProps) {
     () => getPublicMatches()
   );
   const allMatches = useMemo(() => data ?? [], [data]);
+
+  // ── Auto-select "hari ini" saat pertama buka (hari belum dipilih user) ──
+  // Hanya berjalan sekali: saat data tersedia dan `?hari` belum ada di URL.
+  const autoSelectedRef = useRef(false);
+  useEffect(() => {
+    // Jika user sudah set filter hari secara eksplisit, jangan timpa.
+    if (!filters.schedDayIsDefault || autoSelectedRef.current || allMatches.length === 0) return;
+    autoSelectedRef.current = true;
+
+    // Kumpulkan semua tanggal yang tersedia (sorted ascending)
+    const datesSet = new Set<string>();
+    allMatches.forEach((m) => {
+      if (m.scheduledTime) {
+        try {
+          datesSet.add(new Date(m.scheduledTime).toISOString().split("T")[0]);
+        } catch { /* ignore */ }
+      }
+    });
+    const sortedDates = Array.from(datesSet).sort();
+    if (sortedDates.length === 0) return;
+
+    const today = new Date().toISOString().split("T")[0];
+
+    let targetDate: string;
+    if (sortedDates.includes(today)) {
+      // Hari ini ada di jadwal → tampilkan hari ini
+      targetDate = today;
+    } else {
+      // Cari tanggal terakhir yang sudah lewat (turnamen selesai)
+      const pastDates = sortedDates.filter((d) => d < today);
+      if (pastDates.length > 0) {
+        targetDate = pastDates[pastDates.length - 1]; // hari terakhir turnamen
+      } else {
+        // Semua jadwal masih di masa depan → tampilkan hari pertama
+        targetDate = sortedDates[0];
+      }
+    }
+
+    filters.setSchedDay(targetDate);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [allMatches]);
 
   // Compute available unique dates from matches
   const dayOptions = useMemo(() => {
@@ -208,11 +251,8 @@ export function SchedulePanel({ isLight = false }: SchedulePanelProps) {
     .reduce((sum, groups) => sum + groups.reduce((n, g) => n + g.matches.length, 0), 0);
   const pageCount = timeGroups.reduce((n, g) => n + g.matches.length, 0);
 
-  // Ganti filter selalu balik ke halaman pertama supaya hasilnya kelihatan.
-  const resetPage = () => setPage(1);
-
   const goToPage = (next: number) => {
-    setPage(next);
+    filters.setSchedPage(next);
     listTopRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
@@ -238,10 +278,7 @@ export function SchedulePanel({ isLight = false }: SchedulePanelProps) {
         <FilterSelect
           options={dayOptions}
           value={day}
-          onChange={(value) => {
-            setDay(value);
-            resetPage();
-          }}
+          onChange={filters.setSchedDay}
           label="Filter hari"
           accent="mint"
           accented={day !== "all"}
@@ -254,10 +291,7 @@ export function SchedulePanel({ isLight = false }: SchedulePanelProps) {
         <FilterSelect
           options={categoryOptions}
           value={category}
-          onChange={(value) => {
-            setCategory(value);
-            resetPage();
-          }}
+          onChange={filters.setSchedCategory}
           label="Filter kategori"
           accent="violet"
           accented={category !== "all"}
@@ -270,10 +304,7 @@ export function SchedulePanel({ isLight = false }: SchedulePanelProps) {
         <FilterSelect
           options={levelOptions}
           value={level}
-          onChange={(value) => {
-            setLevel(value);
-            resetPage();
-          }}
+          onChange={filters.setSchedLevel}
           label="Filter jenjang"
           accent="mint"
           accented={level !== "all"}

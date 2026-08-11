@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useMemo } from "react";
 import { getAthletes } from "@/lib/api/admin";
 import { getPublicMatches } from "@/lib/api/matches";
 import { cacheKeys } from "@/lib/api/cache";
@@ -11,6 +11,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { Pagination } from "@/components/ui/Pagination";
 import { FilterSelect } from "@/components/ui/FilterSelect";
 import { Search } from "lucide-react";
+import type { useMatchFilters } from "@/lib/hooks/useMatchFilters";
 
 const PAGE_SIZE = 10;
 
@@ -40,15 +41,16 @@ interface PlayerStats {
 
 interface PlayerPanelProps {
   isLight?: boolean;
+  filters: ReturnType<typeof useMatchFilters>;
 }
 
 const INDIVIDUAL_DISCIPLINES = DISCIPLINES.filter((d) => !d.isTeamEvent);
 
-export function PlayerPanel({ isLight = false }: PlayerPanelProps) {
-  const [search, setSearch] = useState("");
-  const [levelFilter, setLevelFilter] = useState<string>("ALL");
-  const [disciplineFilter, setDisciplineFilter] = useState<string>("ALL");
-  const [page, setPage] = useState(1);
+export function PlayerPanel({ isLight = false, filters }: PlayerPanelProps) {
+  const search = filters.playerSearch;
+  const levelFilter = filters.playerLevel;
+  const disciplineFilter = filters.playerDiscipline;
+  const page = filters.playerPage;
 
   const athletesQuery = useCachedQuery<Athlete[]>(cacheKeys.athletes, () =>
     getAthletes()
@@ -255,8 +257,7 @@ export function PlayerPanel({ isLight = false }: PlayerPanelProps) {
             placeholder="Cari nama atlet atau institusi..."
             value={search}
             onChange={(e) => {
-              setSearch(e.target.value);
-              setPage(1);
+              filters.setPlayerSearch(e.target.value);
             }}
             className={`min-w-0 flex-1 bg-transparent text-xs font-medium outline-none ${isLight
               ? "text-[#1a162b] placeholder:text-[rgba(26,22,43,0.35)]"
@@ -266,7 +267,7 @@ export function PlayerPanel({ isLight = false }: PlayerPanelProps) {
           {search && (
             <button
               type="button"
-              onClick={() => { setSearch(""); setPage(1); }}
+              onClick={() => { filters.setPlayerSearch(""); }}
               aria-label="Hapus pencarian"
               className={`shrink-0 transition-colors ${isLight ? "text-[#808080] hover:text-[#1a162b]" : "text-[#8A8A93] hover:text-white"
                 }`}
@@ -289,13 +290,7 @@ export function PlayerPanel({ isLight = false }: PlayerPanelProps) {
             ]}
             value={levelFilter}
             onChange={(val) => {
-              setLevelFilter(val);
-              setPage(1);
-              if (val !== "ALL" && disciplineFilter !== "ALL") {
-                const targetLevel = val === "UNIVERSITAS" ? "univ" : "sma";
-                const disc = INDIVIDUAL_DISCIPLINES.find((d) => d.id === disciplineFilter);
-                if (disc && disc.level !== targetLevel) setDisciplineFilter("ALL");
-              }
+              filters.setPlayerLevel(val);
             }}
             label="Filter jenjang"
             accent="mint"
@@ -309,7 +304,7 @@ export function PlayerPanel({ isLight = false }: PlayerPanelProps) {
           <FilterSelect
             options={disciplineOptions}
             value={disciplineFilter}
-            onChange={(val) => { setDisciplineFilter(val); setPage(1); }}
+            onChange={(val) => { filters.setPlayerDiscipline(val); }}
             label="Filter cabang"
             accent="violet"
             accented={disciplineFilter !== "ALL"}
@@ -446,7 +441,7 @@ export function PlayerPanel({ isLight = false }: PlayerPanelProps) {
         <Pagination
           page={safePage}
           totalPages={totalPages}
-          onPageChange={setPage}
+          onPageChange={filters.setPlayerPage}
           summary={`Menampilkan ${pageStart + 1}–${pageStart + pagedStats.length} dari ${filteredStats.length} atlet`}
           isLight={isLight}
         />
