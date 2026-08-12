@@ -54,7 +54,7 @@ export function PesertaSection() {
 
   // Form Peserta Individu
   const [pFormLevel, setPFormLevel] = useState("");
-  const [pForm, setPForm] = useState({ disciplineId: "", institutionId: "", athlete1: "", athlete2: "" });
+  const [pForm, setPForm] = useState({ disciplineId: "", institutionId: "", institution2Id: "", athlete1: "", athlete2: "" });
 
   // Form Tim Beregu
   const [tForm, setTForm] = useState({ institutionId: "", slots: {} as Record<string, string> });
@@ -102,7 +102,7 @@ export function PesertaSection() {
     setError("");
     if (tab === "individu") {
       setPFormLevel("");
-      setPForm({ disciplineId: "", institutionId: "", athlete1: "", athlete2: "" });
+      setPForm({ disciplineId: "", institutionId: "", institution2Id: "", athlete1: "", athlete2: "" });
     } else {
       setTForm({ institutionId: "", slots: {} });
     }
@@ -115,9 +115,15 @@ export function PesertaSection() {
     const disc = DISCIPLINES.find(d => d.id === p.disciplineId);
     setPFormLevel(disc?.level || "");
     const athleteIds = p.athletes?.map(a => a.athleteId) || [];
+    // Coba deteksi institusi atlet kedua (jika berbeda dari institusi utama)
+    const athlete2Data = p.athletes?.[1]?.athlete;
+    const institution2Id = athlete2Data?.institutionId && athlete2Data.institutionId !== p.institutionId
+      ? athlete2Data.institutionId
+      : p.institutionId;
     setPForm({
       disciplineId: p.disciplineId,
       institutionId: p.institutionId,
+      institution2Id,
       athlete1: athleteIds[0] || "",
       athlete2: athleteIds[1] || ""
     });
@@ -208,6 +214,9 @@ export function PesertaSection() {
   };
 
   const selectedPDiscipline = individualDisciplines.find(d => d.id === pForm.disciplineId);
+
+  /** Apakah cabang yang dipilih adalah ganda atau triple (butuh 2 atlet)? */
+  const isPaired = selectedPDiscipline?.type.startsWith("GANDA") || selectedPDiscipline?.type === "TRIPLE_MIX";
 
   return (
     <div>
@@ -347,16 +356,16 @@ export function PesertaSection() {
             <FormField label="Tingkat" required>
               <DashSelect
                 value={pFormLevel}
-                onChange={(v) => { setPFormLevel(v); setPForm((f) => ({ ...f, disciplineId: "", institutionId: "", athlete1: "", athlete2: "" })); }}
+                onChange={(v) => { setPFormLevel(v); setPForm((f) => ({ ...f, disciplineId: "", institutionId: "", institution2Id: "", athlete1: "", athlete2: "" })); }}
                 placeholder="Pilih tingkat"
                 options={LEVELS}
               />
             </FormField>
 
-            <FormField label="Institusi" required>
+            <FormField label={isPaired ? "Institusi Atlet 1" : "Institusi"} required>
               <DashSelect
                 value={pForm.institutionId}
-                onChange={(v) => setPForm((f) => ({ ...f, institutionId: v, athlete1: "", athlete2: "" }))}
+                onChange={(v) => setPForm((f) => ({ ...f, institutionId: v, institution2Id: v, athlete1: "", athlete2: "" }))}
                 placeholder={pFormLevel ? "Pilih institusi" : "Pilih tingkat terlebih dahulu"}
                 options={institutions.filter(i => !pFormLevel || i.type === (pFormLevel === "univ" ? "UNIVERSITAS" : "SMA")).map((i) => ({ value: i.id, label: i.name }))}
               />
@@ -384,20 +393,32 @@ export function PesertaSection() {
                   />
                 </FormField>
 
-                {(selectedPDiscipline?.type.startsWith("GANDA") || selectedPDiscipline?.type === "TRIPLE_MIX") && (
-                  <FormField label="Atlet 2" required>
-                    <DashSelect
-                      value={pForm.athlete2}
-                      onChange={(v) => setPForm((f) => ({ ...f, athlete2: v }))}
-                      placeholder="Pilih atlet 2"
-                      options={getAthleteOptions(pForm.institutionId,
-                        selectedPDiscipline?.type === "GANDA_PUTRI" ? "PEREMPUAN" :
-                          selectedPDiscipline?.type === "GANDA_PUTRA" ? "LAKI_LAKI" :
-                            selectedPDiscipline?.type === "GANDA_CAMPURAN" ? "PEREMPUAN" : "ANY",
-                        pForm.athlete1
-                      )}
-                    />
-                  </FormField>
+                {isPaired && (
+                  <>
+                    <FormField label="Institusi Atlet 2" required>
+                      <DashSelect
+                        value={pForm.institution2Id}
+                        onChange={(v) => setPForm((f) => ({ ...f, institution2Id: v, athlete2: "" }))}
+                        placeholder={pFormLevel ? "Pilih institusi atlet 2" : "Pilih tingkat terlebih dahulu"}
+                        options={institutions.filter(i => !pFormLevel || i.type === (pFormLevel === "univ" ? "UNIVERSITAS" : "SMA")).map((i) => ({ value: i.id, label: i.name }))}
+                      />
+                      <p className="text-xs text-gray-400 mt-1">Boleh sama atau berbeda dengan institusi atlet 1</p>
+                    </FormField>
+
+                    <FormField label="Atlet 2" required>
+                      <DashSelect
+                        value={pForm.athlete2}
+                        onChange={(v) => setPForm((f) => ({ ...f, athlete2: v }))}
+                        placeholder="Pilih atlet 2"
+                        options={getAthleteOptions(pForm.institution2Id,
+                          selectedPDiscipline?.type === "GANDA_PUTRI" ? "PEREMPUAN" :
+                            selectedPDiscipline?.type === "GANDA_PUTRA" ? "LAKI_LAKI" :
+                              selectedPDiscipline?.type === "GANDA_CAMPURAN" ? "PEREMPUAN" : "ANY",
+                          pForm.athlete1
+                        )}
+                      />
+                    </FormField>
+                  </>
                 )}
               </>
             )}
