@@ -5,6 +5,7 @@ import { getBracket, setupBracket, deleteBracket, getParticipants, getTeams, rea
 import { LEVELS, getDisciplinesByLevel, DISCIPLINES } from "@/lib/constants";
 import type { BracketNode, Participant, Team } from "@/lib/types";
 import { GitMerge, Edit, Trash2, Search, ChevronDown } from "lucide-react";
+import { useDebouncedValue } from "@/lib/hooks/useDebouncedValue";
 
 function SearchableSelect({
   value,
@@ -21,9 +22,11 @@ function SearchableSelect({
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
+  const query = useDebouncedValue(search);
+
   const selectedOpt = options.find(o => o.value === value);
   const filtered = options.filter(o =>
-    o.label.toLowerCase().includes(search.toLowerCase())
+    o.label.toLowerCase().includes(query.toLowerCase())
   );
 
   useEffect(() => {

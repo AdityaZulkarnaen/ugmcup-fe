@@ -3,6 +3,7 @@
 import { useState, useMemo } from "react";
 import type { ReactNode } from "react";
 import { Pencil, Trash2, ChevronLeft, ChevronRight, Search } from "lucide-react";
+import { useDebouncedValue } from "@/lib/hooks/useDebouncedValue";
 
 export interface Column<T> {
   key: string;
@@ -46,9 +47,14 @@ export function DataTable<T extends { id: string }>({
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
 
+  // `search` menyetir input, `query` menyetir filternya. Tanpa pemisahan ini
+  // seluruh tabel dirender ulang tiap ketikan — mahal karena `getSearchValue`
+  // menelusuri objek bersarang untuk setiap baris.
+  const query = useDebouncedValue(search);
+
   const filtered = useMemo(() => {
-    if (!search.trim()) return data;
-    const q = search.toLowerCase();
+    if (!query.trim()) return data;
+    const q = query.toLowerCase();
     return data.filter((row) =>
       columns.some((col) => {
         if (col.getSearchValue) {
@@ -58,7 +64,7 @@ export function DataTable<T extends { id: string }>({
         return str.toLowerCase().includes(q);
       })
     );
-  }, [data, search, columns]);
+  }, [data, query, columns]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
   const safePage = Math.min(page, totalPages);
@@ -124,7 +130,7 @@ export function DataTable<T extends { id: string }>({
                   className="px-4 py-12 text-center text-sm"
                   style={{ color: "#9CA3AF" }}
                 >
-                  {search ? "Tidak ditemukan hasil untuk pencarian ini" : emptyText}
+                  {query ? "Tidak ditemukan hasil untuk pencarian ini" : emptyText}
                 </td>
               </tr>
             ) : (

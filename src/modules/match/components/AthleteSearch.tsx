@@ -1,5 +1,6 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { CloseIcon, SearchIcon } from "@/components/ui/icons";
+import { useDebouncedValue } from "@/lib/hooks/useDebouncedValue";
 
 export interface SearchOption {
   id: string;
@@ -26,14 +27,27 @@ export function AthleteSearch({
   const rootRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  const deferredQuery = useDebouncedValue(query);
+
   const selectedOption = useMemo(() => options.find((o) => o.id === selectedId), [options, selectedId]);
   const value = selectedOption ? selectedOption.name : query;
 
-  const results = useMemo(() => {
-    if (!query.trim()) return [];
-    const lower = query.toLowerCase();
-    return options.filter((o) => o.name.toLowerCase().includes(lower) || o.inst?.toLowerCase().includes(lower));
-  }, [query, options]);
+  const matchOptions = useCallback(
+    (term: string) => {
+      const lower = term.trim().toLowerCase();
+      if (!lower) return [];
+      return options.filter(
+        (o) => o.name.toLowerCase().includes(lower) || o.inst?.toLowerCase().includes(lower)
+      );
+    },
+    [options]
+  );
+
+  /** Isi dropdown — tertunda supaya daftar tidak dihitung ulang tiap ketikan. */
+  const results = useMemo(() => matchOptions(deferredQuery), [matchOptions, deferredQuery]);
+
+  /** Daftar masih menunggu ketikan terakhir menyusul. */
+  const isSearching = query.trim() !== "" && query !== deferredQuery;
 
   useEffect(() => {
     if (!open) return;
@@ -63,9 +77,15 @@ export function AthleteSearch({
       setOpen(false);
       return;
     }
-    if (event.key === "Enter" && open && results.length > 0) {
-      event.preventDefault();
-      pick(results[0]);
+    if (event.key === "Enter" && open) {
+      // Dihitung ulang dari `query` yang terkini, bukan dari `results` yang
+      // tertunda — kalau tidak, Enter tepat setelah mengetik akan memilih
+      // atlet teratas dari kata kunci sebelumnya.
+      const current = matchOptions(query);
+      if (current.length > 0) {
+        event.preventDefault();
+        pick(current[0]);
+      }
       return;
     }
     if (event.key === "ArrowDown" && open) {
@@ -149,7 +169,9 @@ export function AthleteSearch({
         >
           {results.length === 0 ? (
             <p className={`px-3 py-2.5 text-xs ${isLight ? "text-[rgba(26,22,43,0.4)]" : "text-[#6B6B73]"}`}>
-              Atlet tidak ditemukan.
+              {/* Tanpa cabang ini, "tidak ditemukan" sempat berkedip di sela
+                  jeda debounce padahal hasilnya sebentar lagi muncul. */}
+              {isSearching ? "Mencari…" : "Atlet tidak ditemukan."}
             </p>
           ) : (
             results.map((option) => (

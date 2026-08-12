@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { getAthletes } from "@/lib/api/admin";
 import { getPublicMatches } from "@/lib/api/matches";
 import { cacheKeys } from "@/lib/api/cache";
@@ -11,6 +11,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { Pagination } from "@/components/ui/Pagination";
 import { FilterSelect } from "@/components/ui/FilterSelect";
 import { Search } from "lucide-react";
+import { useDebouncedCallback } from "@/lib/hooks/useDebouncedValue";
 import type { useMatchFilters } from "@/lib/hooks/useMatchFilters";
 
 const PAGE_SIZE = 10;
@@ -49,6 +50,47 @@ const INDIVIDUAL_DISCIPLINES = DISCIPLINES.filter((d) => !d.isTeamEvent);
 export function PlayerPanel({ isLight = false, filters }: PlayerPanelProps) {
   const search = filters.playerSearch;
   const levelFilter = filters.playerLevel;
+
+  // Kata kunci disimpan di URL, dan setiap penulisannya adalah `router.push`.
+  // Tanpa perantara ini satu ketikan = satu navigasi + satu entri histori,
+  // sehingga input terasa berat dan tombol Back jadi penuh sampah.
+  //
+  // Karena itu input dikendalikan state lokal (langsung responsif), lalu URL
+  // baru ditulis setelah pengetikan berhenti. URL tetap jadi sumber kebenaran
+  // untuk data yang ditampilkan.
+  const [searchInput, setSearchInput] = useState(search);
+
+  /** Nilai terakhir yang *kita* tulis ke URL, untuk mengenali pantulannya sendiri. */
+  const [committed, setCommitted] = useState(search);
+  /** Nilai URL terakhir yang sudah ditanggapi, agar sinkronisasi jalan sekali per perubahan. */
+  const [syncedSearch, setSyncedSearch] = useState(search);
+
+  const commitSearch = useDebouncedCallback((v: string) => {
+    setCommitted(v);
+    filters.setPlayerSearch(v);
+  });
+
+  if (search !== syncedSearch) {
+    setSyncedSearch(search);
+    // URL berubah dari luar — tombol Back, atau tautan dengan filter — jadi
+    // input ikut menyesuaikan. Tapi kalau perubahan ini cuma pantulan tulisan
+    // kita sendiri, biarkan: pantulan itu datang terlambat dan akan menimpa
+    // karakter yang sudah terlanjur diketik sesudahnya.
+    if (search !== committed) setSearchInput(search);
+  }
+
+  function handleSearchChange(v: string) {
+    setSearchInput(v);
+    commitSearch(v);
+  }
+
+  /** Tombol silang harus terasa langsung, jadi URL ditulis tanpa menunggu jeda. */
+  function clearSearch() {
+    setSearchInput("");
+    setCommitted("");
+    filters.setPlayerSearch("");
+  }
+
   const disciplineFilter = filters.playerDiscipline;
   const page = filters.playerPage;
 
@@ -255,19 +297,17 @@ export function PlayerPanel({ isLight = false, filters }: PlayerPanelProps) {
           <input
             type="text"
             placeholder="Cari nama atlet atau institusi..."
-            value={search}
-            onChange={(e) => {
-              filters.setPlayerSearch(e.target.value);
-            }}
+            value={searchInput}
+            onChange={(e) => handleSearchChange(e.target.value)}
             className={`min-w-0 flex-1 bg-transparent text-xs font-medium outline-none ${isLight
               ? "text-[#1a162b] placeholder:text-[rgba(26,22,43,0.35)]"
               : "text-white placeholder:text-[#6B6B73]"
               }`}
           />
-          {search && (
+          {searchInput && (
             <button
               type="button"
-              onClick={() => { filters.setPlayerSearch(""); }}
+              onClick={clearSearch}
               aria-label="Hapus pencarian"
               className={`shrink-0 transition-colors ${isLight ? "text-[#808080] hover:text-[#1a162b]" : "text-[#8A8A93] hover:text-white"
                 }`}
