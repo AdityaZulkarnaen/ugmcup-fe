@@ -5,7 +5,7 @@ import { DataTable } from "@/components/dashboard/DataTable";
 import { PageHeader, FormField, DashInput, DashSelect } from "@/components/dashboard/PageHeader";
 import { Modal, ModalCancelButton, ModalSubmitButton } from "@/components/dashboard/Modal";
 import { LEVELS, getDisciplinesByLevel, DISCIPLINES } from "@/lib/constants";
-import { CheckCircle, ArrowLeftRight } from "lucide-react";
+import { CheckCircle, ArrowLeftRight, Lock } from "lucide-react";
 import { getMatches, deleteMatch, updateMatchSchedule, finishMatch, swapMatchSides } from "@/lib/api/matches";
 import type { Match, MatchStatus } from "@/lib/types";
 
@@ -54,6 +54,17 @@ const STATUS_STYLE: Record<MatchStatus | "WALK_OVER", { bg: string; color: strin
   RETIRED:   { bg: "#FEE2E2", color: "#991B1B" },
   WALK_OVER: { bg: "#F3E8FF", color: "#6B21A8" },
 };
+
+/**
+ * Status akhir sebuah match.
+ *
+ * Jadwal & lapangan tetap boleh diedit pada status ini (data informatif, tidak
+ * memengaruhi hasil), tapi tukar posisi A/B tidak — backend menolaknya karena
+ * skor set yang sudah tersimpan akan ikut terbalik.
+ */
+const FINAL_STATUSES: MatchStatus[] = ["FINISHED", "RETIRED", "WALK_OVER"];
+
+const isResultFinal = (m: Match) => FINAL_STATUSES.includes(m.status);
 
 export function MatchSection() {
   const [data, setData] = useState<Match[]>([]);
@@ -106,8 +117,14 @@ export function MatchSection() {
       const courtNumber = editForm.courtNumber ? parseInt(editForm.courtNumber) : undefined;
       const scheduledTime = editForm.scheduledTime ? new Date(editForm.scheduledTime).toISOString() : undefined;
       
-      await updateMatchSchedule(editForm.id, { courtNumber, scheduledTime });
-      setData(prev => prev.map(m => m.id === editForm.id ? { ...m, courtNumber, scheduledTime } : m));
+      const updated = await updateMatchSchedule(editForm.id, { courtNumber, scheduledTime });
+      // Pakai nilai balikan server, bukan nilai form: field yang dikosongkan
+      // dikirim sebagai undefined dan diabaikan backend, jadi nilai lamalah
+      // yang masih tersimpan. Relasi lain tidak ikut diganti karena response
+      // endpoint ini tidak menyertakannya.
+      setData(prev => prev.map(m => m.id === editForm.id
+        ? { ...m, courtNumber: updated.courtNumber, scheduledTime: updated.scheduledTime }
+        : m));
       setEditModalOpen(false);
     } catch (e) { 
       setError(e instanceof Error ? e.message : "Gagal"); 
@@ -451,7 +468,18 @@ export function MatchSection() {
           <FormField label="Jadwal (tanggal & waktu)"><DashInput value={editForm.scheduledTime} onChange={(v) => setEditForm(f => ({ ...f, scheduledTime: v }))} type="datetime-local" /></FormField>
         </div>
 
-        {selectedMatch && selectedMatch.id === editForm.id && !["FINISHED", "RETIRED", "WALK_OVER"].includes(selectedMatch.status) && (() => {
+        {selectedMatch && selectedMatch.id === editForm.id && isResultFinal(selectedMatch) && (
+          <div className="mt-4 flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 p-3">
+            <Lock size={14} className="mt-0.5 shrink-0 text-amber-600" />
+            <p className="text-xs text-amber-800">
+              Match sudah selesai. Lapangan & jadwal masih bisa dikoreksi dan
+              perubahannya tercatat di Audit Log, tapi posisi peserta A/B tidak
+              bisa ditukar lagi karena skor set yang tersimpan akan ikut terbalik.
+            </p>
+          </div>
+        )}
+
+        {selectedMatch && selectedMatch.id === editForm.id && !isResultFinal(selectedMatch) && (() => {
           const nameA = selectedMatch.participantA
             ? (selectedMatch.participantA.athletes?.map((a: any) => a.athlete.name).filter(Boolean).join(" / ") || selectedMatch.participantA.institution?.name || "Peserta A")
             : (selectedMatch.teamA?.institution?.name || (selectedMatch.participantAId || selectedMatch.teamAId ? "Tim A" : "BYE / Kosong"));
