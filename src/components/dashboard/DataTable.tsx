@@ -23,6 +23,16 @@ interface DataTableProps<T extends { id: string }> {
   actions?: (item: T) => ReactNode;
   pageSize?: number;
   searchPlaceholder?: string;
+  /**
+   * Kendalikan kata kunci dari luar. Berguna saat tabel punya tombol reset
+   * filter di halaman induknya — tanpa ini kata kuncinya terkunci di dalam
+   * dan ikut tertinggal saat filter lain dikembalikan. Biarkan kosong untuk
+   * memakai state internal seperti biasa.
+   */
+  search?: string;
+  onSearchChange?: (value: string) => void;
+  /** Elemen tambahan di sebelah kanan kotak pencarian, mis. tombol reset. */
+  toolbarRight?: ReactNode;
 }
 
 function getSearchableString(val: unknown): string {
@@ -43,9 +53,15 @@ export function DataTable<T extends { id: string }>({
   actions,
   pageSize = 10,
   searchPlaceholder = "Cari...",
+  search: controlledSearch,
+  onSearchChange,
+  toolbarRight,
 }: DataTableProps<T>) {
   const [page, setPage] = useState(1);
-  const [search, setSearch] = useState("");
+  const [internalSearch, setInternalSearch] = useState("");
+
+  const search = controlledSearch ?? internalSearch;
+  const setSearch = onSearchChange ?? setInternalSearch;
 
   // `search` menyetir input, `query` menyetir filternya. Tanpa pemisahan ini
   // seluruh tabel dirender ulang tiap ketikan — mahal karena `getSearchValue`
@@ -99,6 +115,7 @@ export function DataTable<T extends { id: string }>({
         <span className="text-xs" style={{ color: "#6B7280" }}>
           {filtered.length} data
         </span>
+        {toolbarRight && <div className="ml-auto flex items-center gap-2">{toolbarRight}</div>}
       </div>
 
       {/* Table */}

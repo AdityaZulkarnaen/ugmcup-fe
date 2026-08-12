@@ -289,7 +289,12 @@ export function BracketBoard({
 
       {/* Mobile: one round per page */}
       <div className="lg:hidden">
-        <div className="flex items-center justify-between gap-3">
+        {/* Kontrol babak ditandai agar tidak dihitung sebagai "klik di luar"
+            oleh panel: berpindah babak justru cara mengikuti jalur peserta yang
+            sedang tersorot, jadi sorotannya harus bertahan. Penandanya hanya di
+            baris kontrol, bukan seluruh kolom — mengklik ruang kosong di antara
+            kartu tetap berarti melepas sorotan. */}
+        <div className="flex items-center justify-between gap-3" data-bracket-nav>
           <button
             type="button"
             onClick={() => setPage((p) => Math.max(0, p - 1))}
@@ -319,7 +324,7 @@ export function BracketBoard({
         </div>
 
         {/* Page dots; a dot glows on the rounds the lit athlete reached */}
-        <div className="mt-3 flex items-center justify-center gap-1.5">
+        <div className="mt-3 flex items-center justify-center gap-1.5" data-bracket-nav>
           {columns.map(({ round, keys }, i) => {
             const roundOnPath = keys.some((key) => path.has(key));
             return (

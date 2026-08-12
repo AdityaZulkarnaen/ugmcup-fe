@@ -163,6 +163,53 @@ export function useMatchFilters() {
   const setPlayerPage = (v: number) =>
     push({ [MATCH_PARAM.playerPage]: String(v) });
 
+  // ── Reset ────────────────────────────────────────────────────────────────
+  /**
+   * Mengembalikan satu panel ke setelan awalnya dengan menghapus param miliknya
+   * — bukan menyetel nilai "kosong". Bedanya penting di Jadwal: menghapus param
+   * `hari` membuat `schedDayIsDefault` bernilai true lagi sehingga pemilihan
+   * hari otomatis berjalan ulang, sedangkan menyetelnya ke "all" justru
+   * menampilkan seluruh turnamen.
+   *
+   * Satu panel = satu `push`, jadi reset hanya menambah satu entri histori dan
+   * filter panel lain tidak ikut tersentuh.
+   */
+  const resetSchedFilters = () =>
+    push({
+      [MATCH_PARAM.schedDay]: "",
+      [MATCH_PARAM.schedCategory]: "",
+      [MATCH_PARAM.schedLevel]: "",
+      [MATCH_PARAM.schedPage]: "",
+    });
+  const resetBracketFilters = () =>
+    push({
+      [MATCH_PARAM.bracketLevel]: "",
+      [MATCH_PARAM.bracketDiscipline]: "",
+    });
+  const resetStandingsFilters = () =>
+    push({ [MATCH_PARAM.standingsDiscipline]: "" });
+  const resetPlayerFilters = () =>
+    push({
+      [MATCH_PARAM.playerLevel]: "",
+      [MATCH_PARAM.playerDiscipline]: "",
+      [MATCH_PARAM.playerSearch]: "",
+      [MATCH_PARAM.playerPage]: "",
+    });
+
+  // ── Sudah di setelan awal? Dipakai menonaktifkan tombol reset ────────────
+  // Jadwal tidak ada di sini: hari bawaannya dihitung dari data pertandingan,
+  // jadi hanya SchedulePanel yang bisa menilainya.
+  const bracketIsDefault =
+    searchParams.get(MATCH_PARAM.bracketLevel) === null &&
+    searchParams.get(MATCH_PARAM.bracketDiscipline) === null;
+  const standingsIsDefault =
+    searchParams.get(MATCH_PARAM.standingsDiscipline) === null;
+  const playerIsDefault =
+    playerLevel === "ALL" &&
+    playerDiscipline === "ALL" &&
+    playerSearch === "" &&
+    playerPage === 1;
+
   return {
     isPending,
 
@@ -195,5 +242,13 @@ export function useMatchFilters() {
     setPlayerDiscipline,
     setPlayerSearch,
     setPlayerPage,
+
+    resetSchedFilters,
+    resetBracketFilters,
+    resetStandingsFilters,
+    resetPlayerFilters,
+    bracketIsDefault,
+    standingsIsDefault,
+    playerIsDefault,
   };
 }

@@ -99,6 +99,9 @@ function SideRow({
       type="button"
       disabled={!side.participantId}
       aria-pressed={side.participantId ? isActive : undefined}
+      /* Penanda bagi papan bagan untuk membedakan klik pada peserta dari klik
+         di area lain, yang artinya "batalkan sorotan". */
+      data-bracket-player={side.participantId || undefined}
       onPointerEnter={() => onHover?.(side.participantId)}
       onPointerLeave={() => onHover?.(undefined)}
       onFocus={() => onHover?.(side.participantId)}

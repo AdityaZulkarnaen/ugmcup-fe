@@ -6,6 +6,7 @@ import { LEVELS, getDisciplinesByLevel, DISCIPLINES } from "@/lib/constants";
 import type { BracketNode, Participant, Team } from "@/lib/types";
 import { GitMerge, Edit, Trash2, Search, ChevronDown } from "lucide-react";
 import { useDebouncedValue } from "@/lib/hooks/useDebouncedValue";
+import { ResetFiltersButton } from "@/components/ui/ResetFiltersButton";
 
 function SearchableSelect({
   value,
@@ -97,6 +98,15 @@ function SearchableSelect({
 export function BracketSection() {
   const [filterLevel, setFilterLevel] = useState(LEVELS[0].value);
   const [selectedDisc, setSelectedDisc] = useState("");
+
+  // Setelan awal di sini bukan "kosong": jenjang selalu terisi, bawaannya
+  // jenjang pertama.
+  const isDefaultFilters = filterLevel === LEVELS[0].value && selectedDisc === "";
+
+  function resetFilters() {
+    setFilterLevel(LEVELS[0].value);
+    setSelectedDisc("");
+  }
   const [bracketNodes, setBracketNodes] = useState<BracketNode[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [setupModalOpen, setSetupModalOpen] = useState(false);
@@ -461,6 +471,7 @@ export function BracketSection() {
             options={(filterLevel ? getDisciplinesByLevel(filterLevel) : DISCIPLINES).map(d => ({ value: d.id, label: d.name }))}
           />
         </div>
+        <ResetFiltersButton onClick={resetFilters} disabled={isDefaultFilters} isLight />
       </div>
 
       {isLoading ? (

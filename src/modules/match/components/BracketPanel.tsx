@@ -7,6 +7,7 @@ import { cacheKeys } from "@/lib/api/cache";
 import { useCachedQuery } from "@/lib/hooks/useCachedQuery";
 import type { BracketNode } from "@/lib/types";
 import { FilterSelect } from "@/components/ui/FilterSelect";
+import { ResetFiltersButton } from "@/components/ui/ResetFiltersButton";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { AthleteSearch } from "./AthleteSearch";
 import { SkeletonPanel } from "@/components/ui/Skeleton";
@@ -236,6 +237,25 @@ export function BracketPanel({
     highlightParticipantId
   );
 
+  /**
+   * Kembali ke setelan awal: jenjang & kategori bawaan, sekaligus melepas
+   * sorotan atlet — sorotan itu bagian dari cara panel ini disaring, dan
+   * menyisakannya setelah kategorinya berganti hanya akan menyisakan bagan
+   * redup tanpa peserta yang tersorot.
+   */
+  const resetFilters = () => {
+    if (filters) filters.resetBracketFilters();
+    else {
+      setLocalLevel(initialLevel || "univ");
+      setLocalDisciplineId("");
+    }
+    setPinnedId(undefined);
+  };
+
+  const isDefaultFilters = filters
+    ? filters.bracketIsDefault && !pinnedId
+    : localLevel === (initialLevel || "univ") && localDisciplineId === "" && !pinnedId;
+
   useEffect(() => {
     if (initialDisciplineId) {
       setDisciplineId(initialDisciplineId);
@@ -253,6 +273,29 @@ export function BracketPanel({
       setPinnedId(highlightParticipantId);
     }
   }, [highlightParticipantId]);
+
+  /** Klik peserta yang sama sekali lagi berarti melepas sorotannya. */
+  const togglePinned = (participantId: string) =>
+    setPinnedId((current) => (current === participantId ? undefined : participantId));
+
+  // Sorotan dilepas begitu perhatian pindah ke tempat lain — mengklik area
+  // kosong bagan, atau apa pun di luar panel ini. Dua pengecualian: tombol
+  // peserta (punya penanganan sendiri, termasuk toggle di atas) dan kotak
+  // pencarian atlet, yang justru dipakai untuk memilih sorotan.
+  useEffect(() => {
+    if (!pinnedId) return;
+
+    function handlePointerDown(event: PointerEvent) {
+      const target = event.target as Element | null;
+      if (target?.closest("[data-bracket-player]")) return;
+      if (target?.closest("[data-bracket-search]")) return;
+      if (target?.closest("[data-bracket-nav]")) return;
+      setPinnedId(undefined);
+    }
+
+    document.addEventListener("pointerdown", handlePointerDown);
+    return () => document.removeEventListener("pointerdown", handlePointerDown);
+  }, [pinnedId]);
 
   // Auto-select discipline pertama yang valid saat level berubah
   useEffect(() => {
@@ -333,13 +376,20 @@ export function BracketPanel({
           className="min-w-0 flex-1 basis-[45%] md:basis-2/12"
           isLight={isLight}
         />
-        <AthleteSearch
-          options={searchOptions}
-          selectedId={pinnedId}
-          onSelect={setPinnedId}
-          className="min-w-0 flex-1 basis-full md:basis-4/12"
+        <ResetFiltersButton
+          onClick={resetFilters}
+          disabled={isDefaultFilters}
           isLight={isLight}
         />
+        <div data-bracket-search className="min-w-0 flex-1 basis-full md:basis-4/12">
+          <AthleteSearch
+            options={searchOptions}
+            selectedId={pinnedId}
+            onSelect={setPinnedId}
+            className="w-full"
+            isLight={isLight}
+          />
+        </div>
       </div>
 
       {loading ? (
@@ -356,7 +406,7 @@ export function BracketPanel({
             bracket={categoryBracket}
             interactive={true}
             pinnedId={pinnedId}
-            onSelect={setPinnedId}
+            onSelect={togglePinned}
             isLight={isLight}
           />
         </div>

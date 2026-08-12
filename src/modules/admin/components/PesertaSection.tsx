@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback, useMemo } from "react";
 import { DataTable } from "@/components/dashboard/DataTable";
 import { PageHeader, AddButton, FormField, DashSelect } from "@/components/dashboard/PageHeader";
 import { Modal, ModalCancelButton, ModalSubmitButton } from "@/components/dashboard/Modal";
+import { ResetFiltersButton } from "@/components/ui/ResetFiltersButton";
 import {
   getInstitutions, getAthletes,
   getParticipants, createParticipant, updateParticipant, deleteParticipant,
@@ -29,6 +30,24 @@ export function PesertaSection() {
   // Filters
   const [filterLevel, setFilterLevel] = useState<string>("");
   const [filterDiscipline, setFilterDiscipline] = useState<string>("");
+  // Kata kunci dipisah per tab supaya pencarian di daftar individu tidak ikut
+  // terbawa saat berpindah ke daftar beregu.
+  const [searchIndividu, setSearchIndividu] = useState("");
+  const [searchTim, setSearchTim] = useState("");
+
+  const activeSearch = tab === "individu" ? searchIndividu : searchTim;
+
+  /** Setelan awal: kedua filter kosong ("Semua") dan tab aktif tanpa kata kunci. */
+  const isDefaultFilters =
+    filterLevel === "" && filterDiscipline === "" && activeSearch === "";
+
+  /** Tab yang sedang dibuka adalah pilihan tampilan, bukan filter — biarkan. */
+  function resetFilters() {
+    setFilterLevel("");
+    setFilterDiscipline("");
+    if (tab === "individu") setSearchIndividu("");
+    else setSearchTim("");
+  }
 
   // Common Edit State
   const [editId, setEditId] = useState<string | null>(null);
@@ -248,6 +267,11 @@ export function PesertaSection() {
         <DataTable
           isLoading={isLoading}
           data={filteredParticipants}
+          search={searchIndividu}
+          onSearchChange={setSearchIndividu}
+          toolbarRight={
+            <ResetFiltersButton onClick={resetFilters} disabled={isDefaultFilters} isLight />
+          }
           emptyText="Belum ada peserta individu"
           searchPlaceholder="Cari nama institusi atau peserta..."
           columns={[
@@ -283,6 +307,11 @@ export function PesertaSection() {
         <DataTable
           isLoading={isLoading}
           data={filteredTeams}
+          search={searchTim}
+          onSearchChange={setSearchTim}
+          toolbarRight={
+            <ResetFiltersButton onClick={resetFilters} disabled={isDefaultFilters} isLight />
+          }
           emptyText="Belum ada tim beregu"
           searchPlaceholder="Cari nama institusi atau anggota tim..."
           columns={[

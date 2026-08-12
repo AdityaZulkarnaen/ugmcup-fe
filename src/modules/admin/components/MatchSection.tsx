@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import { DataTable } from "@/components/dashboard/DataTable";
 import { PageHeader, FormField, DashInput, DashSelect } from "@/components/dashboard/PageHeader";
 import { Modal, ModalCancelButton, ModalSubmitButton } from "@/components/dashboard/Modal";
+import { ResetFiltersButton } from "@/components/ui/ResetFiltersButton";
 import { LEVELS, getDisciplinesByLevel, DISCIPLINES } from "@/lib/constants";
 import { CheckCircle, ArrowLeftRight, Lock } from "lucide-react";
 import { getMatches, deleteMatch, updateMatchSchedule, finishMatch, swapMatchSides } from "@/lib/api/matches";
@@ -80,6 +81,25 @@ export function MatchSection() {
   const [filterDiscipline, setFilterDiscipline] = useState("");
   const [filterDate, setFilterDate] = useState("");
   const [filterParticipant, setFilterParticipant] = useState("");
+  const [search, setSearch] = useState("");
+
+  /** Semua filter section ini berawal kosong — artinya "tampilkan semuanya". */
+  const isDefaultFilters =
+    filterStatus === "" &&
+    filterLevel === "" &&
+    filterDiscipline === "" &&
+    filterDate === "" &&
+    filterParticipant === "" &&
+    search === "";
+
+  function resetFilters() {
+    setFilterStatus("");
+    setFilterLevel("");
+    setFilterDiscipline("");
+    setFilterDate("");
+    setFilterParticipant("");
+    setSearch("");
+  }
   
   const [editForm, setEditForm] = useState({ id: "", courtNumber: "", scheduledTime: "" });
   const [finishForm, setFinishForm] = useState<{
@@ -404,6 +424,11 @@ export function MatchSection() {
       <DataTable
         isLoading={isLoading}
         data={filteredData}
+        search={search}
+        onSearchChange={setSearch}
+        toolbarRight={
+          <ResetFiltersButton onClick={resetFilters} disabled={isDefaultFilters} isLight />
+        }
         emptyText="Tidak ada match ditemukan"
         columns={[
           { key: "status", header: "Status", render: (row) => {

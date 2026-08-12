@@ -10,6 +10,7 @@ import type { Athlete, Match } from "@/lib/types";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Pagination } from "@/components/ui/Pagination";
 import { FilterSelect } from "@/components/ui/FilterSelect";
+import { ResetFiltersButton } from "@/components/ui/ResetFiltersButton";
 import { Search } from "lucide-react";
 import { useDebouncedCallback } from "@/lib/hooks/useDebouncedValue";
 import type { useMatchFilters } from "@/lib/hooks/useMatchFilters";
@@ -86,9 +87,19 @@ export function PlayerPanel({ isLight = false, filters }: PlayerPanelProps) {
 
   /** Tombol silang harus terasa langsung, jadi URL ditulis tanpa menunggu jeda. */
   function clearSearch() {
+    commitSearch.cancel();
     setSearchInput("");
     setCommitted("");
     filters.setPlayerSearch("");
+  }
+
+  function resetFilters() {
+    // Ketikan yang masih menunggu dibuang dulu; kalau tidak, ia menyusul
+    // beberapa ratus milidetik setelah reset dan mengembalikan kata kuncinya.
+    commitSearch.cancel();
+    setSearchInput("");
+    setCommitted("");
+    filters.resetPlayerFilters();
   }
 
   const disciplineFilter = filters.playerDiscipline;
@@ -349,6 +360,12 @@ export function PlayerPanel({ isLight = false, filters }: PlayerPanelProps) {
             accent="violet"
             accented={disciplineFilter !== "ALL"}
             className="min-w-0 flex-1 sm:w-56 shrink-0"
+            isLight={isLight}
+          />
+
+          <ResetFiltersButton
+            onClick={resetFilters}
+            disabled={filters.playerIsDefault && searchInput === ""}
             isLight={isLight}
           />
         </div>

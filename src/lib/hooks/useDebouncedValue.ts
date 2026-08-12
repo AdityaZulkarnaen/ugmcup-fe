@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 /**
  * Jeda standar untuk seluruh search bar. Cukup panjang untuk melewati jeda
@@ -60,11 +60,24 @@ export function useDebouncedCallback<A extends unknown[]>(
     []
   );
 
-  return useCallback(
-    (...args: A) => {
+  return useMemo(() => {
+    const run = (...args: A) => {
       if (timer.current) clearTimeout(timer.current);
       timer.current = setTimeout(() => latest.current(...args), delay);
-    },
-    [delay]
-  );
+    };
+
+    /**
+     * Buang panggilan yang masih menunggu. Perlu saat ada tindakan yang
+     * menggantikan hasil ketikan — misal tombol reset — supaya nilai lama
+     * tidak menyusul dan menimpanya beberapa ratus milidetik kemudian.
+     */
+    run.cancel = () => {
+      if (timer.current) {
+        clearTimeout(timer.current);
+        timer.current = null;
+      }
+    };
+
+    return run;
+  }, [delay]);
 }

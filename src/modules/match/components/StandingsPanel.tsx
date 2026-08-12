@@ -8,6 +8,7 @@ import { cacheKeys } from "@/lib/api/cache";
 import { useCachedQuery } from "@/lib/hooks/useCachedQuery";
 import type { Standing } from "@/lib/types";
 import { FilterSelect } from "@/components/ui/FilterSelect";
+import { ResetFiltersButton } from "@/components/ui/ResetFiltersButton";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { SkeletonPanel } from "@/components/ui/Skeleton";
 import { StandingsGroupSkeleton } from "./MatchSkeletons";
@@ -254,15 +255,22 @@ export function StandingsPanel({ isLight = false, filters }: StandingsPanelProps
 
   return (
     <div className="flex flex-col gap-4">
-      <FilterSelect
-        options={teamDisciplines.map((d) => ({ id: d.id, label: d.name }))}
-        value={disciplineId}
-        onChange={filters.setStandingsDiscipline}
-        label="Filter kategori beregu"
-        accent="violet"
-        className="w-full sm:w-56"
-        isLight={isLight}
-      />
+      <div className="flex flex-wrap items-center gap-2.5">
+        <FilterSelect
+          options={teamDisciplines.map((d) => ({ id: d.id, label: d.name }))}
+          value={disciplineId}
+          onChange={filters.setStandingsDiscipline}
+          label="Filter kategori beregu"
+          accent="violet"
+          className="w-full sm:w-56"
+          isLight={isLight}
+        />
+        <ResetFiltersButton
+          onClick={filters.resetStandingsFilters}
+          disabled={filters.standingsIsDefault}
+          isLight={isLight}
+        />
+      </div>
 
       {loading ? (
         <SkeletonPanel label="Memuat klasemen…" isLight={isLight} className="gap-4">

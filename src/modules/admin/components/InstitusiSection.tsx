@@ -5,6 +5,7 @@ import { DataTable } from "@/components/dashboard/DataTable";
 import { PageHeader, AddButton, FormField, DashInput, DashSelect } from "@/components/dashboard/PageHeader";
 import { Modal, ModalCancelButton, ModalSubmitButton } from "@/components/dashboard/Modal";
 import { DragDropUpload } from "@/components/dashboard/DragDropUpload";
+import { ResetFiltersButton } from "@/components/ui/ResetFiltersButton";
 import { getInstitutions, createInstitution, updateInstitution, deleteInstitution, uploadFile } from "@/lib/api/admin";
 import type { Institution } from "@/lib/types";
 
@@ -17,8 +18,17 @@ export function InstitusiSection() {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [filterType, setFilterType] = useState<string>("");
+  const [search, setSearch] = useState("");
   const [form, setForm] = useState({ name: "", type: "UNIVERSITAS" as "UNIVERSITAS" | "SMA", logoUrl: "" });
   const [error, setError] = useState("");
+
+  /** Setelan awal: tipe kosong ("Semua Tipe") dan tanpa kata kunci. */
+  const isDefaultFilters = filterType === "" && search === "";
+
+  function resetFilters() {
+    setFilterType("");
+    setSearch("");
+  }
 
   const load = useCallback(async () => {
     setIsLoading(true);
@@ -105,6 +115,11 @@ export function InstitusiSection() {
       <DataTable
         isLoading={isLoading}
         data={data}
+        search={search}
+        onSearchChange={setSearch}
+        toolbarRight={
+          <ResetFiltersButton onClick={resetFilters} disabled={isDefaultFilters} isLight />
+        }
         emptyText="Belum ada institusi terdaftar"
         columns={[
           {

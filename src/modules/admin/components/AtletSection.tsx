@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback, useMemo } from "react";
 import { DataTable } from "@/components/dashboard/DataTable";
 import { PageHeader, AddButton, FormField, DashInput, DashSelect } from "@/components/dashboard/PageHeader";
 import { Modal, ModalCancelButton, ModalSubmitButton } from "@/components/dashboard/Modal";
+import { ResetFiltersButton } from "@/components/ui/ResetFiltersButton";
 import { getAthletes, createAthlete, updateAthlete, deleteAthlete, getInstitutions, getAthlete } from "@/lib/api/admin";
 import type { Athlete, Institution } from "@/lib/types";
 
@@ -20,6 +21,16 @@ export function AtletSection() {
   // Filters
   const [filterGender, setFilterGender] = useState<string>("");
   const [filterType, setFilterType] = useState<string>("");
+  const [search, setSearch] = useState("");
+
+  /** Setelan awal: kedua filter kosong ("Semua") dan tanpa kata kunci. */
+  const isDefaultFilters = filterGender === "" && filterType === "" && search === "";
+
+  function resetFilters() {
+    setFilterGender("");
+    setFilterType("");
+    setSearch("");
+  }
 
   // Form
   const [formType, setFormType] = useState<string>("");
@@ -138,6 +149,11 @@ export function AtletSection() {
       <DataTable
         isLoading={isLoading}
         data={data}
+        search={search}
+        onSearchChange={setSearch}
+        toolbarRight={
+          <ResetFiltersButton onClick={resetFilters} disabled={isDefaultFilters} isLight />
+        }
         emptyText="Belum ada atlet terdaftar"
         searchPlaceholder="Cari nama atlet, institusi, NIM/NIS, gender..."
         columns={[

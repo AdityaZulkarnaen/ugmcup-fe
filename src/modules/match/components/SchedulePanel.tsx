@@ -7,6 +7,7 @@ import { useCachedQuery } from "@/lib/hooks/useCachedQuery";
 import type { Match } from "@/lib/types";
 import { DISCIPLINES, LEVELS } from "@/lib/constants";
 import { FilterSelect } from "@/components/ui/FilterSelect";
+import { ResetFiltersButton } from "@/components/ui/ResetFiltersButton";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Pagination } from "@/components/ui/Pagination";
 import { ScheduleRow } from "./ScheduleRow";
@@ -62,15 +63,13 @@ export function SchedulePanel({ isLight = false, filters }: SchedulePanelProps) 
   );
   const allMatches = useMemo(() => data ?? [], [data]);
 
-  // ── Auto-select "hari ini" saat pertama buka (hari belum dipilih user) ──
-  // Hanya berjalan sekali: saat data tersedia dan `?hari` belum ada di URL.
-  const autoSelectedRef = useRef(false);
-  useEffect(() => {
-    // Jika user sudah set filter hari secara eksplisit, jangan timpa.
-    if (!filters.schedDayIsDefault || autoSelectedRef.current || allMatches.length === 0) return;
-    autoSelectedRef.current = true;
-
-    // Kumpulkan semua tanggal yang tersedia (sorted ascending)
+  /**
+   * Hari yang dianggap "setelan awal" panel ini: hari ini bila turnamen sedang
+   * berlangsung, hari terakhir bila sudah selesai, hari pertama bila belum
+   * mulai. Sengaja nilai turunan, bukan hasil sampingan efek, supaya tombol
+   * reset bisa tahu apakah hari yang sedang tampil masih hari bawaan.
+   */
+  const autoDay = useMemo(() => {
     const datesSet = new Set<string>();
     allMatches.forEach((m) => {
       if (m.scheduledTime) {
@@ -80,28 +79,45 @@ export function SchedulePanel({ isLight = false, filters }: SchedulePanelProps) 
       }
     });
     const sortedDates = Array.from(datesSet).sort();
-    if (sortedDates.length === 0) return;
+    if (sortedDates.length === 0) return "";
 
     const today = new Date().toISOString().split("T")[0];
+    if (sortedDates.includes(today)) return today;
 
-    let targetDate: string;
-    if (sortedDates.includes(today)) {
-      // Hari ini ada di jadwal → tampilkan hari ini
-      targetDate = today;
-    } else {
-      // Cari tanggal terakhir yang sudah lewat (turnamen selesai)
-      const pastDates = sortedDates.filter((d) => d < today);
-      if (pastDates.length > 0) {
-        targetDate = pastDates[pastDates.length - 1]; // hari terakhir turnamen
-      } else {
-        // Semua jadwal masih di masa depan → tampilkan hari pertama
-        targetDate = sortedDates[0];
-      }
-    }
-
-    filters.setSchedDay(targetDate);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    const pastDates = sortedDates.filter((d) => d < today);
+    return pastDates.length > 0 ? pastDates[pastDates.length - 1] : sortedDates[0];
   }, [allMatches]);
+
+  // ── Auto-select "hari ini" saat pertama buka (hari belum dipilih user) ──
+  // Berjalan saat data tersedia dan `?hari` belum ada di URL — yaitu saat
+  // pertama membuka halaman, dan lagi setiap kali filter direset (reset
+  // menghapus param `hari`, bukan menyetelnya ke "all").
+  const autoSelectedRef = useRef(false);
+  useEffect(() => {
+    // Jika user sudah set filter hari secara eksplisit, jangan timpa. Sekaligus
+    // buka kembali kunci di bawah supaya reset berikutnya bisa memilih ulang.
+    if (!filters.schedDayIsDefault) {
+      autoSelectedRef.current = false;
+      return;
+    }
+    // Kunci sesaat agar render ganda tidak memilih hari dua kali sebelum URL
+    // sempat diperbarui.
+    if (autoSelectedRef.current || !autoDay) return;
+    autoSelectedRef.current = true;
+
+    filters.setSchedDay(autoDay);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoDay, filters.schedDayIsDefault]);
+
+  /**
+   * Hari bawaan yang sudah tertulis di URL tetap dihitung sebagai setelan awal
+   * — kalau tidak, tombol reset tidak pernah bisa nonaktif di panel ini.
+   */
+  const isDefaultFilters =
+    (filters.schedDayIsDefault || day === autoDay) &&
+    category === "all" &&
+    level === "all" &&
+    page === 1;
 
   // Compute available unique dates from matches
   const dayOptions = useMemo(() => {
@@ -310,6 +326,12 @@ export function SchedulePanel({ isLight = false, filters }: SchedulePanelProps) 
           accented={level !== "all"}
           className="col-span-2 min-w-0 flex-1 sm:col-span-1 sm:max-w-56"
           isLight={isLight}
+        />
+        <ResetFiltersButton
+          onClick={filters.resetSchedFilters}
+          disabled={isDefaultFilters}
+          isLight={isLight}
+          className="col-span-2 sm:col-span-1"
         />
       </div>
 
