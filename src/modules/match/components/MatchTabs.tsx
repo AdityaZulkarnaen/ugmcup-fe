@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
 import dynamic from "next/dynamic";
+import { useMatchFilters } from "@/lib/hooks/useMatchFilters";
+import { useSaveMatchUrl } from "@/lib/hooks/useMatchReturnUrl";
 import { matchTabs } from "@/lib/constants/matches";
 import { SchedulePanel } from "./SchedulePanel";
 
@@ -40,7 +41,12 @@ interface MatchTabsProps {
 }
 
 export function MatchTabs({ isLight = false }: MatchTabsProps) {
-  const [active, setActive] = useState(matchTabs[0].id);
+  const filters = useMatchFilters();
+  const active = filters.tab;
+
+  // Simpan URL saat ini (termasuk semua filter params) ke sessionStorage
+  // agar tombol "Kembali" di halaman detail bisa mengembalikan ke posisi filter yang sama.
+  useSaveMatchUrl();
 
   return (
     <div className="mx-auto w-full max-w-6xl px-6">
@@ -62,7 +68,7 @@ export function MatchTabs({ isLight = false }: MatchTabsProps) {
               key={tab.id}
               role="tab"
               aria-selected={isActive}
-              onClick={() => setActive(tab.id)}
+              onClick={() => filters.setTab(tab.id)}
               className={`flex flex-col items-center justify-center gap-0.5 rounded-xl px-4 py-3 text-center transition-all duration-200 ${
                 isActive && isLight
                   ? "border border-[#D9D3FF] bg-[#F3F0FF] shadow-[0px_1px_1.5px_rgba(0,0,0,0.1),0px_1px_1px_rgba(0,0,0,0.1)]"
@@ -111,13 +117,13 @@ export function MatchTabs({ isLight = false }: MatchTabsProps) {
       {/* Panel */}
       <div className="mt-4">
         {active === "jadwal" ? (
-          <SchedulePanel isLight={isLight} />
+          <SchedulePanel isLight={isLight} filters={filters} />
         ) : active === "draw" ? (
-          <BracketPanel isLight={isLight} />
+          <BracketPanel isLight={isLight} filters={filters} />
         ) : active === "player" ? (
-          <PlayerPanel isLight={isLight} />
+          <PlayerPanel isLight={isLight} filters={filters} />
         ) : (
-          <StandingsPanel isLight={isLight} />
+          <StandingsPanel isLight={isLight} filters={filters} />
         )}
       </div>
     </div>

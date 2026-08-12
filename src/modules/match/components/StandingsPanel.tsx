@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useMemo } from "react";
 import Image from "next/image";
 import { DISCIPLINES } from "@/lib/constants";
 import { getStandings } from "@/lib/api/admin";
@@ -11,9 +11,11 @@ import { FilterSelect } from "@/components/ui/FilterSelect";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { SkeletonPanel } from "@/components/ui/Skeleton";
 import { StandingsGroupSkeleton } from "./MatchSkeletons";
+import type { useMatchFilters } from "@/lib/hooks/useMatchFilters";
 
 interface StandingsPanelProps {
   isLight?: boolean;
+  filters: ReturnType<typeof useMatchFilters>;
 }
 
 function TeamBadge({
@@ -220,15 +222,17 @@ function GroupTable({ groupName, entries, isLight = false }: { groupName: string
   );
 }
 
-export function StandingsPanel({ isLight = false }: StandingsPanelProps) {
+export function StandingsPanel({ isLight = false, filters }: StandingsPanelProps) {
   const teamDisciplines = useMemo(
     () => DISCIPLINES.filter((d) => d.isTeamEvent),
     []
   );
 
-  const [disciplineId, setDisciplineId] = useState(
-    teamDisciplines[0]?.id || ""
-  );
+  // Baca disciplineId dari URL; jika kosong pakai discipline pertama
+  const rawDisciplineId = filters.standingsDiscipline;
+  const disciplineId = rawDisciplineId && teamDisciplines.some((d) => d.id === rawDisciplineId)
+    ? rawDisciplineId
+    : teamDisciplines[0]?.id ?? "";
   const { data, isLoading: loading } = useCachedQuery<Standing[]>(
     disciplineId ? cacheKeys.standings(disciplineId) : null,
     () => getStandings(disciplineId)
@@ -253,7 +257,7 @@ export function StandingsPanel({ isLight = false }: StandingsPanelProps) {
       <FilterSelect
         options={teamDisciplines.map((d) => ({ id: d.id, label: d.name }))}
         value={disciplineId}
-        onChange={setDisciplineId}
+        onChange={filters.setStandingsDiscipline}
         label="Filter kategori beregu"
         accent="violet"
         className="w-full sm:w-56"

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import MatchPage from "@/modules/match";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { breadcrumbSchema, schemaGraph } from "@/lib/schema";
@@ -27,7 +28,10 @@ export default function Pertandingan() {
           ])
         )}
       />
-      <MatchPage />
+      {/* Suspense diperlukan karena useSearchParams() di dalam MatchPage */}
+      <Suspense>
+        <MatchPage />
+      </Suspense>
     </>
   );
 }

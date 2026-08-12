@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useMemo, useEffect, useState } from "react";
 import { DISCIPLINES, LEVELS } from "@/lib/constants";
 import { getBracket } from "@/lib/api/admin";
 import { cacheKeys } from "@/lib/api/cache";
@@ -13,6 +13,7 @@ import { SkeletonPanel } from "@/components/ui/Skeleton";
 import { BracketBoardSkeleton } from "./MatchSkeletons";
 import { BracketBoard } from "./BracketBoard";
 import { type CategoryBracket, type BracketRound, type BracketSide, type BracketMatch } from "@/lib/constants/matches";
+import type { useMatchFilters } from "@/lib/hooks/useMatchFilters";
 
 import { resolveInstLabel } from "@/lib/utils/resolveInstLabel";
 
@@ -188,9 +189,12 @@ function buildCategoryBracket(disciplineId: string, nodes: BracketNode[]): Categ
 
 interface BracketPanelProps {
   initialDisciplineId?: string;
+  /** Hanya dipakai saat `filters` tidak diberikan (standalone usage). */
   initialLevel?: string;
   highlightParticipantId?: string;
   isLight?: boolean;
+  /** Opsional — jika diberikan, state disimpan di URL. Jika tidak, gunakan local state. */
+  filters?: ReturnType<typeof useMatchFilters>;
 }
 
 export function BracketPanel({
@@ -198,16 +202,35 @@ export function BracketPanel({
   initialLevel,
   highlightParticipantId,
   isLight = false,
-}: BracketPanelProps = {}) {
-  const [level, setLevel] = useState(initialLevel || "univ");
+  filters,
+}: BracketPanelProps) {
+  // ── State: URL-backed bila filters tersedia, lokal bila tidak ─────────
+  const [localLevel, setLocalLevel] = useState(initialLevel || "univ");
+  const [localDisciplineId, setLocalDisciplineId] = useState("");
+
+  const level = filters ? filters.bracketLevel : localLevel;
 
   const availableDisciplines = useMemo(() => {
     return DISCIPLINES.filter((d) => d.level === level);
   }, [level]);
 
-  const [disciplineId, setDisciplineId] = useState(
-    initialDisciplineId || availableDisciplines[0]?.id || ""
-  );
+  // disciplineId: dari URL (via filters) atau local state
+  const rawDisciplineId = filters ? filters.bracketDiscipline : localDisciplineId;
+  const disciplineId =
+    rawDisciplineId &&
+    availableDisciplines.some((d) => d.id === rawDisciplineId)
+      ? rawDisciplineId
+      : availableDisciplines[0]?.id ?? "";
+
+  const setLevel = (v: string) => {
+    if (filters) filters.setBracketLevel(v);
+    else setLocalLevel(v);
+  };
+
+  const setDisciplineId = (v: string) => {
+    if (filters) filters.setBracketDiscipline(v);
+    else setLocalDisciplineId(v);
+  };
 
   const [pinnedId, setPinnedId] = useState<string | undefined>(
     highlightParticipantId
@@ -221,7 +244,9 @@ export function BracketPanel({
         setLevel(disc.level);
       }
     }
-  }, [initialDisciplineId]);
+    // hanya jalankan saat mount — initialDisciplineId tidak akan berubah
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     if (highlightParticipantId) {
@@ -229,6 +254,7 @@ export function BracketPanel({
     }
   }, [highlightParticipantId]);
 
+  // Auto-select discipline pertama yang valid saat level berubah
   useEffect(() => {
     if (
       !initialDisciplineId &&
@@ -238,7 +264,8 @@ export function BracketPanel({
       setDisciplineId(availableDisciplines[0].id);
       setPinnedId(undefined);
     }
-  }, [availableDisciplines, disciplineId, initialDisciplineId]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [availableDisciplines]);
 
   const { data, isLoading: loading } = useCachedQuery<BracketNode[]>(
     disciplineId ? cacheKeys.bracket(disciplineId) : null,
