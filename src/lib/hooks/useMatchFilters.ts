@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
-import { useCallback, useTransition } from "react";
+import { useCallback } from "react";
 
 /**
  * Semua kunci URL search param yang dipakai di halaman Pertandingan.
@@ -38,15 +38,16 @@ function getParam(
 /**
  * Hook tunggal untuk membaca & memperbarui filter halaman Pertandingan via URL.
  *
- * Setiap setter hanya mengubah param yang bersangkutan; param lain tetap utuh.
- * Navigasi dilakukan dengan `router.push` (bukan replace) sehingga browser
- * menyimpan histori — tombol Back akan mengembalikan filter sebelumnya.
+ * - Perubahan filter memakai `router.replace` — tidak membuat history entry baru,
+ *   sehingga tombol Back tetap bersih. Khusus ganti tab memakai `router.push`
+ *   agar Back bisa kembali antar tab.
+ * - `startTransition` sengaja TIDAK dipakai: ia bisa jadi stale saat tab tidak
+ *   aktif lama, menyebabkan semua filter tidak bereaksi sampai di-refresh.
  */
 export function useMatchFilters() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const [isPending, startTransition] = useTransition();
 
   /** Buat URLSearchParams baru berdasar state sekarang + patch. */
   const buildQuery = useCallback(
@@ -64,12 +65,26 @@ export function useMatchFilters() {
     [searchParams]
   );
 
+  /**
+   * Update URL filter tanpa membuat history entry baru.
+   * Tidak dibungkus startTransition agar tidak bisa stale.
+   */
+  const replace = useCallback(
+    (patch: Record<string, string>) => {
+      const qs = buildQuery(patch);
+      router.replace(`${pathname}?${qs}`, { scroll: false });
+    },
+    [buildQuery, router, pathname]
+  );
+
+  /**
+   * Navigasi dengan history entry baru — hanya untuk ganti tab
+   * agar tombol Back bisa kembali antar tab.
+   */
   const push = useCallback(
     (patch: Record<string, string>) => {
       const qs = buildQuery(patch);
-      startTransition(() => {
-        router.push(`${pathname}?${qs}`, { scroll: false });
-      });
+      router.push(`${pathname}?${qs}`, { scroll: false });
     },
     [buildQuery, router, pathname]
   );
@@ -127,41 +142,42 @@ export function useMatchFilters() {
   );
 
   // ── Setter ───────────────────────────────────────────────────────────────
+  // Ganti tab: pakai push() agar back button bisa kembali antar tab.
   const setTab = (v: string) => push({ [MATCH_PARAM.tab]: v });
 
-  // Schedule setters
+  // Schedule setters — pakai replace() agar tidak menumpuk histori
   const setSchedDay = (v: string) =>
-    push({ [MATCH_PARAM.schedDay]: v, [MATCH_PARAM.schedPage]: "1" });
+    replace({ [MATCH_PARAM.schedDay]: v, [MATCH_PARAM.schedPage]: "1" });
   const setSchedCategory = (v: string) =>
-    push({ [MATCH_PARAM.schedCategory]: v, [MATCH_PARAM.schedPage]: "1" });
+    replace({ [MATCH_PARAM.schedCategory]: v, [MATCH_PARAM.schedPage]: "1" });
   const setSchedLevel = (v: string) =>
-    push({ [MATCH_PARAM.schedLevel]: v, [MATCH_PARAM.schedPage]: "1" });
+    replace({ [MATCH_PARAM.schedLevel]: v, [MATCH_PARAM.schedPage]: "1" });
   const setSchedPage = (v: number) =>
-    push({ [MATCH_PARAM.schedPage]: String(v) });
+    replace({ [MATCH_PARAM.schedPage]: String(v) });
 
   // Bracket setters
   const setBracketLevel = (v: string) =>
-    push({ [MATCH_PARAM.bracketLevel]: v });
+    replace({ [MATCH_PARAM.bracketLevel]: v });
   const setBracketDiscipline = (v: string) =>
-    push({ [MATCH_PARAM.bracketDiscipline]: v });
+    replace({ [MATCH_PARAM.bracketDiscipline]: v });
 
   // Standings setters
   const setStandingsDiscipline = (v: string) =>
-    push({ [MATCH_PARAM.standingsDiscipline]: v });
+    replace({ [MATCH_PARAM.standingsDiscipline]: v });
 
   // Player setters
   const setPlayerLevel = (v: string) =>
-    push({
+    replace({
       [MATCH_PARAM.playerLevel]: v,
       [MATCH_PARAM.playerDiscipline]: "ALL",
       [MATCH_PARAM.playerPage]: "1",
     });
   const setPlayerDiscipline = (v: string) =>
-    push({ [MATCH_PARAM.playerDiscipline]: v, [MATCH_PARAM.playerPage]: "1" });
+    replace({ [MATCH_PARAM.playerDiscipline]: v, [MATCH_PARAM.playerPage]: "1" });
   const setPlayerSearch = (v: string) =>
-    push({ [MATCH_PARAM.playerSearch]: v, [MATCH_PARAM.playerPage]: "1" });
+    replace({ [MATCH_PARAM.playerSearch]: v, [MATCH_PARAM.playerPage]: "1" });
   const setPlayerPage = (v: number) =>
-    push({ [MATCH_PARAM.playerPage]: String(v) });
+    replace({ [MATCH_PARAM.playerPage]: String(v) });
 
   // ── Reset ────────────────────────────────────────────────────────────────
   /**
@@ -171,25 +187,25 @@ export function useMatchFilters() {
    * hari otomatis berjalan ulang, sedangkan menyetelnya ke "all" justru
    * menampilkan seluruh turnamen.
    *
-   * Satu panel = satu `push`, jadi reset hanya menambah satu entri histori dan
+   * Satu panel = satu replace, jadi reset hanya mengupdate URL dan
    * filter panel lain tidak ikut tersentuh.
    */
   const resetSchedFilters = () =>
-    push({
+    replace({
       [MATCH_PARAM.schedDay]: "",
       [MATCH_PARAM.schedCategory]: "",
       [MATCH_PARAM.schedLevel]: "",
       [MATCH_PARAM.schedPage]: "",
     });
   const resetBracketFilters = () =>
-    push({
+    replace({
       [MATCH_PARAM.bracketLevel]: "",
       [MATCH_PARAM.bracketDiscipline]: "",
     });
   const resetStandingsFilters = () =>
-    push({ [MATCH_PARAM.standingsDiscipline]: "" });
+    replace({ [MATCH_PARAM.standingsDiscipline]: "" });
   const resetPlayerFilters = () =>
-    push({
+    replace({
       [MATCH_PARAM.playerLevel]: "",
       [MATCH_PARAM.playerDiscipline]: "",
       [MATCH_PARAM.playerSearch]: "",
@@ -211,8 +227,6 @@ export function useMatchFilters() {
     playerPage === 1;
 
   return {
-    isPending,
-
     tab,
     setTab,
 
