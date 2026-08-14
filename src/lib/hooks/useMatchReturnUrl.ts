@@ -1,40 +1,18 @@
 "use client";
 
-import { useEffect } from "react";
-import { usePathname, useSearchParams } from "next/navigation";
-
-const STORAGE_KEY = "ugmcup_match_return_url";
-
 /**
- * Simpan URL halaman pertandingan (dengan semua filter params) ke sessionStorage
- * setiap kali URL-nya berubah. Dipanggil di dalam halaman `/pertandingan`.
+ * Filter halaman Pertandingan kini disimpan di sessionStorage oleh
+ * `useMatchFilters`, sehingga cukup kembali ke `/pertandingan` dan filter
+ * akan dipulihkan otomatis saat komponen mount.
+ *
+ * `useSaveMatchUrl` dipertahankan sebagai no-op agar MatchTabs tidak perlu
+ * diubah.
  */
 export function useSaveMatchUrl() {
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
-
-  useEffect(() => {
-    if (!pathname.startsWith("/pertandingan") || pathname !== "/pertandingan") {
-      return;
-    }
-    const qs = searchParams.toString();
-    const url = qs ? `${pathname}?${qs}` : pathname;
-    try {
-      sessionStorage.setItem(STORAGE_KEY, url);
-    } catch {
-      // sessionStorage mungkin tidak tersedia (private mode ketat)
-    }
-  }, [pathname, searchParams]);
+  // No-op — tidak ada yang perlu disimpan; filter sudah persisten via sessionStorage.
 }
 
-/**
- * Baca URL kembali ke halaman pertandingan yang tersimpan.
- * Fallback ke "/pertandingan" jika belum ada.
- */
+/** URL yang dipakai tombol "Kembali" di halaman detail pertandingan. */
 export function getMatchReturnUrl(): string {
-  try {
-    return sessionStorage.getItem(STORAGE_KEY) ?? "/pertandingan";
-  } catch {
-    return "/pertandingan";
-  }
+  return "/pertandingan";
 }

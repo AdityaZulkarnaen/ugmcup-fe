@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { Suspense } from "react";
 import MatchPage from "@/modules/match";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { breadcrumbSchema, schemaGraph } from "@/lib/schema";
@@ -28,10 +27,8 @@ export default function Pertandingan() {
           ])
         )}
       />
-      {/* Suspense diperlukan karena useSearchParams() di dalam MatchPage */}
-      <Suspense>
-        <MatchPage />
-      </Suspense>
+      {/* Filter state kini disimpan di sessionStorage — tidak perlu Suspense */}
+      <MatchPage />
     </>
   );
 }
