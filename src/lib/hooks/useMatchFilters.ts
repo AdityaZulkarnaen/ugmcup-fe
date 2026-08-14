@@ -76,12 +76,15 @@ function writeStorage(state: PersistedFilters): void {
  * - Tombol Back browser antar tab tidak bekerja
  */
 export function useMatchFilters() {
-  const [state, setStateRaw] = useState<PersistedFilters>(DEFAULTS);
+  const [state, setStateRaw] = useState<PersistedFilters>(() => {
+    return typeof window !== "undefined" ? readStorage() : DEFAULTS;
+  });
+  const [isHydrated, setIsHydrated] = useState(false);
 
-  // Baca dari sessionStorage setelah hydration selesai
-  // (useState lazy-init tidak aman di SSR karena window belum ada)
+  // Pastikan sinkron dengan storage setelah hydration
   useEffect(() => {
     setStateRaw(readStorage());
+    setIsHydrated(true);
   }, []);
 
   /** Update partial state + persist ke sessionStorage secara atomik. */
@@ -152,6 +155,8 @@ export function useMatchFilters() {
     state.playerPage === 1;
 
   return {
+    isHydrated,
+
     tab: state.tab,
     setTab,
 

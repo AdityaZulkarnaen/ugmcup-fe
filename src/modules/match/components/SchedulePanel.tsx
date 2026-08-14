@@ -89,25 +89,26 @@ export function SchedulePanel({ isLight = false, filters }: SchedulePanelProps) 
   }, [allMatches]);
 
   // ── Auto-select "hari ini" saat pertama buka (hari belum dipilih user) ──
-  // Berjalan saat data tersedia dan `?hari` belum ada di URL — yaitu saat
-  // pertama membuka halaman, dan lagi setiap kali filter direset (reset
-  // menghapus param `hari`, bukan menyetelnya ke "all").
+  // Berjalan saat data tersedia dan `schedDay` masih kosong bawaan — yaitu saat
+  // pertama membuka halaman, dan lagi setiap kali filter direset.
   const autoSelectedRef = useRef(false);
   useEffect(() => {
+    // Tunggu sampai sessionStorage selesai dimuat (isHydrated true)
+    if (!filters.isHydrated) return;
+
     // Jika user sudah set filter hari secara eksplisit, jangan timpa. Sekaligus
     // buka kembali kunci di bawah supaya reset berikutnya bisa memilih ulang.
     if (!filters.schedDayIsDefault) {
       autoSelectedRef.current = false;
       return;
     }
-    // Kunci sesaat agar render ganda tidak memilih hari dua kali sebelum URL
-    // sempat diperbarui.
+    // Kunci sesaat agar render ganda tidak memilih hari dua kali sebelum state diperbarui.
     if (autoSelectedRef.current || !autoDay) return;
     autoSelectedRef.current = true;
 
     filters.setSchedDay(autoDay);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [autoDay, filters.schedDayIsDefault]);
+  }, [autoDay, filters.schedDayIsDefault, filters.isHydrated]);
 
   /**
    * Hari bawaan yang sudah tertulis di URL tetap dihitung sebagai setelan awal
