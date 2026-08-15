@@ -16,7 +16,7 @@ export function News() {
   }, []);
 
   return (
-    <section className="bg-[#F5F5F5] py-20 text-center text-[#0B0B0F] sm:py-28">
+    <section className="bg-[#FFFFFF] py-20 text-center text-[#0B0B0F] sm:py-28">
       <div className="mx-auto flex w-[87.5%] flex-col items-center">
         <p
           data-aos="fade-down"
@@ -28,7 +28,7 @@ export function News() {
         <h2
           data-aos="fade-up"
           data-aos-delay="100"
-          className="mt-3 text-4xl font-black italic sm:text-6xl"
+          className="mt-3 text-4xl font-black italic leading-[1.1] text-[#0B0B0F] sm:text-6xl lg:text-7xl"
         >
           Event Update
         </h2>

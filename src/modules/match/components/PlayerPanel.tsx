@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useRef } from "react";
 import { getAthletes } from "@/lib/api/admin";
 import { getPublicMatches } from "@/lib/api/matches";
 import { cacheKeys } from "@/lib/api/cache";
@@ -279,6 +279,20 @@ export function PlayerPanel({ isLight = false, filters }: PlayerPanelProps) {
   const pageStart = (safePage - 1) * PAGE_SIZE;
   const pagedStats = filteredStats.slice(pageStart, pageStart + PAGE_SIZE);
 
+  const listTopRef = useRef<HTMLDivElement>(null);
+
+  const goToPage = (next: number) => {
+    filters.setPlayerPage(next);
+    if (typeof window !== "undefined" && listTopRef.current) {
+      const navbarOffset = 90;
+      const elementTop = listTopRef.current.getBoundingClientRect().top + window.pageYOffset;
+      window.scrollTo({
+        top: Math.max(0, elementTop - navbarOffset),
+        behavior: "smooth",
+      });
+    }
+  };
+
   if (isLoading) {
     return (
       <div
@@ -291,7 +305,7 @@ export function PlayerPanel({ isLight = false, filters }: PlayerPanelProps) {
   }
 
   return (
-    <div className="space-y-6">
+    <div ref={listTopRef} className="space-y-6">
       {/* Search & Filter Header */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         {/* Search — pill style */}
@@ -498,7 +512,7 @@ export function PlayerPanel({ isLight = false, filters }: PlayerPanelProps) {
         <Pagination
           page={safePage}
           totalPages={totalPages}
-          onPageChange={filters.setPlayerPage}
+          onPageChange={goToPage}
           summary={`Menampilkan ${pageStart + 1}–${pageStart + pagedStats.length} dari ${filteredStats.length} atlet`}
           isLight={isLight}
         />

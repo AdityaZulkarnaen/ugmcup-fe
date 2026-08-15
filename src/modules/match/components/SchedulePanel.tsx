@@ -270,7 +270,14 @@ export function SchedulePanel({ isLight = false, filters }: SchedulePanelProps) 
 
   const goToPage = (next: number) => {
     filters.setSchedPage(next);
-    listTopRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    if (typeof window !== "undefined" && listTopRef.current) {
+      const navbarOffset = 90;
+      const elementTop = listTopRef.current.getBoundingClientRect().top + window.pageYOffset;
+      window.scrollTo({
+        top: Math.max(0, elementTop - navbarOffset),
+        behavior: "smooth",
+      });
+    }
   };
 
   const hasActiveFilter = day !== "all" || category !== "all" || level !== "all";

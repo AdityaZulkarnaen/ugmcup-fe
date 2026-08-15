@@ -91,7 +91,7 @@ export function CountdownSection() {
       <div className="mx-auto flex w-[87.5%] flex-col items-center">
         <h2
           data-aos="fade-up"
-          className="max-w-[12ch] text-[clamp(2.4rem,4.5vw,4.9rem)] font-black italic leading-[0.95] tracking-tighter text-black sm:max-w-none sm:text-[clamp(3rem,4.5vw,4.9rem)]"
+          className="mt-3 text-4xl font-black italic leading-[1.1] text-black sm:text-6xl lg:text-7xl"
         >
           Event Dimulai Dalam?
         </h2>
