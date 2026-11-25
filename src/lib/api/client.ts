@@ -1,5 +1,16 @@
-const API_BASE =
-  process.env.NEXT_PUBLIC_API_URL;
+const PUBLIC_API_BASE = process.env.NEXT_PUBLIC_API_URL || "/backend-api";
+const SERVER_BACKEND_ORIGIN = (
+  process.env.BACKEND_ORIGIN || "http://54.66.6.54"
+).replace(/\/+$/, "");
+
+function resolveApiBase(): string {
+  // Di Server Component / SSR Next.js, path relatif (/backend-api) tidak valid untuk fetch() Node.js,
+  // sehingga diarahkan langsung ke origin backend EC2.
+  if (typeof window === "undefined" && PUBLIC_API_BASE.startsWith("/")) {
+    return `${SERVER_BACKEND_ORIGIN}/api`;
+  }
+  return PUBLIC_API_BASE;
+}
 
 function getToken(): string | null {
   if (typeof window === "undefined") return null;
@@ -31,7 +42,7 @@ export async function apiRequest<T>(
     headers["Authorization"] = `Bearer ${token}`;
   }
 
-  const res = await fetch(`${API_BASE}${path}`, {
+  const res = await fetch(`${resolveApiBase()}${path}`, {
     ...options,
     headers,
   });
@@ -55,4 +66,4 @@ export async function apiRequest<T>(
   return res.json() as Promise<T>;
 }
 
-export const API_BASE_URL = API_BASE;
+export const API_BASE_URL = PUBLIC_API_BASE;

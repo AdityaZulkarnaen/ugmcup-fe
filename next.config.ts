@@ -1,5 +1,9 @@
 import type { NextConfig } from "next";
 
+const BACKEND_ORIGIN = (
+  process.env.BACKEND_ORIGIN || "http://54.66.6.54"
+).replace(/\/+$/, "");
+
 const nextConfig: NextConfig = {
   /**
    * Emits `.next/standalone` — a self-contained server plus only the
@@ -10,6 +14,14 @@ const nextConfig: NextConfig = {
    * `next start` still works unchanged for local use; this output is additive.
    */
   output: "standalone",
+  async rewrites() {
+    return [
+      {
+        source: "/backend-api/:path*",
+        destination: `${BACKEND_ORIGIN}/api/:path*`,
+      },
+    ];
+  },
   images: {
     unoptimized: true,
     remotePatterns: [
